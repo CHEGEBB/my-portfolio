@@ -30,6 +30,20 @@ import { ParallaxBackground } from "@/components/parallax-background"
 import { ProfileShape } from "@/components/profile-shape"
 import { useAudio } from "@/components/audio-provider"
 import { useRef, useEffect, useState } from "react"
+import reactIcon from '../public/assets/react.svg';
+import nextjsIcon from '../public/assets/nextjs.svg';
+import typescriptIcon from '../public/assets/typescript.svg';
+import nodejsIcon from '../public/assets/nodejs.svg';
+import pythonIcon from '../public/assets/python.svg';
+import mongodbIcon from '../public/assets/mongodb.svg';
+import postgresqlIcon from '../public/assets/postgresql.svg';
+import dockerIcon from '../public/assets/docker.svg';
+import awsIcon from '../public/assets/aws.svg';
+import graphqlIcon from '../public/assets/graphql.svg';
+import figmaIcon from '../public/assets/figma.svg';
+import dartIcon from '../public/assets/dart.svg';
+import flutterIcon from '../public/assets/flutter.svg';
+import Image from "next/image"
 
 export default function HomePage() {
   const { playHover, playClick } = useAudio()
@@ -58,17 +72,20 @@ export default function HomePage() {
   }, [])
 
   const techStack = [
-    { name: "React", icon: Code2, color: "text-blue-400" },
-    { name: "Next.js", icon: Layers, color: "text-white" },
-    { name: "TypeScript", icon: Code2, color: "text-blue-500" },
-    { name: "Node.js", icon: Server, color: "text-green-500" },
-    { name: "Python", icon: Brain, color: "text-yellow-400" },
-    { name: "MongoDB", icon: Database, color: "text-green-400" },
-    { name: "PostgreSQL", icon: Database, color: "text-blue-600" },
-    { name: "Docker", icon: Layers, color: "text-blue-400" },
-    { name: "AWS", icon: Globe, color: "text-orange-400" },
-    { name: "GraphQL", icon: Zap, color: "text-pink-400" },
-  ]
+    { name: "React", icon: reactIcon, glowColor: "group-hover:shadow-blue-400/30" },
+    { name: "Next.js", icon: nextjsIcon, glowColor: "group-hover:shadow-white/30" },
+    { name: "TypeScript", icon: typescriptIcon, glowColor: "group-hover:shadow-blue-500/30" },
+    { name: "Node.js", icon: nodejsIcon, glowColor: "group-hover:shadow-green-500/30" },
+    { name: "Python", icon: pythonIcon, glowColor: "group-hover:shadow-yellow-400/30" },
+    { name: "MongoDB", icon: mongodbIcon, glowColor: "group-hover:shadow-green-400/30" },
+    { name: "PostgreSQL", icon: postgresqlIcon, glowColor: "group-hover:shadow-blue-600/30" },
+    { name: "Docker", icon: dockerIcon, glowColor: "group-hover:shadow-blue-400/30" },
+    { name: "AWS", icon: awsIcon, glowColor: "group-hover:shadow-orange-400/30" },
+    { name: "GraphQL", icon: graphqlIcon, glowColor: "group-hover:shadow-pink-400/30" },
+    { name: "Figma", icon: figmaIcon, glowColor: "group-hover:shadow-purple-400/30" },
+    { name: "Dart", icon: dartIcon, glowColor: "group-hover:shadow-cyan-400/30" },
+    { name: "Flutter", icon: flutterIcon, glowColor: "group-hover:shadow-blue-300/30" },
+  ];
 
   const featuredProjects = [
     {
@@ -224,48 +241,107 @@ export default function HomePage() {
           </motion.div>
         </section>
       </ParallaxBackground>
+{/* Tech Stack Showcase */}
+<section className="relative py-32 px-4 z-10">
+  <div className="max-w-6xl mx-auto">
+    <motion.div
+      initial={{ opacity: 0, y: 100 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 1 }}
+      viewport={{ once: true }}
+      className="text-center mb-20"
+    >
+      <h2 className="text-3xl md:text-5xl font-black mb-8 bg-gradient-to-r from-emerald-400 via-emerald-300 to-cyan-400 bg-clip-text text-transparent drop-shadow-lg font-mono">
+        TECH ARSENAL
+      </h2>
+      <p className="text-lg text-emerald-300/80 font-mono max-w-3xl mx-auto">
+        Cutting-edge technologies powering digital innovation
+      </p>
+    </motion.div>
 
-      {/* Tech Stack Showcase */}
-        <section className="relative py-32 px-4 z-10">
-          <div className="max-w-6xl mx-auto">
+    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+      {techStack.map((tech, index) => (
+        <motion.div
+          key={tech.name}
+          initial={{ opacity: 0, y: 50, rotateY: -30 }}
+          whileInView={{ opacity: 1, y: 0, rotateY: 0 }}
+          transition={{ duration: 0.8, delay: index * 0.1 }}
+          viewport={{ once: true }}
+          whileHover={{ 
+            y: -10, 
+            scale: 1.05,
+            rotateX: 5,
+            rotateY: 5
+          }}
+          className="group cursor-pointer"
+        >
+          <div className={`
+            relative bg-black/40 backdrop-blur-sm p-6 rounded-xl 
+            border border-emerald-400/20 hover:border-emerald-400/60
+            transition-all duration-500 text-center
+            hover:bg-emerald-900/10 hover:shadow-2xl ${tech.glowColor}
+            overflow-hidden
+          `}>
+            {/* Animated background particles */}
+            <div className="absolute top-2 left-2 w-1 h-1 bg-emerald-400 rounded-full opacity-0 group-hover:opacity-100 animate-pulse transition-opacity duration-500"></div>
+            <div className="absolute top-4 right-4 w-1 h-1 bg-cyan-400 rounded-full opacity-0 group-hover:opacity-100 animate-pulse transition-opacity duration-500 delay-300"></div>
+            <div className="absolute bottom-3 left-1/3 w-1 h-1 bg-emerald-300 rounded-full opacity-0 group-hover:opacity-100 animate-pulse transition-opacity duration-500 delay-700"></div>
+            
+            {/* Tech Icon with floating animation */}
             <motion.div
-              initial={{ opacity: 0, y: 100 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1 }}
-              viewport={{ once: true }}
-              className="text-center mb-20"
+              whileHover={{ 
+                rotate: [0, -5, 5, -5, 0],
+                scale: [1, 1.1, 1]
+              }}
+              transition={{ duration: 0.6 }}
+              className="relative z-10 mb-4"
+              style={{
+                animation: `float 3s ease-in-out infinite ${index % 2 === 0 ? '0.5s' : '0s'}`
+              }}
             >
-              <h2 className="text-3xl md:text-5xl font-black mb-8 text-gradient-emerald gentle-glow font-mono">
-                TECH ARSENAL
-              </h2>
-              <p className="text-lg text-emerald-300/80 font-mono max-w-3xl mx-auto">
-                Cutting-edge technologies powering digital innovation
-              </p>
+              <Image
+                src={tech.icon}
+                alt={`${tech.name} icon`}
+                width={48}
+                height={48}
+                className="mx-auto drop-shadow-lg group-hover:drop-shadow-xl transition-all duration-300"
+              />
+              
+              {/* Glowing ring effect */}
+              <div className="absolute inset-0 mx-auto w-12 h-12 rounded-full border-2 border-emerald-400/20 group-hover:border-emerald-400/60 group-hover:shadow-lg group-hover:shadow-emerald-400/30 transition-all duration-500 animate-pulse"></div>
             </motion.div>
-
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
-              {techStack.map((tech, index) => (
-                <motion.div
-                  key={tech.name}
-                  initial={{ opacity: 0, y: 50, rotateY: -30 }}
-                  whileInView={{ opacity: 1, y: 0, rotateY: 0 }}
-                  transition={{ duration: 0.8, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  whileHover={{ y: -10, scale: 1.05 }}
-                  className="group skill-item"
-                  data-cursor="pointer"
-                >
-                  <div className="glass-dark p-6 rounded-xl border border-emerald-400/20 hover:border-emerald-400/40 transition-all duration-500 text-center">
-                    <tech.icon className={`w-12 h-12 mb-4 mx-auto ${tech.color} tech-float`} />
-                    <h3 className="text-lg font-bold text-white group-hover:text-emerald-400 transition-colors duration-300 font-mono">
-                      {tech.name}
-                    </h3>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+            
+            {/* Tech Name */}
+            <h3 className="text-sm md:text-base font-bold text-emerald-100 group-hover:text-emerald-400 transition-colors duration-300 font-mono tracking-wider relative z-10">
+              {tech.name.toUpperCase()}
+            </h3>
+            
+            {/* Scanning line effect */}
+            <div className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-emerald-400 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out"></div>
+            
+            {/* Gradient overlay */}
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-emerald-400/5 to-cyan-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           </div>
-        </section>
+        </motion.div>
+      ))}
+    </div>
+
+    {/* Hacker-style status indicators */}
+    <div className="mt-16 flex justify-center space-x-8 opacity-30">
+      <div className="text-emerald-400 font-mono text-xs animate-pulse">[ SYSTEM READY ]</div>
+      <div className="text-cyan-400 font-mono text-xs animate-pulse delay-500">[ STACK LOADED ]</div>
+      <div className="text-emerald-300 font-mono text-xs animate-pulse delay-1000">[ INNOVATION MODE ]</div>
+    </div>
+  </div>
+
+  {/* Add custom keyframes for float animation */}
+  <style jsx>{`
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-5px); }
+    }
+  `}</style>
+</section>
 
     {/* Stats Section */}
 <section className="relative py-32 px-4 z-10 overflow-hidden">
@@ -948,76 +1024,157 @@ export default function HomePage() {
   </div>
 </section>
 
-      {/* Services Section */}
-      <ParallaxBackground imageUrl="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=1920&h=1080&fit=crop">
-        <section className="relative py-32 px-4 z-10">
-          <div className="max-w-6xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 100 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1 }}
-              viewport={{ once: true }}
-              className="text-center mb-20"
-            >
-              <h2 className="text-3xl md:text-5xl font-black mb-8 text-gradient-emerald gentle-glow font-mono">
-                SERVICES
-              </h2>
-              <p className="text-lg text-emerald-300/80 font-mono max-w-3xl mx-auto">
-                Comprehensive solutions for your digital transformation needs
-              </p>
-            </motion.div>
+{/* Services Section */}
+<section className="relative py-32 px-4 z-10 bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900">
+  <div className="max-w-6xl mx-auto">
+    <motion.div
+      initial={{ opacity: 0, y: 100 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 1 }}
+      viewport={{ once: true }}
+      className="text-center mb-20"
+    >
+      <h2 className="text-3xl md:text-5xl font-black mb-8 bg-gradient-to-r from-blue-400 via-slate-300 to-emerald-400 bg-clip-text text-transparent drop-shadow-lg">
+        SERVICES
+      </h2>
+      <p className="text-lg text-slate-300/80 max-w-3xl mx-auto">
+        Comprehensive solutions for your digital transformation needs
+      </p>
+    </motion.div>
 
-            <div className="grid md:grid-cols-3 gap-8">
-              {[
-                {
-                  title: "Full Stack Development",
-                  description: "End-to-end web application development with modern technologies and best practices",
-                  icon: Globe,
-                  features: ["React/Next.js", "Node.js/Express", "Database Design", "API Development"],
-                },
-                {
-                  title: "Mobile App Development",
-                  description: "Cross-platform mobile applications with native performance and user experience",
-                  icon: Smartphone,
-                  features: ["React Native", "Flutter", "iOS/Android", "App Store Deployment"],
-                },
-                {
-                  title: "Cloud & DevOps",
-                  description: "Scalable cloud infrastructure and automated deployment pipelines",
-                  icon: Server,
-                  features: ["AWS/Azure", "Docker/Kubernetes", "CI/CD Pipelines", "Monitoring"],
-                },
-              ].map((service, index) => (
-                <motion.div
-                  key={service.title}
-                  initial={{ opacity: 0, y: 50, rotateX: -30 }}
-                  whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
-                  transition={{ duration: 0.8, delay: index * 0.2 }}
-                  viewport={{ once: true }}
-                  whileHover={{ y: -10, scale: 1.02 }}
-                  className="group"
-                >
-                  <div className="glass-dark p-8 rounded-xl border border-emerald-400/20 hover:border-emerald-400/40 transition-all duration-500 h-full">
-                    <service.icon className="w-12 h-12 text-emerald-400 mb-6 group-hover:scale-110 transition-transform duration-300" />
-                    <h3 className="text-2xl font-bold mb-4 text-white group-hover:text-emerald-400 transition-colors duration-300 font-mono">
-                      {service.title}
-                    </h3>
-                    <p className="text-slate-300 mb-6 leading-relaxed">{service.description}</p>
-                    <ul className="space-y-2">
-                      {service.features.map((feature, featureIndex) => (
-                        <li key={feature} className="flex items-center space-x-2 text-sm text-slate-400">
-                          <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </motion.div>
-              ))}
+    <div className="grid md:grid-cols-3 gap-8">
+      {[
+        {
+          title: "Full Stack Development",
+          description: "End-to-end web application development with modern technologies and best practices",
+          icon: Globe,
+          features: ["React/Next.js", "Node.js/Express", "Database Design", "API Development"],
+          gradientFrom: "from-blue-500/20",
+          gradientTo: "to-slate-600/20",
+          hoverGradient: "hover:from-blue-500/30 hover:to-slate-600/30",
+          iconColor: "text-blue-400",
+          hoverIconColor: "group-hover:text-blue-300",
+          borderColor: "border-blue-400/20",
+          hoverBorderColor: "hover:border-blue-400/40"
+        },
+        {
+          title: "Mobile App Development",
+          description: "Cross-platform mobile applications with native performance and user experience",
+          icon: Smartphone,
+          features: ["React Native", "Flutter", "iOS/Android", "App Store Deployment"],
+          gradientFrom: "from-slate-500/20",
+          gradientTo: "to-emerald-600/20",
+          hoverGradient: "hover:from-slate-500/30 hover:to-emerald-600/30",
+          iconColor: "text-slate-400",
+          hoverIconColor: "group-hover:text-slate-300",
+          borderColor: "border-slate-400/20",
+          hoverBorderColor: "hover:border-slate-400/40"
+        },
+        {
+          title: "Cloud & DevOps",
+          description: "Scalable cloud infrastructure and automated deployment pipelines",
+          icon: Server,
+          features: ["AWS/Azure", "Docker/Kubernetes", "CI/CD Pipelines", "Monitoring"],
+          gradientFrom: "from-emerald-500/20",
+          gradientTo: "to-blue-600/20",
+          hoverGradient: "hover:from-emerald-500/30 hover:to-blue-600/30",
+          iconColor: "text-emerald-400",
+          hoverIconColor: "group-hover:text-emerald-300",
+          borderColor: "border-emerald-400/20",
+          hoverBorderColor: "hover:border-emerald-400/40"
+        },
+      ].map((service, index) => (    
+        <motion.div
+          key={service.title}
+          initial={{ opacity: 0, y: 50, rotateX: -30 }}
+          whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
+          transition={{ duration: 0.8, delay: index * 0.2 }}
+          viewport={{ once: true }}
+          whileHover={{ y: -10, scale: 1.02 }}
+          className="group"
+        >
+          <div className={`
+            relative bg-black/40 backdrop-blur-sm p-8 rounded-xl 
+            border ${service.borderColor} ${service.hoverBorderColor}
+            transition-all duration-500 h-full overflow-hidden
+            bg-gradient-to-br ${service.gradientFrom} ${service.gradientTo}
+            ${service.hoverGradient}
+          `}>
+            {/* Subtle background pattern */}
+            <div className="absolute inset-0 opacity-5">
+              <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/10 to-transparent"></div>
+              <div className="absolute top-4 right-4 w-32 h-32 bg-gradient-radial from-white/5 to-transparent rounded-full"></div>
             </div>
+
+            <div className="relative z-10">
+              <service.icon className={`
+                w-12 h-12 ${service.iconColor} ${service.hoverIconColor} mb-6 
+                group-hover:scale-110 transition-all duration-300 drop-shadow-lg
+              `} />
+              
+              <h3 className={`
+                text-2xl font-bold mb-4 text-white 
+                group-hover:bg-gradient-to-r ${service.iconColor === 'text-blue-400' ? 'group-hover:from-blue-400 group-hover:to-slate-300' : 
+                service.iconColor === 'text-slate-400' ? 'group-hover:from-slate-400 group-hover:to-emerald-400' : 
+                'group-hover:from-emerald-400 group-hover:to-blue-400'}
+                group-hover:bg-clip-text group-hover:text-transparent
+                transition-all duration-300
+              `}>
+                {service.title}
+              </h3>
+              
+              <p className="text-slate-300 mb-6 leading-relaxed group-hover:text-slate-200 transition-colors duration-300">
+                {service.description}
+              </p>
+              
+              <ul className="space-y-3">
+                {service.features.map((feature, featureIndex) => (
+                  <motion.li 
+                    key={feature} 
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ delay: (index * 0.2) + (featureIndex * 0.1) }}
+                    className="flex items-center space-x-3 text-sm text-slate-400 group-hover:text-slate-300 transition-colors duration-300"
+                  >
+                    <div className={`
+                      w-2 h-2 ${service.iconColor.replace('text-', 'bg-')} rounded-full 
+                      group-hover:scale-125 group-hover:shadow-sm 
+                      ${service.iconColor === 'text-blue-400' ? 'group-hover:shadow-blue-400/50' :
+                        service.iconColor === 'text-slate-400' ? 'group-hover:shadow-slate-400/50' :
+                        'group-hover:shadow-emerald-400/50'}
+                      transition-all duration-300
+                    `}></div>
+                    <span className="group-hover:translate-x-1 transition-transform duration-300">
+                      {feature}
+                    </span>
+                  </motion.li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Hover glow effect */}
+            <div className={`
+              absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 
+              transition-opacity duration-500 pointer-events-none
+              ${service.iconColor === 'text-blue-400' ? 'shadow-xl shadow-blue-500/10' :
+                service.iconColor === 'text-slate-400' ? 'shadow-xl shadow-slate-500/10' :
+                'shadow-xl shadow-emerald-500/10'}
+            `}></div>
           </div>
-        </section>
-      </ParallaxBackground>
+        </motion.div>
+      ))}
+    </div>
+
+    {/* Bottom decorative elements */}
+    <div className="mt-20 flex justify-center">
+      <div className="flex space-x-2">
+        <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+        <div className="w-2 h-2 bg-slate-400 rounded-full animate-pulse delay-300"></div>
+        <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse delay-500"></div>
+      </div>
+    </div>
+  </div>
+</section>
 
       {/* Footer */}
       <footer className="relative py-20 px-4 z-10 border-t border-emerald-400/20 bg-slate-900/90">
