@@ -55,7 +55,7 @@ export function ProfileShape({ imageUrl, className = "" }: ProfileShapeProps) {
         initial={{ opacity: 0, scale: 0, rotate: -180 }}
         animate={{ opacity: 1, scale: 1, rotate: 0 }}
         transition={{ duration: 1.5, ease: "easeOut" }}
-        className="relative w-64 h-64 mx-auto"
+        className="relative w-80 h-80 mx-auto"
       >
         {/* Outer Glow Ring */}
         <motion.div
