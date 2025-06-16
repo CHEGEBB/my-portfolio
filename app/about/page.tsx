@@ -6,7 +6,7 @@ import { useState, useEffect } from "react"
 
 // Your Original Matrix Rain Component (keeping it exactly as you had it)
 const MatrixRain = () => {
-  const [drops, setDrops] = useState([])
+  const [drops, setDrops] = useState<{ id: number; x: number; y: number; char: string; speed: number; opacity: number; }[]>([])
 
   useEffect(() => {
     const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*(){}[]<>?/.,;:!+-=_"
@@ -105,7 +105,7 @@ const InfinitePlatformSlider = () => {
 
 // Enhanced Realistic Terminal Component (made smaller)
 const TerminalComponent = () => {
-  const [terminalLines, setTerminalLines] = useState([])
+  const [terminalLines, setTerminalLines] = useState<string[]>([])
   const [currentLine, setCurrentLine] = useState("")
   const [isTyping, setIsTyping] = useState(false)
 
@@ -259,7 +259,10 @@ const ProfileSection = () => {
               src="/assets/profile.jpg" 
               alt="Brian Chege"
               className="absolute inset-0 w-full h-full object-cover opacity-0"
-              onLoad={(e) => e.target.style.opacity = '1'}
+              onLoad={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.opacity = '1';
+              }}
             />
           </div>
         </motion.div>
