@@ -1,158 +1,148 @@
-"use client"
-
-import type React from "react"
-
-import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
-import { useState, useEffect, useRef, useMemo, useCallback } from "react"
-import {
-  Github,
-  ExternalLink,
-  Star,
-  GitFork,
-  Zap,
-  Rocket,
-  Brain,
-  Shield,
-  Globe,
-  Database,
-  Smartphone,
-  Cloud,
-  Search,
-  TrendingUp,
-  Award,
-  Users,
-  Code,
-  Menu,
-  X,
-  ChevronRight,
-  Home,
-  User,
-  Briefcase,
-  Mail,
-  Trophy,
-} from "lucide-react"
-import Image from "next/image"
-
-// Optimized Particle System
-const FloatingParticles = ({ count = 6 }: { count?: number }) => {
-  const particles = useMemo(
-    () =>
-      Array.from({ length: count }, (_, i) => ({
-        id: i,
-        x: Math.random() * 100,
-        y: Math.random() * 100,
-        delay: Math.random() * 2,
-        duration: 3 + Math.random() * 2,
-      })),
-    [count],
-  )
-
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20">
-      {particles.map((particle) => (
-        <motion.div
-          key={particle.id}
-          className="absolute w-1 h-1 bg-emerald-400/60 rounded-full"
-          style={{ left: `${particle.x}%`, top: `${particle.y}%` }}
-          animate={{
-            opacity: [0.3, 0.8, 0.3],
-            scale: [1, 1.5, 1],
-            y: [0, -20, 0],
-          }}
-          transition={{
-            duration: particle.duration,
-            repeat: Number.POSITIVE_INFINITY,
-            delay: particle.delay,
-            ease: "easeInOut",
-          }}
-        />
-      ))}
-    </div>
-  )
-}
-
-// Infinite Scrolling Strip Component
-const InfiniteScrollingStrip = () => {
-  const platforms = [
-    "Frontend Mentor",
-    "Dev Challenges",
-    "Frontend Pro",
-    "Codewars",
-    "HackerRank",
-    "LeetCode",
-    "Codeforces",
-    "AtCoder",
-    "TopCoder",
-    "Kaggle",
-    "GitHub",
-    "GitLab",
-    "Bitbucket",
-    "Vercel",
-    "Netlify",
-    "Heroku",
-  ]
-
-  // Duplicate the array to create seamless loop
-  const duplicatedPlatforms = [...platforms, ...platforms]
-
-  return (
-    <div className="w-full overflow-hidden bg-gradient-to-r from-emerald-900/20 via-emerald-800/30 to-emerald-900/20 border-y border-emerald-400/20 py-4 my-16">
-      <motion.div
-        className="flex whitespace-nowrap"
-        animate={{
-          x: [0, -50 * platforms.length + "%"],
-        }}
-        transition={{
-          x: {
-            repeat: Number.POSITIVE_INFINITY,
-            repeatType: "loop",
-            duration: 30,
-            ease: "linear",
-          },
-        }}
-      >
-        {duplicatedPlatforms.map((platform, index) => (
-          <div
-            key={`${platform}-${index}`}
-            className="flex items-center mx-8 text-emerald-300 font-mono text-lg font-bold"
-          >
-            <Code className="w-5 h-5 mr-2 text-emerald-400" />
-            <span className="gentle-glow">{platform}</span>
-            <div className="w-2 h-2 bg-emerald-400 rounded-full mx-8 opacity-60" />
-          </div>
-        ))}
-      </motion.div>
-    </div>
-  )
-}
-
-// GitHub API Hook
-const useGitHubRepos = (username: string) => {
-  const [repos, setRepos] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-
-  useEffect(() => {
-    const fetchRepos = async () => {
-      try {
-        const response = await fetch(`https://api.github.com/users/${username}/repos?sort=updated&per_page=100`)
-        if (!response.ok) throw new Error("Failed to fetch repositories")
-        const data = await response.json()
-        const sortedRepos = data.sort((a: any, b: any) => b.stargazers_count - a.stargazers_count)
-        setRepos(sortedRepos.slice(0, 5))
-      } catch (err: any) {
-        setError(err.message)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchRepos()
+"use client" 
+ 
+import type React from "react" 
+ 
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion" 
+import { useState, useEffect, useRef, useMemo, useCallback } from "react" 
+import { 
+  Github, 
+  ExternalLink, 
+  Star, 
+  GitFork, 
+  Zap, 
+  Brain, 
+  Shield, 
+  Globe, 
+  Smartphone, 
+  Search, 
+  TrendingUp, 
+  Award, 
+  Users, 
+  Code, 
+  Trophy, 
+} from "lucide-react" 
+import Image from "next/image" 
+ 
+// Optimized Particle System 
+const FloatingParticles = ({ count = 6 }: { count?: number }) => { 
+  const particles = useMemo( 
+    () => 
+      Array.from({ length: count }, (_, i) => ({ 
+        id: i, 
+        x: Math.random() * 100, 
+        y: Math.random() * 100, 
+        delay: Math.random() * 2, 
+        duration: 3 + Math.random() * 2, 
+      })), 
+    [count], 
+  ) 
+ 
+  return ( 
+    <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20"> 
+      {particles.map((particle) => ( 
+        <motion.div 
+          key={particle.id} 
+          className="absolute w-1 h-1 bg-emerald-400/60 rounded-full" 
+          style={{ left: `${particle.x}%`, top: `${particle.y}%` }} 
+          animate={{ 
+            opacity: [0.3, 0.8, 0.3], 
+            scale: [1, 1.5, 1], 
+            y: [0, -20, 0], 
+          }} 
+          transition={{ 
+            duration: particle.duration, 
+            repeat: Infinity, 
+            delay: particle.delay, 
+            ease: "easeInOut", 
+          }} 
+        /> 
+      ))} 
+    </div> 
+  ) 
+} 
+ 
+// Infinite Scrolling Strip Component 
+const InfiniteScrollingStrip = () => { 
+  const platforms = [ 
+    "Frontend Mentor", 
+    "Dev Challenges", 
+    "Frontend Pro", 
+    "Codewars", 
+    "HackerRank", 
+    "LeetCode", 
+    "Codeforces", 
+    "AtCoder", 
+    "TopCoder", 
+    "Kaggle", 
+    "GitHub", 
+    "GitLab", 
+    "Bitbucket", 
+    "Vercel", 
+    "Netlify", 
+    "Heroku", 
+  ] 
+ 
+  // Duplicate the array to create seamless loop 
+  const duplicatedPlatforms = [...platforms, ...platforms] 
+ 
+  return ( 
+    <div className="w-full overflow-hidden bg-gradient-to-r from-emerald-900/20 via-emerald-800/30 to-emerald-900/20 border-y border-emerald-400/20 py-4 my-16"> 
+      <motion.div 
+        className="flex whitespace-nowrap" 
+        animate={{ 
+          x: [0, -50 * platforms.length + "%"], 
+        }} 
+        transition={{ 
+          x: { 
+            repeat: Infinity, 
+            repeatType: "loop", 
+            duration: 30, 
+            ease: "linear", 
+          }, 
+        }} 
+      > 
+        {duplicatedPlatforms.map((platform, index) => ( 
+          <div 
+            key={`${platform}-${index}`} 
+            className="flex items-center mx-8 text-emerald-300 font-mono text-lg font-bold" 
+          > 
+            <Code className="w-5 h-5 mr-2 text-emerald-400" /> 
+            <span className="gentle-glow">{platform}</span> 
+            <div className="w-2 h-2 bg-emerald-400 rounded-full mx-8 opacity-60" /> 
+          </div> 
+        ))} 
+      </motion.div> 
+    </div> 
+  ) 
+} 
+ 
+// GitHub API Hook 
+const useGitHubRepos = (username: string) => { 
+  const [repos, setRepos] = useState<any[]>([]) 
+  const [loading, setLoading] = useState(true) 
+  const [error, setError] = useState<string | null>(null) 
+ 
+  useEffect(() => { 
+    const fetchRepos = async () => { 
+      try { 
+        const response = await fetch(`https://api.github.com/users/CHEGEBB/repos?sort=updated&per_page=100`) 
+        if (!response.ok) throw new Error("Failed to fetch repositories") 
+        const data = await response.json() 
+        const sortedRepos = data.sort((a: any, b: any) => b.stargazers_count - a.stargazers_count) 
+        setRepos(sortedRepos.slice(0, 5)) 
+      } catch (err: any) { 
+        setError(err.message) 
+      } finally { 
+        setLoading(false) 
+      } 
+    } 
+ 
+    fetchRepos() 
   }, [username])
 
   return { repos, loading, error }
 }
-
+ 
 // Animated Counter Component
 const AnimatedCounter = ({ end, duration = 2, suffix = "" }: { end: number; duration?: number; suffix?: string }) => {
   const [count, setCount] = useState(0)
@@ -199,137 +189,6 @@ const AnimatedCounter = ({ end, duration = 2, suffix = "" }: { end: number; dura
       {count}
       {suffix}
     </div>
-  )
-}
-
-// Animated Navigation Component
-const AnimatedNavigation = () => {
-  const [isOpen, setIsOpen] = useState(false)
-  const [activeItem, setActiveItem] = useState("home")
-
-  const navItems = [
-    { id: "home", label: "Home", icon: Home },
-    { id: "about", label: "About", icon: User },
-    { id: "projects", label: "Projects", icon: Briefcase },
-    { id: "contact", label: "Contact", icon: Mail },
-  ]
-
-  return (
-    <motion.nav
-      initial={{ opacity: 0, y: -50 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8 }}
-      className="fixed top-8 left-1/2 transform -translate-x-1/2 z-50"
-    >
-      <div className="glass-dark px-6 py-3 rounded-full border border-emerald-400/30 backdrop-blur-lg">
-        <div className="flex items-center space-x-6">
-          {/* Logo */}
-          <motion.div
-            whileHover={{ scale: 1.1, rotate: 360 }}
-            transition={{ duration: 0.5 }}
-            className="w-8 h-8 bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full flex items-center justify-center"
-          >
-            <Code className="w-4 h-4 text-white" />
-          </motion.div>
-
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-1">
-            {navItems.map((item) => (
-              <motion.button
-                key={item.id}
-                onClick={() => setActiveItem(item.id)}
-                className={`relative px-4 py-2 rounded-full font-mono text-sm transition-all duration-300 ${
-                  activeItem === item.id ? "text-emerald-400" : "text-gray-300 hover:text-emerald-400"
-                }`}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <div className="flex items-center space-x-2">
-                  <item.icon className="w-4 h-4" />
-                  <span>{item.label}</span>
-                </div>
-                {activeItem === item.id && (
-                  <motion.div
-                    layoutId="activeNav"
-                    className="absolute inset-0 bg-emerald-400/20 rounded-full border border-emerald-400/50"
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                  />
-                )}
-              </motion.button>
-            ))}
-          </div>
-
-          {/* Mobile Menu Button */}
-          <motion.button
-            onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden p-2 text-emerald-400"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <AnimatePresence mode="wait">
-              {isOpen ? (
-                <motion.div
-                  key="close"
-                  initial={{ rotate: -90, opacity: 0 }}
-                  animate={{ rotate: 0, opacity: 1 }}
-                  exit={{ rotate: 90, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <X className="w-5 h-5" />
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="menu"
-                  initial={{ rotate: 90, opacity: 0 }}
-                  animate={{ rotate: 0, opacity: 1 }}
-                  exit={{ rotate: -90, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <Menu className="w-5 h-5" />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.button>
-        </div>
-
-        {/* Mobile Menu */}
-        <AnimatePresence>
-          {isOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-              className="md:hidden mt-4 pt-4 border-t border-emerald-400/20"
-            >
-              <div className="flex flex-col space-y-2">
-                {navItems.map((item, index) => (
-                  <motion.button
-                    key={item.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    onClick={() => {
-                      setActiveItem(item.id)
-                      setIsOpen(false)
-                    }}
-                    className={`flex items-center space-x-3 px-4 py-2 rounded-lg font-mono text-sm transition-all duration-300 ${
-                      activeItem === item.id
-                        ? "text-emerald-400 bg-emerald-400/10"
-                        : "text-gray-300 hover:text-emerald-400 hover:bg-emerald-400/5"
-                    }`}
-                  >
-                    <item.icon className="w-4 h-4" />
-                    <span>{item.label}</span>
-                    <ChevronRight className="w-3 h-3 ml-auto" />
-                  </motion.button>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </motion.nav>
   )
 }
 
@@ -509,62 +368,152 @@ export default function ProjectsPage() {
     () => [
       {
         id: 1,
-        title: "E-commerce Product Page",
+        title: "conference-ticket-generator-main",
         difficulty: "Junior",
-        image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&h=400&fit=crop&q=80",
-        tech: ["HTML", "CSS", "JavaScript"],
-        github: "https://github.com/CHEGEBB/ecommerce-product-page",
-        live: "https://ecommerce-product-page-demo.vercel.app",
+        image: "/assets/conference.jpg",
+        tech: ["Vue", "Tailwind css", "JavaScript"],
+        github: "https://github.com/CHEGEBB/Mastering-Vue-Journey/tree/main/conference-ticket-generator-main",
+        live: "https://conference-ticket-generator-zeta.vercel.app/",
         completed: true,
       },
       {
         id: 2,
-        title: "Interactive Rating Component",
-        difficulty: "Newbie",
-        image: "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=600&h=400&fit=crop&q=80",
-        tech: ["React", "CSS", "JavaScript"],
-        github: "https://github.com/CHEGEBB/interactive-rating",
-        live: "https://interactive-rating-demo.vercel.app",
+        title: "coding-bootcamp-testimonials-master",
+        difficulty: "Junior",
+        image: "https://res.cloudinary.com/dz209s6jk/image/upload/f_auto,q_auto,w_500/Screenshots/sb339yhgjcsxz3ntn5qe.jpg",
+        tech: ["Vue", "Tailwind css", "JavaScript"],
+        github: "https://github.com/CHEGEBB/Mastering-Vue-Journey/tree/main/coding-bootcamp-testimonials-slider-master",
+        live: "https://coding-bootcamp-testimonials-ten-pied.vercel.app/",
         completed: true,
       },
       {
         id: 3,
-        title: "NFT Preview Card",
-        difficulty: "Newbie",
-        image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&h=400&fit=crop&q=80",
-        tech: ["HTML", "CSS", "Flexbox"],
-        github: "https://github.com/CHEGEBB/nft-preview-card",
-        live: "https://nft-preview-card-demo.vercel.app",
+        title: "room-homepage-master",
+        difficulty: "Intermediate",
+        image: "https://res.cloudinary.com/dz209s6jk/image/upload/f_auto,q_auto,w_500/Screenshots/lr61m6itzhfgl8vigahy.jpg",
+        tech: ["Tailwind css", "Vue", "Flexbox"],
+        github: "https://github.com/CHEGEBB/Mastering-Vue-Journey/tree/main/room-homepage-master",
+        live: "https://room-homepage-master-iota.vercel.app/",
         completed: true,
       },
       {
         id: 4,
-        title: "Advice Generator App",
+        title: "Intro section with dropdown navigation",
         difficulty: "Junior",
-        image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&h=400&fit=crop&q=80",
-        tech: ["JavaScript", "API", "CSS"],
-        github: "https://github.com/CHEGEBB/advice-generator",
-        live: "https://advice-generator-demo.vercel.app",
+        image: "https://res.cloudinary.com/dz209s6jk/image/upload/f_auto,q_auto,w_500/Screenshots/k7jxiqomeuyasctla7om.jpg",
+        tech: ["Svelte", "Typescript", "CSS"],
+        github: "https://github.com/CHEGEBB/Svelte-Frontend-Challenges",
+        live: "https://chegebb.github.io/Svelte-Frontend-Challenges/",
         completed: true,
       },
       {
         id: 5,
         title: "Todo App",
         difficulty: "Intermediate",
-        image: "https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=600&h=400&fit=crop&q=80",
-        tech: ["React", "Local Storage", "CSS Grid"],
-        github: "https://github.com/CHEGEBB/todo-app",
-        live: "https://todo-app-demo.vercel.app",
+        image: "https://res.cloudinary.com/dz209s6jk/image/upload/f_auto,q_auto,w_500/Screenshots/zp9amjzjqzwglcknzgd8.jpg",
+        tech: ["Vue", "Tailwind css","Local storage"],
+        github: "https://github.com/CHEGEBB/Mastering-Vue-Journey/tree/main/todo-app",
+        live: "https://todo-app-olive-theta.vercel.app/",
         completed: true,
       },
       {
         id: 6,
-        title: "REST Countries API",
+        title: "launch-countdown-timer",
         difficulty: "Intermediate",
-        image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600&h=400&fit=crop&q=80",
-        tech: ["React", "API", "Search", "Filter"],
-        github: "https://github.com/CHEGEBB/rest-countries",
-        live: "https://rest-countries-demo.vercel.app",
+        image: "https://res.cloudinary.com/dz209s6jk/image/upload/f_auto,q_auto,w_500/Screenshots/xjnrm0y8a3kvlaiut7cn.jpg",
+        tech: ["React", "Sass", "Vite", "Tailwind css"],
+        github: "https://github.com/CHEGEBB/launch-countdown-timer",
+        live: "https://chegebb.github.io/launch-countdown-timer/",
+        completed: true,
+      },
+      {
+        id: 7,
+        title: "job-listings-page",
+        difficulty: "Intermediate",
+        image: "https://res.cloudinary.com/dz209s6jk/image/upload/f_auto,q_auto,w_500/Screenshots/grmw9eaehnotl7xpecnp.jpg",
+        tech: ["Vue", "Sass", "Fetch", "Tailwind css"],
+        github: "https://github.com/CHEGEBB/launch-countdown-timer",
+        live: "https://job-listings-olive.vercel.app/",
+        completed: true,
+      },
+      {
+        id: 8,
+        title: "crowdfunding-product-page-main",
+        difficulty: "Junior",
+        image: "https://res.cloudinary.com/dz209s6jk/image/upload/f_auto,q_auto,w_500/Screenshots/sewtogrjlkhtr7r3rpsq.jpg",
+        tech: ["Vue", "Vuex", "Tailwind css"],
+        github: "https://github.com/CHEGEBB/Mastering-Vue-Journey/tree/main/crowdfunding-product-page-main",
+        live: "https://crowdfunding-page-rust.vercel.app/",
+        completed: true,
+      },
+      {
+        id: 9,
+        title: "rock-paper-scissors-game",
+        difficulty: "Advanced",
+        image: "https://res.cloudinary.com/dz209s6jk/image/upload/f_auto,q_auto,w_500/Screenshots/ck9dtmelgtbjtxw8xivj.jpg",
+        tech: ["React", "Sass", "Html"],
+        github: "https://github.com/CHEGEBB/rock-paper-scissors-game",
+        live: "https://chegebb.github.io/rock-paper-scissors-game/",
+        completed: true,
+      },
+      {
+        id: 10,
+        title: "time-tracking-dashboard-main",
+        difficulty: "Intermediate",
+        image: "https://res.cloudinary.com/dz209s6jk/image/upload/f_auto,q_auto,w_500/Screenshots/aywzf0npobqzms0axfu6.jpg",
+        tech: ["React", "Sass", "Fetch", "Webpack"],
+        github: "https://github.com/CHEGEBB/time-tracking-dashboard-main",
+        live: "https://chegebb.github.io/time-tracking-dashboard-main/",
+        completed: true,
+      },
+      {
+        id: 11,
+        title: "interactive-card-details-form-main",
+        difficulty: "Intermediate",
+        image: "https://res.cloudinary.com/dz209s6jk/image/upload/f_auto,q_auto,w_500/Screenshots/lt4gtoe6oew5rxeylimm.jpg",
+        tech: ["React", "Sass", "Vite", "Tailwind css"],
+        github: "https://github.com/CHEGEBB/interactive-card-details-form-main",
+        live: "https://chegebb.github.io/interactive-card-details-form-main/",
+        completed: true,
+      },
+      {
+        id: 12,
+        title: "launch-countdown-timer",
+        difficulty: "Intermediate",
+        image: "https://res.cloudinary.com/dz209s6jk/image/upload/f_auto,q_auto,w_500/Screenshots/xjnrm0y8a3kvlaiut7cn.jpg",
+        tech: ["React", "Sass", "Vite", "Tailwind css"],
+        github: "https://github.com/CHEGEBB/launch-countdown-timer",
+        live: "https://chegebb.github.io/launch-countdown-timer/",
+        completed: true,
+      },
+      {
+        id: 13,
+        title: "launch-countdown-timer",
+        difficulty: "Intermediate",
+        image: "https://res.cloudinary.com/dz209s6jk/image/upload/f_auto,q_auto,w_500/Screenshots/xjnrm0y8a3kvlaiut7cn.jpg",
+        tech: ["React", "Sass", "Vite", "Tailwind css"],
+        github: "https://github.com/CHEGEBB/launch-countdown-timer",
+        live: "https://chegebb.github.io/launch-countdown-timer/",
+        completed: true,
+      },
+      {
+        id: 14,
+        title: "launch-countdown-timer",
+        difficulty: "Intermediate",
+        image: "https://res.cloudinary.com/dz209s6jk/image/upload/f_auto,q_auto,w_500/Screenshots/xjnrm0y8a3kvlaiut7cn.jpg",
+        tech: ["React", "Sass", "Vite", "Tailwind css"],
+        github: "https://github.com/CHEGEBB/launch-countdown-timer",
+        live: "https://chegebb.github.io/launch-countdown-timer/",
+        completed: true,
+      },
+      {
+        id: 15,
+        title: "launch-countdown-timer",
+        difficulty: "Intermediate",
+        image: "https://res.cloudinary.com/dz209s6jk/image/upload/f_auto,q_auto,w_500/Screenshots/xjnrm0y8a3kvlaiut7cn.jpg",
+        tech: ["React", "Sass", "Vite", "Tailwind css"],
+        github: "https://github.com/CHEGEBB/launch-countdown-timer",
+        live: "https://chegebb.github.io/launch-countdown-timer/",
         completed: true,
       },
     ],
@@ -595,21 +544,20 @@ export default function ProjectsPage() {
   return (
     <div ref={containerRef} className="min-h-screen pt-20 px-4 relative overflow-hidden bg-slate-900">
       {/* Animated Navigation */}
-      <AnimatedNavigation />
 
       {/* Hero Parallax Background - Updated with object-contain */}
       <motion.div
         style={{ y: heroParallaxY }}
-        className="fixed inset-0 z-0 opacity-30"
+        className="fixed top-0 left-0 right-0 h-[100vh] z-0 opacity-30"
         initial={{ scale: 1.1 }}
         animate={{ scale: 1 }}
         transition={{ duration: 20, ease: "linear" }}
       >
         <Image
-          src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920&h=1080&fit=crop&q=80"
+          src="/assets/code2.jpg"
           alt="Tech Background"
           fill
-          className="object-contain"
+          className="object-cover"
           priority
         />
         <div className="absolute inset-0 bg-gradient-to-b from-slate-900/50 via-slate-900/30 to-slate-900/80" />
@@ -1309,23 +1257,22 @@ export default function ProjectsPage() {
 
                   {/* Project Info */}
                   <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <h3 className="text-sm font-bold text-white mb-2 font-mono group-hover:text-emerald-400 transition-colors duration-300">
-                      {project.title}
-                    </h3>
+                    <h3 className="text-sm font-bold text-white mb-2 font-mono">{project.title}</h3>
+                    <p className="text-gray-300 text-sm mb-4 line-clamp-2">{project.description}</p>
 
-                    {/* Tech Stack */}
-                    <div className="flex flex-wrap gap-1 mb-2">
-                      {project.tech.slice(0, 2).map((tech) => (
+                    {/* Tech Stack Pills */}
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {project.tech.slice(0, 3).map((tech) => (
                         <span
                           key={tech}
-                          className="px-2 py-0.5 text-xs font-mono glass-emerald text-emerald-300 rounded border border-emerald-400/30"
+                          className="px-2 py-1 text-xs font-mono glass-emerald text-emerald-300 rounded-full border border-emerald-400/30"
                         >
                           {tech}
                         </span>
                       ))}
-                      {project.tech.length > 2 && (
-                        <span className="px-2 py-0.5 text-xs font-mono bg-gray-500/20 text-gray-400 rounded">
-                          +{project.tech.length - 2}
+                      {project.tech.length > 3 && (
+                        <span className="px-2 py-1 text-xs font-mono bg-gray-500/20 text-gray-400 rounded-full">
+                          +{project.tech.length - 3}
                         </span>
                       )}
                     </div>
@@ -1333,114 +1280,6 @@ export default function ProjectsPage() {
                 </div>
               </motion.div>
             ))}
-          </div>
-        </motion.section>
-
-        {/* Technology Stack Showcase */}
-        <motion.section
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true, margin: "-100px" }}
-          className="mb-24"
-        >
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-black text-emerald-400 font-mono mb-4">TECH_ARSENAL</h2>
-            <p className="text-gray-400 font-mono">Technologies powering innovation</p>
-          </div>
-
-          <div className="glass-dark p-8 rounded-lg border border-emerald-400/20">
-            <div className="grid md:grid-cols-3 gap-8">
-              {[
-                {
-                  category: "Frontend",
-                  icon: Globe,
-                  color: "text-blue-400",
-                  techs: ["React", "Next.js", "TypeScript", "Tailwind CSS", "Three.js"],
-                },
-                {
-                  category: "Backend",
-                  icon: Database,
-                  color: "text-green-400",
-                  techs: ["Node.js", "Python", "Express", "GraphQL", "MongoDB"],
-                },
-                {
-                  category: "DevOps",
-                  icon: Cloud,
-                  color: "text-purple-400",
-                  techs: ["Docker", "Kubernetes", "AWS", "Vercel", "GitHub Actions"],
-                },
-              ].map((stack, index) => (
-                <motion.div
-                  key={stack.category}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  className="text-center"
-                >
-                  <div className="flex items-center justify-center mb-6">
-                    <stack.icon className={`w-8 h-8 ${stack.color} mr-3`} />
-                    <h3 className={`text-xl font-bold ${stack.color} font-mono`}>{stack.category}</h3>
-                  </div>
-                  <div className="space-y-3">
-                    {stack.techs.map((tech, techIndex) => (
-                      <motion.div
-                        key={tech}
-                        initial={{ opacity: 0, x: -10 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.3, delay: techIndex * 0.05 }}
-                        viewport={{ once: true }}
-                        whileHover={{ x: 5, scale: 1.02 }}
-                        className="px-4 py-2 glass-emerald rounded-lg border border-emerald-400/30 font-mono text-sm"
-                      >
-                        {tech}
-                      </motion.div>
-                    ))}
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </motion.section>
-
-        {/* Call to Action */}
-        <motion.section
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="text-center mb-16"
-        >
-          <div className="glass-dark p-12 rounded-2xl border border-emerald-400/20 relative overflow-hidden">
-            <FloatingParticles count={10} />
-            <div className="relative z-10">
-              <h3 className="text-4xl font-black text-emerald-400 mb-6 font-mono">READY_TO_COLLABORATE?</h3>
-              <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-                Let's build something extraordinary together. Your vision, my expertise.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <motion.a
-                  href="https://github.com/CHEGEBB"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-8 py-4 glass-dark border border-emerald-400/30 rounded-lg font-mono text-emerald-300 hover:border-emerald-400/60 hover:text-white transition-all duration-300 flex items-center justify-center space-x-2"
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <Github className="w-5 h-5" />
-                  <span>VIEW_GITHUB</span>
-                </motion.a>
-                <motion.button
-                  className="px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-lg font-mono text-white hover:from-emerald-700 hover:to-teal-700 transition-all duration-300 flex items-center justify-center space-x-2"
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <Rocket className="w-5 h-5" />
-                  <span>START_PROJECT</span>
-                </motion.button>
-              </div>
-            </div>
           </div>
         </motion.section>
       </div>
