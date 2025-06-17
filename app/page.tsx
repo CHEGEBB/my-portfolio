@@ -815,7 +815,7 @@ export default function HomePage() {
               ESTABLISH_CONNECTION
             </h2>
             <p className="text-lg text-emerald-300/80 font-mono max-w-3xl mx-auto">
-              Ready to collaborate? Let's build something extraordinary together.
+              Ready to collaborate? Let&apos;s build something extraordinary together.
             </p>
           </motion.div>
 

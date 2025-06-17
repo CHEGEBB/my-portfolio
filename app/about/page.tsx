@@ -168,11 +168,11 @@ const TerminalComponent = () => {
       cmd: "cat journey.txt",
       output: `MY JOURNEY:
 
-Since high school, I've had a deep fascination with computers 
+Since high school, I&apos;ve had a deep fascination with computers 
 and technology. What started as curiosity evolved into passion 
 when I wrote my first lines of code.
 
-Today, I'm building applications that solve real-world problems, 
+Today, I&apos;m building applications that solve real-world problems, 
 constantly learning new technologies, and contributing to the 
 tech community.`,
     },
@@ -252,7 +252,7 @@ drwxr-xr-x tools/        [Git, Docker, AWS]`,
         </div>
         <div className="p-4 font-mono text-sm h-80 bg-gray-900">
           <div className="text-emerald-400 mb-4 text-xs">
-            Welcome to Brian's Terminal v2.1.0
+            Welcome to Brian&apos;s Terminal v2.1.0
             <br />
             Last login: {new Date().toLocaleString()}
             <br />
@@ -671,19 +671,19 @@ export default function AboutPage() {
             <div className="glass-dark p-8 rounded-lg border border-emerald-400/20 hacker-shape">
               <div className="space-y-6 text-gray-300 leading-relaxed">
                 <p className="text-lg">
-                  Since high school, I've had a deep fascination with computers and technology. What started as
+                  Since high school, I&apos;ve had a deep fascination with computers and technology. What started as
                   curiosity evolved into passion when I wrote my first lines of code. The ability to create something
                   from nothing, to solve problems with logic and creativity, captivated me.
                 </p>
                 <p>
-                  This passion led me to pursue Computer Science at Dedan Kimathi University of Technology, where I've
-                  been expanding my knowledge and skills in software development, algorithms, and system design. I've
+                  This passion led me to pursue Computer Science at Dedan Kimathi University of Technology, where I&apos;ve
+                  been expanding my knowledge and skills in software development, algorithms, and system design. I&apos;ve
                   supplemented my formal education with specialized programs like ALX Software Engineering, PLP Africa,
                   and Teach2Give.
                 </p>
                 <p>
-                  Today, I'm building applications that solve real-world problems, constantly learning new technologies,
-                  and contributing to the tech community. As Co-Founder & CTO of Health Master, I'm applying my skills
+                  Today, I&apos;m building applications that solve real-world problems, constantly learning new technologies,
+                  and contributing to the tech community. As Co-Founder & CTO of Health Master, I&apos;m applying my skills
                   to improve health outcomes through innovative technology.
                 </p>
               </div>
@@ -829,8 +829,8 @@ export default function AboutPage() {
             <div className="glass-dark p-12 rounded-lg border border-emerald-400/20 hacker-shape">
               <h2 className="text-3xl font-black mb-6 text-emerald-400 font-mono">READY_TO_COLLABORATE?</h2>
               <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-                Let's build something amazing together. Whether it's a web application, mobile app, or full-stack
-                solution, I'm ready to turn your ideas into reality.
+                Let&apos;s build something amazing together. Whether it&apos;s a web application, mobile app, or full-stack
+                solution, I&apos;m ready to turn your ideas into reality.
               </p>
               <div className="flex flex-wrap justify-center gap-4">
                 <motion.button

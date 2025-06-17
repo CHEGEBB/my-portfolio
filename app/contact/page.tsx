@@ -1006,7 +1006,7 @@ export default function ContactPage() {
               />
             </h2>
             <p className="text-xl text-gray-300 mb-8 font-mono">
-              Let's turn your ideas into reality. Whether it's a web application, mobile app, or something completely
+              Let&apos;s turn your ideas into reality. Whether it&apos;s a web application, mobile app, or something completely
               innovative.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">

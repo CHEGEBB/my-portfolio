@@ -381,7 +381,7 @@ export default function FuturisticPortal() {
         }}
       />
 
-      {/* Gradient Overlay - Doesn't destroy the background */}
+      {/* Gradient Overlay - Doesnt destroy the background */}
       <div
         className={`fixed inset-0 z-10 transition-all duration-1000 ${
           portalActive
@@ -433,7 +433,7 @@ export default function FuturisticPortal() {
               }}
               transition={{ duration: 3, repeat: Number.POSITIVE_INFINITY }}
             >
-              {">"} Digital architect's command center where code becomes reality and data flows like poetry...
+              {">"} Digital architect&apos;s command center where code becomes reality and data flows like poetry...
             </motion.p>
 
             {/* Auto-rotating quotes */}

@@ -387,7 +387,7 @@ export default function SkillsPage() {
         category: "Mobile",
         icon: <Smartphone className="w-6 h-6 text-blue-500" />,
         color: "text-blue-500",
-        description: "Google's mobile UI toolkit",
+        description: "Google&apos;s mobile UI toolkit",
         projects: 6,
         experience: "1+ year",
       },

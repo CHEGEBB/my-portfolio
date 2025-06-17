@@ -17,8 +17,8 @@ export function TerminalComponent() {
     "Tools: Docker, AWS, Git, Figma",
     "$ cat passion.txt",
     "Building amazing digital experiences 🚀",
-    "$ echo 'Let\\'s build something together!'",
-    "Let's build something together!",
+    "$ echo 'Let\\&apos;s build something together!'",
+    "Let&apos;s build something together!",
     "$ _",
   ]
 

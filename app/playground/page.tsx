@@ -780,7 +780,7 @@ const ReactionGame = () => {
           <li>• Click "Start Test" to begin</li>
           <li>• Wait for the circle to turn GREEN</li>
           <li>• Click as fast as possible when it turns green</li>
-          <li>• Don't click too early or you'll have to restart</li>
+          <li>• Don&apos;t click too early or you&apos;ll have to restart</li>
         </ul>
       </div>
     </div>
@@ -1371,7 +1371,7 @@ export default function PlaygroundPage() {
         >
           <div className="text-center mb-12">
             <h2 className="text-4xl font-black text-emerald-400 font-mono mb-4">FEATURED_GAME</h2>
-            <p className="text-gray-400 font-mono">Today's spotlight • Master the game of kings</p>
+            <p className="text-gray-400 font-mono">Today&apos;s spotlight • Master the game of kings</p>
           </div>
 
           <motion.div
