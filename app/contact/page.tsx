@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, number } from "framer-motion"
 import { 
   Mail, Phone, MapPin, Github, Linkedin, Twitter, Send, MessageSquare, 
   Clock, Globe, Terminal, Code, Shield, Zap, Cpu, Database, Braces,
@@ -129,7 +129,7 @@ export default function ContactPage() {
     ]
     let currentCharIndex = 0
     let currentMessageIndex = 0
-    let timer
+    let timer: ReturnType<typeof setInterval> | undefined
 
     const typeNextCharacter = () => {
       if (currentMessageIndex < messages.length) {
