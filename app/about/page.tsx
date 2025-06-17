@@ -1,50 +1,75 @@
 "use client"
 
-import { motion } from "framer-motion"
-import { Code, Coffee, Gamepad2, Music, Brain, Zap, User, Calendar, MapPin, Award, Terminal, GitBranch, Database, Smartphone, Shield, Monitor, Globe, Server, BookOpen, Target, Cpu, Network, Lock, Layers, Eye, Settings } from "lucide-react"
-import { useState, useEffect } from "react"
+import { motion, useInView } from "framer-motion"
+import {
+  Code,
+  Coffee,
+  Gamepad2,
+  Music,
+  Brain,
+  Zap,
+  User,
+  Calendar,
+  MapPin,
+  Award,
+  Terminal,
+  Monitor,
+  Globe,
+  BookOpen,
+  Target,
+  Cpu,
+  Network,
+  Eye,
+  Settings,
+  GraduationCap,
+} from "lucide-react"
+import { useState, useEffect, useRef } from "react"
 
-// Your Original Matrix Rain Component (keeping it exactly as you had it)
+// Your Original Matrix Rain Component (only for hero section)
 const MatrixRain = () => {
-  const [drops, setDrops] = useState<{ id: number; x: number; y: number; char: string; speed: number; opacity: number; }[]>([])
+  const [drops, setDrops] = useState<
+    { id: number; x: number; y: number; char: string; speed: number; opacity: number }[]
+  >([])
 
   useEffect(() => {
     const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*(){}[]<>?/.,;:!+-=_"
     const newDrops = []
-    
+
     for (let i = 0; i < 100; i++) {
       newDrops.push({
         id: i,
-        x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1200),
-        y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 800),
+        x: Math.random() * (typeof window !== "undefined" ? window.innerWidth : 1200),
+        y: Math.random() * (typeof window !== "undefined" ? window.innerHeight : 800),
         char: characters[Math.floor(Math.random() * characters.length)],
         speed: Math.random() * 3 + 1,
-        opacity: Math.random() * 0.5 + 0.1
+        opacity: Math.random() * 0.5 + 0.1,
       })
     }
     setDrops(newDrops)
 
     const interval = setInterval(() => {
-      setDrops(prev => prev.map(drop => ({
-        ...drop,
-        y: drop.y > (typeof window !== 'undefined' ? window.innerHeight : 800) ? -20 : drop.y + drop.speed,
-        char: Math.random() > 0.95 ? characters[Math.floor(Math.random() * characters.length)] : drop.char
-      })))
+      setDrops((prev) =>
+        prev.map((drop) => ({
+          ...drop,
+          y: drop.y > (typeof window !== "undefined" ? window.innerHeight : 800) ? -20 : drop.y + drop.speed,
+          char: Math.random() > 0.95 ? characters[Math.floor(Math.random() * characters.length)] : drop.char,
+        })),
+      )
     }, 50)
 
     return () => clearInterval(interval)
   }, [])
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-0">
-      {drops.map(drop => (
+    <div className="absolute inset-0 pointer-events-none z-0">
+      {drops.map((drop) => (
         <div
           key={drop.id}
           className="absolute text-emerald-400 font-mono text-sm"
           style={{
             left: drop.x,
             top: drop.y,
-            opacity: drop.opacity
+            opacity: drop.opacity,
           }}
         >
           {drop.char}
@@ -54,7 +79,7 @@ const MatrixRain = () => {
   )
 }
 
-// Infinite Sliding Platforms
+// Infinite Sliding Platforms (keeping your original)
 const InfinitePlatformSlider = () => {
   const platforms = [
     { name: "Frontend Mentor", icon: Monitor, path: "/assets/frontend-mentor-icon.png" },
@@ -74,15 +99,15 @@ const InfinitePlatformSlider = () => {
       <motion.div
         className="flex space-x-8"
         animate={{
-          x: [0, -1920]
+          x: [0, -1920],
         }}
         transition={{
           x: {
-            repeat: Infinity,
+            repeat: Number.POSITIVE_INFINITY,
             repeatType: "loop",
             duration: 20,
-            ease: "linear"
-          }
+            ease: "linear",
+          },
         }}
       >
         {duplicatedPlatforms.map((platform, index) => (
@@ -103,92 +128,110 @@ const InfinitePlatformSlider = () => {
   )
 }
 
-// Enhanced Realistic Terminal Component (made smaller)
+// Enhanced Terminal Component - Shows one command at a time, then deletes and shows next
 const TerminalComponent = () => {
-  const [terminalLines, setTerminalLines] = useState<string[]>([])
-  const [currentLine, setCurrentLine] = useState("")
+  const [currentCommand, setCurrentCommand] = useState("")
+  const [currentOutput, setCurrentOutput] = useState("")
   const [isTyping, setIsTyping] = useState(false)
+  const [showOutput, setShowOutput] = useState(false)
 
   const commands = [
-    { 
-      cmd: "whoami", 
-      output: "brian_chege\nUID: 1001 GID: 1001\nGroups: developers,hackers,creators\nShell: /bin/zsh" 
+    {
+      cmd: "whoami",
+      output: "brian_chege\nUID: 1001 GID: 1001\nGroups: developers,hackers,creators\nShell: /bin/zsh",
     },
-    { 
-      cmd: "cat /etc/bio.txt", 
-      output: `Full Stack Developer & CS Student
-Location: Nairobi, Kenya
-University: Dedan Kimathi University
-Specialization: Web & Mobile Development
-Focus: React, Vue.js, React Native, TypeScript
-Status: Building the future, one app at a time` 
+    {
+      cmd: "cat education.txt",
+      output: `EDUCATION:
+
+• Dedan Kimathi University of Technology
+  Computer Science, 2022 - Present
+
+• ALX Software Engineering Program
+  Graduate, 2023 - 2024
+
+• PLP Africa - Feb 2025 - Present
+
+• Teach2Give - Feb - May 2025`,
     },
-    { 
-      cmd: "ls -la ~/skills/", 
+    {
+      cmd: "cat experience.log",
+      output: `EXPERIENCE:
+
+• Co-Founder & CTO - Health Master (2024-Present)
+• Full-Stack Developer Intern - Teach2Give
+• Full-Stack Development Intern - Prodigy Infotech
+• Full-Stack Development Intern - CodSoft
+• Account Opening Officer Intern - Equity Bank Kenya`,
+    },
+    {
+      cmd: "cat journey.txt",
+      output: `MY JOURNEY:
+
+Since high school, I've had a deep fascination with computers 
+and technology. What started as curiosity evolved into passion 
+when I wrote my first lines of code.
+
+Today, I'm building applications that solve real-world problems, 
+constantly learning new technologies, and contributing to the 
+tech community.`,
+    },
+    {
+      cmd: "ls -la ~/skills/",
       output: `drwxr-xr-x frontend/     [React, Vue, Angular, TypeScript]
 drwxr-xr-x backend/      [Node.js, Express, Python]
 drwxr-xr-x mobile/       [React Native, Flutter]
 drwxr-xr-x databases/    [PostgreSQL, MongoDB]
-drwxr-xr-x tools/        [Git, Docker, AWS]` 
+drwxr-xr-x tools/        [Git, Docker, AWS]`,
     },
-    { 
-      cmd: "ps aux | grep passion", 
-      output: `brian     1337  95.0  80.0 ∞ coding
-brian     1338  90.0  75.0 ∞ learning
-brian     1339  85.0  70.0 ∞ building
-brian     1340  80.0  65.0 ∞ problem_solving`
-    },
-    { 
-      cmd: "git log --oneline | head -5", 
-      output: `f4a2b1c feat: mastered vue.js ecosystem 
-8e7d9f3 feat: enhanced react native skills
-c2b5a8e feat: added flutter/dart expertise  
-9f1e4d7 feat: improved typescript proficiency
-a3c6b9f feat: full-stack project completion`
-    }
   ]
 
   useEffect(() => {
     let commandIndex = 0
     let charIndex = 0
-    let currentCommand = ""
+    let isDeleting = false
 
-    const typeCommand = () => {
-      if (commandIndex < commands.length) {
-        const command = commands[commandIndex]
-        
-        if (charIndex === 0) {
-          setIsTyping(true)
-        }
-        
+    const typeEffect = () => {
+      const command = commands[commandIndex]
+
+      if (!isDeleting) {
+        // Typing command
         if (charIndex < command.cmd.length) {
-          currentCommand += command.cmd[charIndex]
-          setCurrentLine(`brian@portfolio:~$ ${currentCommand}`)
+          setIsTyping(true)
+          setCurrentCommand(command.cmd.slice(0, charIndex + 1))
           charIndex++
-          setTimeout(typeCommand, Math.random() * 100 + 50)
+          setTimeout(typeEffect, Math.random() * 100 + 50)
         } else {
+          // Command finished, show output
           setIsTyping(false)
-          setTerminalLines(prev => [
-            ...prev,
-            `brian@portfolio:~$ ${command.cmd}`,
-            command.output
-          ])
-          setCurrentLine("")
-          currentCommand = ""
-          charIndex = 0
-          commandIndex++
-          setTimeout(typeCommand, 1500)
+          setShowOutput(true)
+          setCurrentOutput(command.output)
+          setTimeout(() => {
+            isDeleting = true
+            typeEffect()
+          }, 3000) // Show output for 3 seconds
         }
       } else {
-        setTimeout(() => {
-          setTerminalLines([])
-          commandIndex = 0
-          typeCommand()
-        }, 3000)
+        // Deleting
+        if (showOutput) {
+          setShowOutput(false)
+          setCurrentOutput("")
+        }
+
+        if (charIndex > 0) {
+          setCurrentCommand(command.cmd.slice(0, charIndex - 1))
+          charIndex--
+          setTimeout(typeEffect, 30)
+        } else {
+          // Move to next command
+          isDeleting = false
+          commandIndex = (commandIndex + 1) % commands.length
+          setTimeout(typeEffect, 500)
+        }
       }
     }
 
-    const initialDelay = setTimeout(typeCommand, 1000)
+    const initialDelay = setTimeout(typeEffect, 1000)
     return () => clearTimeout(initialDelay)
   }, [])
 
@@ -207,26 +250,24 @@ a3c6b9f feat: full-stack project completion`
           </div>
           <div className="text-xs text-gray-500 font-mono">zsh</div>
         </div>
-        <div className="p-4 font-mono text-sm h-72 overflow-y-auto bg-gray-900">
+        <div className="p-4 font-mono text-sm h-80 bg-gray-900">
           <div className="text-emerald-400 mb-4 text-xs">
-            Welcome to Brian's Terminal v2.1.0<br/>
-            Last login: {new Date().toLocaleString()}<br/>
+            Welcome to Brian's Terminal v2.1.0
+            <br />
+            Last login: {new Date().toLocaleString()}
+            <br />
             ───────────────────────────────────
           </div>
-          {terminalLines.map((line, index) => (
-            <div key={index} className="mb-1">
-              {line.startsWith('brian@portfolio') ? (
-                <span className="text-emerald-400 text-xs">{line}</span>
-              ) : (
-                <pre className="text-gray-300 whitespace-pre-wrap text-xs leading-relaxed">{line}</pre>
-              )}
-            </div>
-          ))}
-          {currentLine && (
-            <div className="text-emerald-400 flex items-center text-xs">
-              {currentLine}
-              <span className={`ml-1 ${isTyping ? 'animate-pulse' : 'animate-pulse'}`}>█</span>
-            </div>
+
+          {/* Current command line */}
+          <div className="text-emerald-400 flex items-center text-xs mb-2">
+            brian@portfolio:~$ {currentCommand}
+            <span className={`ml-1 ${isTyping ? "animate-pulse" : "animate-pulse"}`}>█</span>
+          </div>
+
+          {/* Output */}
+          {showOutput && (
+            <pre className="text-gray-300 whitespace-pre-wrap text-xs leading-relaxed mb-4">{currentOutput}</pre>
           )}
         </div>
       </div>
@@ -234,54 +275,55 @@ a3c6b9f feat: full-stack project completion`
   )
 }
 
-// Profile Image Component with Animations
+// Simplified Profile Section (keeping closer to your original)
 const ProfileSection = () => {
   return (
     <div className="flex flex-col items-center">
       <div className="relative">
-        {/* Rotating circles */}
+        {/* Simple rotating circles like your original */}
         <div className="absolute inset-0 w-64 h-64">
           <div className="absolute inset-0 border-2 border-emerald-400/30 rounded-full animate-spin-slow"></div>
           <div className="absolute inset-4 border-2 border-cyan-400/30 rounded-full animate-spin-reverse"></div>
           <div className="absolute inset-8 border border-emerald-400/20 rounded-full animate-pulse"></div>
         </div>
-        
+
         {/* Profile image container */}
         <motion.div
           animate={{ y: [-5, 5, -5] }}
-          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          transition={{ duration: 4, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
           className="relative z-10 w-48 h-48 rounded-full overflow-hidden border-4 border-emerald-400/40 glass-dark"
         >
           <div className="w-full h-full bg-gradient-to-br from-emerald-400/20 to-cyan-400/20 flex items-center justify-center">
             <User className="w-24 h-24 text-emerald-400" />
-            {/* Profile image placeholder */}
-            <img 
-              src="/assets/profile.jpg" 
+            <img
+              src="/assets/profile.jpg"
               alt="Brian Chege"
               className="absolute inset-0 w-full h-full object-cover opacity-0"
               onLoad={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.opacity = '1';
+                const target = e.target as HTMLImageElement
+                target.style.opacity = "1"
               }}
             />
           </div>
         </motion.div>
-        
+
         {/* Status indicator */}
         <div className="absolute bottom-4 right-4 w-6 h-6 bg-green-500 rounded-full border-4 border-gray-900 animate-pulse"></div>
       </div>
-      
+
       <div className="mt-8 text-center">
-        <h3 className="text-2xl font-bold text-emerald-400 font-mono mb-2">BRIAN CHEGE</h3>
-        <p className="text-gray-300 mb-4">Full Stack Developer & CS Student</p>
+        <h3 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400 font-mono mb-2">
+          BRIAN CHEGE
+        </h3>
+        <p className="text-gray-300 mb-4">Full Stack Developer & Software engineer</p>
         <div className="flex items-center justify-center space-x-4 text-sm text-gray-400">
           <div className="flex items-center space-x-1">
             <MapPin className="w-4 h-4" />
             <span>Nairobi, Kenya</span>
           </div>
           <div className="flex items-center space-x-1">
-            <Calendar className="w-4 h-4" />
-            <span>DeKUT CS</span>
+            <GraduationCap className="w-4 h-4" />
+            <span>Dedan Kimathi University</span>
           </div>
         </div>
       </div>
@@ -289,30 +331,154 @@ const ProfileSection = () => {
   )
 }
 
-// Experience Timeline
+// Animated Counter Component
+const CountUpNumber = ({ end, duration = 2000 }: { end: number; duration?: number }) => {
+  const [count, setCount] = useState(0)
+  const countRef = useRef<HTMLDivElement>(null)
+  const isInView = useInView(countRef, { once: true, margin: "-100px" })
+
+  useEffect(() => {
+    if (!isInView) return
+
+    let startTime: number | null = null
+    let animationFrame: number
+
+    const updateCount = (timestamp: number) => {
+      if (!startTime) startTime = timestamp
+      const progress = timestamp - startTime
+      const percentage = Math.min(progress / duration, 1)
+
+      setCount(Math.floor(percentage * end))
+
+      if (percentage < 1) {
+        animationFrame = requestAnimationFrame(updateCount)
+      }
+    }
+
+    animationFrame = requestAnimationFrame(updateCount)
+
+    return () => cancelAnimationFrame(animationFrame)
+  }, [end, duration, isInView])
+
+  return <div ref={countRef}>{count}</div>
+}
+
+// Education Section
+const EducationSection = () => {
+  const education = [
+    {
+      institution: "Dedan Kimathi University of Technology",
+      degree: "Bachelor of Science in Computer Science",
+      period: "2022 - Present",
+      description: "Focusing on algorithms, data structures, software engineering, and system design.",
+    },
+    {
+      institution: "ALX Software Engineering Program",
+      degree: "Software Engineering Graduate",
+      period: "2023 - 2024",
+      description: "Intensive program focused on algorithms, system design, backend and frontend development.",
+    },
+    {
+      institution: "PLP Africa",
+      degree: "Professional Learning Program",
+      period: "February 2025 - Present",
+      description: "Advancing software development skills, leadership, and real-world problem solving.",
+    },
+    {
+      institution: "Teach2Give",
+      degree: "Technical Training Program",
+      period: "February - May 2025",
+      description: "Specialized training in modern web development technologies and practices.",
+    },
+  ]
+
+  return (
+    <div className="space-y-8">
+      {education.map((edu, index) => (
+        <motion.div
+          key={index}
+          initial={{ opacity: 0, x: -50 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, delay: index * 0.2 }}
+          viewport={{ once: true }}
+          className="relative pl-8"
+        >
+          <div className="absolute left-0 top-2 w-4 h-4 bg-emerald-400 rounded-full border-4 border-gray-900"></div>
+          <div className="absolute left-2 top-6 w-0.5 h-full bg-emerald-400/30"></div>
+
+          <div className="glass-dark p-6 rounded-lg border border-emerald-400/20 hacker-shape">
+            <div className="flex flex-wrap items-center justify-between mb-3">
+              <h3 className="text-xl font-bold text-emerald-400 font-mono">{edu.institution}</h3>
+              <span className="text-sm text-cyan-400 font-mono">{edu.period}</span>
+            </div>
+            <p className="text-gray-300 font-semibold mb-2">{edu.degree}</p>
+            <p className="text-gray-400 text-sm">{edu.description}</p>
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  )
+}
+
+// Experience Timeline with your provided content
 const ExperienceTimeline = () => {
   const experiences = [
     {
       year: "2024-Present",
-      title: "Full Stack Developer",
-      company: "Freelance",
-      description: "Building modern web and mobile applications using React, Vue.js, React Native, and TypeScript",
-      tech: ["React", "Vue.js", "React Native", "TypeScript", "Node.js"]
+      title: "Co-Founder & CTO",
+      company: "Health Master",
+      description:
+        "Leading the technical development of Health Master, a medication adherence, drug interaction checker, and health tracker app powered by AI. The platform helps users manage medications, track health metrics, and identify potential drug interactions, improving health outcomes through innovative technology.",
+      tech: ["React Native", "AI/ML", "Node.js", "MongoDB", "TypeScript"],
     },
     {
-      year: "2023-2024", 
-      title: "Frontend Developer",
-      company: "Various Projects",
-      description: "Specialized in creating responsive, user-friendly interfaces with modern frameworks",
-      tech: ["React", "Angular", "Tailwind CSS", "JavaScript"]
+      year: "Feb-May 2025",
+      title: "Full-Stack Developer Intern",
+      company: "Teach2Give",
+      description:
+        "Developed and maintained education-focused platforms, applying full-stack skills in a team setting.",
+      tech: ["React", "Node.js", "Express", "MongoDB"],
     },
     {
-      year: "2022-2023",
-      title: "Learning & Building",
-      company: "Self-Directed",
-      description: "Intensive learning period focused on mastering full-stack development fundamentals",
-      tech: ["HTML/CSS", "JavaScript", "Node.js", "Databases"]
-    }
+      year: "2024",
+      title: "Full-Stack Development Intern",
+      company: "Prodigy Infotech (Remote)",
+      description:
+        "Worked on end-to-end development projects using React, Node.js, Express, and MongoDB, strengthening practical coding and deployment experience.",
+      tech: ["React", "Node.js", "Express", "MongoDB"],
+    },
+    {
+      year: "2024",
+      title: "Full-Stack Development Intern",
+      company: "CodSoft (Remote)",
+      description:
+        "Contributed to building full-stack applications, enhancing skills in UI development, API integration, and remote team collaboration.",
+      tech: ["React", "Node.js", "API Integration"],
+    },
+    {
+      year: "2023-2024",
+      title: "ALX Software Engineering Program",
+      company: "Graduate",
+      description:
+        "Completed an intensive software engineering program focused on algorithms, system design, backend and frontend development. Gained hands-on experience building scalable applications with modern technologies and best practices.",
+      tech: ["C", "Python", "JavaScript", "System Design"],
+    },
+    {
+      year: "June-Sept 2022",
+      title: "Account Opening Officer Intern",
+      company: "Equity Bank Kenya",
+      description:
+        "Supported customer onboarding, account creation, and marketing initiatives. This role enhanced my communication skills and introduced me to real-world financial operations.",
+      tech: ["Customer Service", "Banking Operations"],
+    },
+    {
+      year: "Ongoing",
+      title: "Member",
+      company: "Cybersecurity Club, Dedan Kimathi University",
+      description:
+        "Actively engaged in cybersecurity activities, challenges, and knowledge sharing to deepen my expertise in network security, penetration testing, and cryptography.",
+      tech: ["Cybersecurity", "Penetration Testing", "Cryptography"],
+    },
   ]
 
   return (
@@ -328,7 +494,7 @@ const ExperienceTimeline = () => {
         >
           <div className="absolute left-0 top-2 w-4 h-4 bg-emerald-400 rounded-full border-4 border-gray-900"></div>
           <div className="absolute left-2 top-6 w-0.5 h-full bg-emerald-400/30"></div>
-          
+
           <div className="glass-dark p-6 rounded-lg border border-emerald-400/20 hacker-shape">
             <div className="flex flex-wrap items-center justify-between mb-3">
               <h3 className="text-xl font-bold text-emerald-400 font-mono">{exp.title}</h3>
@@ -338,7 +504,10 @@ const ExperienceTimeline = () => {
             <p className="text-gray-400 text-sm mb-4">{exp.description}</p>
             <div className="flex flex-wrap gap-2">
               {exp.tech.map((tech, techIndex) => (
-                <span key={techIndex} className="px-2 py-1 bg-emerald-400/10 text-emerald-400 text-xs font-mono rounded border border-emerald-400/30">
+                <span
+                  key={techIndex}
+                  className="px-2 py-1 bg-emerald-400/10 text-emerald-400 text-xs font-mono rounded border border-emerald-400/30"
+                >
                   {tech}
                 </span>
               ))}
@@ -350,15 +519,15 @@ const ExperienceTimeline = () => {
   )
 }
 
-// Stats Section
+// Stats Section with Count Up Animation
 const StatsSection = () => {
   const stats = [
-    { label: "Projects Completed", value: "50+", icon: Award },
-    { label: "Technologies Mastered", value: "20+", icon: Code },
-    { label: "Years Experience", value: "5+", icon: Calendar },
-    { label: "Client Satisfaction", value: "100%", icon: Target },
-    { label: "Coffee Consumed", value: "1337+", icon: Coffee },
-    { label: "Code Lines Written", value: "100K+", icon: Terminal }
+    { label: "Projects Completed", value: 50, suffix: "+", icon: Award },
+    { label: "Technologies Mastered", value: 20, suffix: "+", icon: Code },
+    { label: "Years Experience", value: 5, suffix: "+", icon: Calendar },
+    { label: "Client Satisfaction", value: 100, suffix: "%", icon: Target },
+    { label: "Coffee Consumed", value: 1337, suffix: "+", icon: Coffee },
+    { label: "Code Lines Written", value: 100, suffix: "K+", icon: Terminal },
   ]
 
   return (
@@ -374,7 +543,10 @@ const StatsSection = () => {
           className="glass-dark p-6 rounded-lg border border-emerald-400/20 text-center hacker-shape"
         >
           <stat.icon className="w-8 h-8 text-emerald-400 mx-auto mb-3" />
-          <div className="text-2xl font-bold text-white font-mono">{stat.value}</div>
+          <div className="text-2xl font-bold text-white font-mono flex justify-center">
+            <CountUpNumber end={stat.value} />
+            <span>{stat.suffix}</span>
+          </div>
           <div className="text-sm text-gray-400 mt-1">{stat.label}</div>
         </motion.div>
       ))}
@@ -382,29 +554,29 @@ const StatsSection = () => {
   )
 }
 
-// Philosophy Section
+// Philosophy Section (keeping your original)
 const PhilosophySection = () => {
   const philosophies = [
     {
       title: "Code is Poetry",
       description: "Every line of code should be crafted with intention, elegance, and purpose",
-      icon: BookOpen
+      icon: BookOpen,
     },
     {
       title: "User-Centric Design",
       description: "Technology serves people, not the other way around",
-      icon: Eye
+      icon: Eye,
     },
     {
       title: "Continuous Learning",
       description: "In tech, the moment you stop learning is the moment you start becoming obsolete",
-      icon: Brain
+      icon: Brain,
     },
     {
       title: "Problem Solving",
       description: "Every challenge is an opportunity to create something better",
-      icon: Zap
-    }
+      icon: Zap,
+    },
   ]
 
   return (
@@ -437,36 +609,39 @@ const PhilosophySection = () => {
 export default function AboutPage() {
   return (
     <div className="min-h-screen relative overflow-hidden bg-slate-900">
-      <MatrixRain />
-
-      {/* Enhanced Background with parallax */}
-      <div className="fixed inset-0 hero-bg z-0" />
-      <div className="fixed inset-0 cyber-grid-subtle opacity-10 z-0" />
-      <div 
-        className="fixed inset-0 opacity-10 z-0"
+      {/* Fixed Unsplash Code Background for entire page */}
+      <div
+        className="fixed inset-0 z-0 opacity-20"
         style={{
-          backgroundImage: "url('/assets/code2.jpg')",
+          backgroundImage:
+            "url('https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1920&h=1080&fit=crop&crop=center')",
           backgroundSize: "cover",
           backgroundPosition: "center",
-          backgroundAttachment: "fixed"
+          backgroundAttachment: "fixed",
         }}
       />
+      <div className="fixed inset-0 bg-slate-900/85 z-0" />
 
       <div className="relative z-10 pt-32">
-        {/* Hero Section with adequate spacing */}
-        <motion.div
-          initial={{ opacity: 0, y: 100 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1 }}
-          className="text-center mb-32 px-4"
-        >
-          <h1 className="text-5xl md:text-7xl font-black mb-6 font-mono text-gradient-emerald gentle-glow">
-            ABOUT_ME.EXE
-          </h1>
-          <p className="text-xl text-emerald-300 max-w-3xl mx-auto font-mono">
-            {">"} Decoding the human behind the code...
-          </p>
-        </motion.div>
+        {/* Hero Section with Matrix Rain */}
+        <section className="relative  flex items-center justify-center">
+          {/* Matrix Rain only in hero */}
+          <MatrixRain />
+
+          <motion.div
+            initial={{ opacity: 0, y: 100 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1 }}
+            className="text-center mb-32 px-4 relative z-10"
+          >
+            <h1 className="text-4xl md:text-5xl font-black mb-6 font-mono text-gradient-emerald gentle-glow">
+              ABOUT_ME.EXE
+            </h1>
+            <p className="text-lg text-emerald-300 max-w-3xl mx-auto font-mono">
+              {">"} Decoding the human behind the code...
+            </p>
+          </motion.div>
+        </section>
 
         <div className="max-w-7xl mx-auto px-4">
           {/* Terminal and Profile Section */}
@@ -484,7 +659,7 @@ export default function AboutPage() {
             </div>
           </motion.div>
 
-          {/* Bio Section */}
+          {/* Bio Section - Journey from high school */}
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -492,30 +667,30 @@ export default function AboutPage() {
             viewport={{ once: true }}
             className="mb-32"
           >
-            <h2 className="text-4xl font-black mb-12 text-center text-emerald-400 font-mono">NEURAL_PROFILE</h2>
+            <h2 className="text-3xl font-black mb-12 text-center text-emerald-400 font-mono">MY_JOURNEY.LOG</h2>
             <div className="glass-dark p-8 rounded-lg border border-emerald-400/20 hacker-shape">
               <div className="space-y-6 text-gray-300 leading-relaxed">
                 <p className="text-lg">
-                  I'm Brian Chege, a passionate Computer Science student at Dedan Kimathi University of Technology, 
-                  specializing in full-stack development with a focus on modern web and mobile technologies. My journey 
-                  transforms complex problems into elegant digital solutions that impact real users.
+                  Since high school, I've had a deep fascination with computers and technology. What started as
+                  curiosity evolved into passion when I wrote my first lines of code. The ability to create something
+                  from nothing, to solve problems with logic and creativity, captivated me.
                 </p>
                 <p>
-                  My expertise spans across React, Vue.js, Angular, React Native, and TypeScript, enabling me to build 
-                  comprehensive applications from concept to deployment. I thrive on creating responsive frontends, 
-                  robust APIs, and seamless mobile experiences that bridge the gap between cutting-edge innovation 
-                  and practical business solutions.
+                  This passion led me to pursue Computer Science at Dedan Kimathi University of Technology, where I've
+                  been expanding my knowledge and skills in software development, algorithms, and system design. I've
+                  supplemented my formal education with specialized programs like ALX Software Engineering, PLP Africa,
+                  and Teach2Give.
                 </p>
                 <p>
-                  When I'm not immersed in code, you'll find me exploring the latest frameworks, contributing to
-                  open-source projects, practicing on platforms like Frontend Mentor and Dev Challenges, or sharing 
-                  knowledge with the developer community through mentoring and technical discussions.
+                  Today, I'm building applications that solve real-world problems, constantly learning new technologies,
+                  and contributing to the tech community. As Co-Founder & CTO of Health Master, I'm applying my skills
+                  to improve health outcomes through innovative technology.
                 </p>
               </div>
             </div>
           </motion.div>
 
-          {/* Practice Platforms Section */}
+          {/* Education Section */}
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -523,9 +698,8 @@ export default function AboutPage() {
             viewport={{ once: true }}
             className="mb-32"
           >
-            <h2 className="text-4xl font-black mb-12 text-center text-emerald-400 font-mono">TRAINING_GROUNDS</h2>
-            <p className="text-center text-gray-300 mb-8 font-mono">Platforms where I sharpen my skills daily</p>
-            <InfinitePlatformSlider />
+            <h2 className="text-3xl font-black mb-12 text-center text-emerald-400 font-mono">EDUCATION.DAT</h2>
+            <EducationSection />
           </motion.div>
 
           {/* Experience Timeline */}
@@ -536,8 +710,21 @@ export default function AboutPage() {
             viewport={{ once: true }}
             className="mb-32"
           >
-            <h2 className="text-4xl font-black mb-12 text-center text-emerald-400 font-mono">EXPERIENCE_LOG</h2>
+            <h2 className="text-3xl font-black mb-12 text-center text-emerald-400 font-mono">EXPERIENCE_LOG</h2>
             <ExperienceTimeline />
+          </motion.div>
+
+          {/* Practice Platforms Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            className="mb-32"
+          >
+            <h2 className="text-3xl font-black mb-12 text-center text-emerald-400 font-mono">TRAINING_GROUNDS</h2>
+            <p className="text-center text-gray-300 mb-8 font-mono">Platforms where I sharpen my skills daily</p>
+            <InfinitePlatformSlider />
           </motion.div>
 
           {/* Stats Section */}
@@ -548,7 +735,7 @@ export default function AboutPage() {
             viewport={{ once: true }}
             className="mb-32"
           >
-            <h2 className="text-4xl font-black mb-12 text-center text-emerald-400 font-mono">SYSTEM_METRICS</h2>
+            <h2 className="text-3xl font-black mb-12 text-center text-emerald-400 font-mono">SYSTEM_METRICS</h2>
             <StatsSection />
           </motion.div>
 
@@ -560,7 +747,7 @@ export default function AboutPage() {
             viewport={{ once: true }}
             className="mb-32"
           >
-            <h2 className="text-4xl font-black mb-12 text-center text-emerald-400 font-mono">CODE_PHILOSOPHY</h2>
+            <h2 className="text-3xl font-black mb-12 text-center text-emerald-400 font-mono">CODE_PHILOSOPHY</h2>
             <PhilosophySection />
           </motion.div>
 
@@ -572,15 +759,45 @@ export default function AboutPage() {
             viewport={{ once: true }}
             className="mb-32"
           >
-            <h2 className="text-4xl font-black mb-12 text-center text-emerald-400 font-mono">PASSION_MODULES</h2>
+            <h2 className="text-3xl font-black mb-12 text-center text-emerald-400 font-mono">PASSION_MODULES</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[
-                { icon: Code, title: "Clean Architecture", desc: "Building scalable, maintainable systems", color: "from-blue-500 to-cyan-600" },
-                { icon: Coffee, title: "Coffee Culture", desc: "Fuel for innovation and late-night coding", color: "from-amber-500 to-orange-600" },
-                { icon: Gamepad2, title: "Game Development", desc: "Exploring interactive experiences", color: "from-purple-500 to-pink-600" },
-                { icon: Music, title: "Lo-Fi Coding", desc: "Perfect ambient soundtracks for focus", color: "from-green-500 to-teal-600" },
-                { icon: Brain, title: "Tech Innovation", desc: "Following emerging technologies", color: "from-indigo-500 to-purple-600" },
-                { icon: Globe, title: "Open Source", desc: "Contributing to the global community", color: "from-yellow-500 to-red-600" }
+                {
+                  icon: Code,
+                  title: "Clean Architecture",
+                  desc: "Building scalable, maintainable systems",
+                  color: "from-blue-500 to-cyan-600",
+                },
+                {
+                  icon: Coffee,
+                  title: "Coffee Culture",
+                  desc: "Fuel for innovation and late-night coding",
+                  color: "from-amber-500 to-orange-600",
+                },
+                {
+                  icon: Gamepad2,
+                  title: "Game Development",
+                  desc: "Exploring interactive experiences",
+                  color: "from-purple-500 to-pink-600",
+                },
+                {
+                  icon: Music,
+                  title: "Lo-Fi Coding",
+                  desc: "Perfect ambient soundtracks for focus",
+                  color: "from-green-500 to-teal-600",
+                },
+                {
+                  icon: Brain,
+                  title: "Tech Innovation",
+                  desc: "Following emerging technologies",
+                  color: "from-indigo-500 to-purple-600",
+                },
+                {
+                  icon: Globe,
+                  title: "Open Source",
+                  desc: "Contributing to the global community",
+                  color: "from-yellow-500 to-red-600",
+                },
               ].map((interest, index) => (
                 <motion.div
                   key={index}
@@ -610,10 +827,10 @@ export default function AboutPage() {
             className="text-center mb-32"
           >
             <div className="glass-dark p-12 rounded-lg border border-emerald-400/20 hacker-shape">
-              <h2 className="text-4xl font-black mb-6 text-emerald-400 font-mono">READY_TO_COLLABORATE?</h2>
+              <h2 className="text-3xl font-black mb-6 text-emerald-400 font-mono">READY_TO_COLLABORATE?</h2>
               <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-                Let's build something amazing together. Whether it's a web application, mobile app, 
-                or full-stack solution, I'm ready to turn your ideas into reality.
+                Let's build something amazing together. Whether it's a web application, mobile app, or full-stack
+                solution, I'm ready to turn your ideas into reality.
               </p>
               <div className="flex flex-wrap justify-center gap-4">
                 <motion.button
@@ -634,6 +851,26 @@ export default function AboutPage() {
             </div>
           </motion.div>
         </div>
+
+        {/* Scroll to top indicator */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          transition={{ duration: 0.8 }}
+          viewport={{ once: true }}
+          className="fixed bottom-8 right-8 z-20"
+        >
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            className="w-12 h-12 bg-emerald-500/20 backdrop-blur-sm border border-emerald-400/30 rounded-full flex items-center justify-center text-emerald-400 hover:bg-emerald-500/30 transition-all duration-300"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+            </svg>
+          </motion.button>
+        </motion.div>
       </div>
 
       {/* Floating Elements */}
@@ -641,7 +878,7 @@ export default function AboutPage() {
       <div className="fixed top-2/3 left-1/4 w-3 h-3 bg-emerald-400 rounded-full animate-bounce opacity-40"></div>
       <div className="fixed bottom-1/4 right-1/3 w-1.5 h-1.5 bg-cyan-400 rounded-full animate-ping opacity-50"></div>
       <div className="fixed top-1/2 right-10 w-2 h-2 bg-emerald-400 rounded-full animate-pulse opacity-30"></div>
-      
+
       {/* Custom Styles */}
       <style jsx global>{`
         .glass-dark {
@@ -667,19 +904,6 @@ export default function AboutPage() {
           text-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
         }
         
-        .hero-bg {
-          background: radial-gradient(ellipse at center, rgba(16, 185, 129, 0.1) 0%, transparent 70%),
-                      radial-gradient(ellipse at 80% 20%, rgba(6, 182, 212, 0.1) 0%, transparent 50%),
-                      radial-gradient(ellipse at 20% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
-        }
-        
-        .cyber-grid-subtle {
-          background-image: 
-            linear-gradient(rgba(16, 185, 129, 0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(16, 185, 129, 0.03) 1px, transparent 1px);
-          background-size: 50px 50px;
-        }
-        
         .hacker-shape {
           clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
         }
@@ -700,6 +924,38 @@ export default function AboutPage() {
         
         .animate-spin-reverse {
           animation: spin-reverse 6s linear infinite;
+        }
+
+        html {
+          scroll-behavior: smooth;
+        }
+
+        /* Optimize performance */
+        * {
+          box-sizing: border-box;
+        }
+
+        /* Better scrollbar styling */
+        ::-webkit-scrollbar {
+          width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+          background: rgba(15, 23, 42, 0.3);
+        }
+
+        ::-webkit-scrollbar-thumb {
+          background: rgba(16, 185, 129, 0.3);
+          border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+          background: rgba(16, 185, 129, 0.5);
+        }
+
+        /* Loading animation for images */
+        img {
+          transition: opacity 0.3s ease-in-out;
         }
       `}</style>
     </div>

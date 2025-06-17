@@ -27,7 +27,7 @@ import {
 } from "lucide-react"
 import Image from "next/image"
 
-// Matrix Rain Effect Component
+// Optimized Matrix Rain Effect Component
 const MatrixRain = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -38,52 +38,72 @@ const MatrixRain = () => {
     const ctx = canvas.getContext("2d")
     if (!ctx) return
 
-    canvas.width = window.innerWidth
-    canvas.height = window.innerHeight
-
-    const matrix = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789@#$%^&*()*&^%+-/~{[|`]}".split("")
-    const font_size = 10
-    const columns = canvas.width / font_size
-    const drops: number[] = []
-
-    for (let x = 0; x < columns; x++) {
-      drops[x] = 1
+    // Optimize canvas size
+    const updateCanvasSize = () => {
+      canvas.width = Math.min(window.innerWidth, 1920)
+      canvas.height = Math.min(window.innerHeight, 1080)
     }
 
+    updateCanvasSize()
+
+    const matrix = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789@#$%^&*".split("")
+    const font_size = 12
+    const columns = Math.floor(canvas.width / font_size)
+    const drops: number[] = Array(columns).fill(1)
+
+    let animationId: number
+
     const draw = () => {
-      ctx.fillStyle = "rgba(0, 0, 0, 0.04)"
+      ctx.fillStyle = "rgba(0, 0, 0, 0.05)"
       ctx.fillRect(0, 0, canvas.width, canvas.height)
 
       ctx.fillStyle = "#0F0"
-      ctx.font = font_size + "px arial"
+      ctx.font = font_size + "px monospace"
 
-      for (let i = 0; i < drops.length; i++) {
+      // Reduce iterations for better performance
+      for (let i = 0; i < Math.min(drops.length, 50); i++) {
         const text = matrix[Math.floor(Math.random() * matrix.length)]
-        ctx.fillStyle = `rgba(0, 255, 0, ${Math.random() * 0.5 + 0.1})`
+        ctx.fillStyle = `rgba(0, 255, 0, ${Math.random() * 0.4 + 0.1})`
         ctx.fillText(text, i * font_size, drops[i] * font_size)
 
-        if (drops[i] * font_size > canvas.height && Math.random() > 0.975) {
+        if (drops[i] * font_size > canvas.height && Math.random() > 0.98) {
           drops[i] = 0
         }
         drops[i]++
       }
+
+      animationId = requestAnimationFrame(draw)
     }
 
-    const interval = setInterval(draw, 35)
-    return () => clearInterval(interval)
+    // Start with a delay to improve initial load
+    const startDelay = setTimeout(() => {
+      animationId = requestAnimationFrame(draw)
+    }, 1000)
+
+    const handleResize = () => {
+      updateCanvasSize()
+    }
+
+    window.addEventListener("resize", handleResize)
+
+    return () => {
+      clearTimeout(startDelay)
+      cancelAnimationFrame(animationId)
+      window.removeEventListener("resize", handleResize)
+    }
   }, [])
 
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 z-0 opacity-20 pointer-events-none"
+      className="fixed inset-0 z-0 opacity-15 pointer-events-none"
       style={{ background: "transparent" }}
     />
   )
 }
 
-// Floating Particles Component
-const FloatingParticles = ({ count = 8 }: { count?: number }) => {
+// Optimized Floating Particles Component
+const FloatingParticles = ({ count = 4 }: { count?: number }) => {
   const particles = useMemo(
     () =>
       Array.from({ length: count }, (_, i) => ({
@@ -91,22 +111,22 @@ const FloatingParticles = ({ count = 8 }: { count?: number }) => {
         x: Math.random() * 100,
         y: Math.random() * 100,
         delay: Math.random() * 2,
-        duration: 3 + Math.random() * 2,
+        duration: 4 + Math.random() * 2,
       })),
     [count],
   )
 
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-30">
+    <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20">
       {particles.map((particle) => (
         <motion.div
           key={particle.id}
-          className="absolute w-1 h-1 bg-emerald-400/60 rounded-full"
+          className="absolute w-1 h-1 bg-emerald-400/60 rounded-full will-change-transform"
           style={{ left: `${particle.x}%`, top: `${particle.y}%` }}
           animate={{
-            opacity: [0.3, 0.8, 0.3],
-            scale: [1, 1.5, 1],
-            y: [0, -20, 0],
+            opacity: [0.2, 0.6, 0.2],
+            scale: [1, 1.3, 1],
+            y: [0, -15, 0],
           }}
           transition={{
             duration: particle.duration,
@@ -120,7 +140,7 @@ const FloatingParticles = ({ count = 8 }: { count?: number }) => {
   )
 }
 
-// Working Chess Game Component
+// Optimized Chess Game Component with better contrast
 const ChessGame = () => {
   const [dailyPuzzle, setDailyPuzzle] = useState<any>(null)
   const [puzzleLoading, setPuzzleLoading] = useState(false)
@@ -130,18 +150,21 @@ const ChessGame = () => {
   const [moveHistory, setMoveHistory] = useState<string[]>([])
   const [currentPlayer, setCurrentPlayer] = useState<"white" | "black">("white")
 
-  const initialBoard = [
-    ["r", "n", "b", "q", "k", "b", "n", "r"],
-    ["p", "p", "p", "p", "p", "p", "p", "p"],
-    ["", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", ""],
-    ["P", "P", "P", "P", "P", "P", "P", "P"],
-    ["R", "N", "B", "Q", "K", "B", "N", "R"],
-  ]
+  const initialBoard = useMemo(
+    () => [
+      ["r", "n", "b", "q", "k", "b", "n", "r"],
+      ["p", "p", "p", "p", "p", "p", "p", "p"],
+      ["", "", "", "", "", "", "", ""],
+      ["", "", "", "", "", "", "", ""],
+      ["", "", "", "", "", "", "", ""],
+      ["", "", "", "", "", "", "", ""],
+      ["P", "P", "P", "P", "P", "P", "P", "P"],
+      ["R", "N", "B", "Q", "K", "B", "N", "R"],
+    ],
+    [],
+  )
 
-  const fetchDailyPuzzle = async () => {
+  const fetchDailyPuzzle = useCallback(async () => {
     setPuzzleLoading(true)
     try {
       const response = await fetch("https://lichess.org/api/puzzle/daily")
@@ -161,9 +184,9 @@ const ChessGame = () => {
       setGameStatus("offline")
     }
     setPuzzleLoading(false)
-  }
+  }, [initialBoard])
 
-  const fenToBoard = (fen: string): string[][] => {
+  const fenToBoard = useCallback((fen: string): string[][] => {
     const board: string[][] = Array(8)
       .fill(null)
       .map(() => Array(8).fill(""))
@@ -182,9 +205,9 @@ const ChessGame = () => {
     })
 
     return board
-  }
+  }, [])
 
-  const getPieceSymbol = (piece: string) => {
+  const getPieceSymbol = useCallback((piece: string) => {
     const pieces: { [key: string]: string } = {
       K: "♔",
       Q: "♕",
@@ -200,118 +223,123 @@ const ChessGame = () => {
       p: "♟",
     }
     return pieces[piece] || ""
-  }
+  }, [])
 
-  const isValidMove = (fromRow: number, fromCol: number, toRow: number, toCol: number): boolean => {
-    const piece = chessBoard[fromRow][fromCol]
-    if (!piece) return false
+  const isValidMove = useCallback(
+    (fromRow: number, fromCol: number, toRow: number, toCol: number): boolean => {
+      const piece = chessBoard[fromRow][fromCol]
+      if (!piece) return false
 
-    const isWhite = piece === piece.toUpperCase()
-    const targetPiece = chessBoard[toRow][toCol]
-
-    // Can't capture own piece
-    if (targetPiece && (targetPiece === targetPiece.toUpperCase()) === isWhite) return false
-
-    // Basic move validation (simplified)
-    const rowDiff = Math.abs(toRow - fromRow)
-    const colDiff = Math.abs(toCol - fromCol)
-
-    switch (piece.toLowerCase()) {
-      case "p": // Pawn
-        const direction = isWhite ? -1 : 1
-        const startRow = isWhite ? 6 : 1
-
-        if (colDiff === 0) {
-          // Forward move
-          if (targetPiece) return false // Can't capture forward
-          if (toRow === fromRow + direction) return true
-          if (fromRow === startRow && toRow === fromRow + 2 * direction && !chessBoard[toRow][toCol]) return true
-        } else if (colDiff === 1 && toRow === fromRow + direction) {
-          // Diagonal capture
-          return !!targetPiece
-        }
-        return false
-
-      case "r": // Rook
-        return (rowDiff === 0 || colDiff === 0) && isPathClear(fromRow, fromCol, toRow, toCol)
-
-      case "n": // Knight
-        return (rowDiff === 2 && colDiff === 1) || (rowDiff === 1 && colDiff === 2)
-
-      case "b": // Bishop
-        return rowDiff === colDiff && isPathClear(fromRow, fromCol, toRow, toCol)
-
-      case "q": // Queen
-        return (rowDiff === colDiff || rowDiff === 0 || colDiff === 0) && isPathClear(fromRow, fromCol, toRow, toCol)
-
-      case "k": // King
-        return rowDiff <= 1 && colDiff <= 1
-
-      default:
-        return false
-    }
-  }
-
-  const isPathClear = (fromRow: number, fromCol: number, toRow: number, toCol: number): boolean => {
-    const rowStep = toRow > fromRow ? 1 : toRow < fromRow ? -1 : 0
-    const colStep = toCol > fromCol ? 1 : toCol < fromCol ? -1 : 0
-
-    let currentRow = fromRow + rowStep
-    let currentCol = fromCol + colStep
-
-    while (currentRow !== toRow || currentCol !== toCol) {
-      if (chessBoard[currentRow][currentCol]) return false
-      currentRow += rowStep
-      currentCol += colStep
-    }
-    return true
-  }
-
-  const handleSquareClick = (row: number, col: number) => {
-    if (selectedSquare) {
-      const [fromRow, fromCol] = selectedSquare
-
-      if (fromRow === row && fromCol === col) {
-        setSelectedSquare(null)
-        return
-      }
-
-      if (isValidMove(fromRow, fromCol, row, col)) {
-        const newBoard = chessBoard.map((r) => [...r])
-        const piece = newBoard[fromRow][fromCol]
-        newBoard[row][col] = piece
-        newBoard[fromRow][fromCol] = ""
-
-        setChessBoard(newBoard)
-        setMoveHistory([
-          ...moveHistory,
-          `${piece} ${String.fromCharCode(97 + fromCol)}${8 - fromRow} → ${String.fromCharCode(97 + col)}${8 - row}`,
-        ])
-        setCurrentPlayer(currentPlayer === "white" ? "black" : "white")
-      }
-
-      setSelectedSquare(null)
-    } else if (chessBoard[row][col]) {
-      const piece = chessBoard[row][col]
       const isWhite = piece === piece.toUpperCase()
+      const targetPiece = chessBoard[toRow][toCol]
 
-      if ((currentPlayer === "white" && isWhite) || (currentPlayer === "black" && !isWhite)) {
-        setSelectedSquare([row, col])
+      if (targetPiece && (targetPiece === targetPiece.toUpperCase()) === isWhite) return false
+
+      const rowDiff = Math.abs(toRow - fromRow)
+      const colDiff = Math.abs(toCol - fromCol)
+
+      switch (piece.toLowerCase()) {
+        case "p":
+          const direction = isWhite ? -1 : 1
+          const startRow = isWhite ? 6 : 1
+
+          if (colDiff === 0) {
+            if (targetPiece) return false
+            if (toRow === fromRow + direction) return true
+            if (fromRow === startRow && toRow === fromRow + 2 * direction && !chessBoard[toRow][toCol]) return true
+          } else if (colDiff === 1 && toRow === fromRow + direction) {
+            return !!targetPiece
+          }
+          return false
+
+        case "r":
+          return (rowDiff === 0 || colDiff === 0) && isPathClear(fromRow, fromCol, toRow, toCol)
+
+        case "n":
+          return (rowDiff === 2 && colDiff === 1) || (rowDiff === 1 && colDiff === 2)
+
+        case "b":
+          return rowDiff === colDiff && isPathClear(fromRow, fromCol, toRow, toCol)
+
+        case "q":
+          return (rowDiff === colDiff || rowDiff === 0 || colDiff === 0) && isPathClear(fromRow, fromCol, toRow, toCol)
+
+        case "k":
+          return rowDiff <= 1 && colDiff <= 1
+
+        default:
+          return false
       }
-    }
-  }
+    },
+    [chessBoard],
+  )
 
-  const resetGame = () => {
+  const isPathClear = useCallback(
+    (fromRow: number, fromCol: number, toRow: number, toCol: number): boolean => {
+      const rowStep = toRow > fromRow ? 1 : toRow < fromRow ? -1 : 0
+      const colStep = toCol > fromCol ? 1 : toCol < fromCol ? -1 : 0
+
+      let currentRow = fromRow + rowStep
+      let currentCol = fromCol + colStep
+
+      while (currentRow !== toRow || currentCol !== toCol) {
+        if (chessBoard[currentRow][currentCol]) return false
+        currentRow += rowStep
+        currentCol += colStep
+      }
+      return true
+    },
+    [chessBoard],
+  )
+
+  const handleSquareClick = useCallback(
+    (row: number, col: number) => {
+      if (selectedSquare) {
+        const [fromRow, fromCol] = selectedSquare
+
+        if (fromRow === row && fromCol === col) {
+          setSelectedSquare(null)
+          return
+        }
+
+        if (isValidMove(fromRow, fromCol, row, col)) {
+          const newBoard = chessBoard.map((r) => [...r])
+          const piece = newBoard[fromRow][fromCol]
+          newBoard[row][col] = piece
+          newBoard[fromRow][fromCol] = ""
+
+          setChessBoard(newBoard)
+          setMoveHistory((prev) => [
+            ...prev,
+            `${piece} ${String.fromCharCode(97 + fromCol)}${8 - fromRow} → ${String.fromCharCode(97 + col)}${8 - row}`,
+          ])
+          setCurrentPlayer(currentPlayer === "white" ? "black" : "white")
+        }
+
+        setSelectedSquare(null)
+      } else if (chessBoard[row][col]) {
+        const piece = chessBoard[row][col]
+        const isWhite = piece === piece.toUpperCase()
+
+        if ((currentPlayer === "white" && isWhite) || (currentPlayer === "black" && !isWhite)) {
+          setSelectedSquare([row, col])
+        }
+      }
+    },
+    [selectedSquare, isValidMove, chessBoard, currentPlayer],
+  )
+
+  const resetGame = useCallback(() => {
     setChessBoard(initialBoard)
     setSelectedSquare(null)
     setMoveHistory([])
     setCurrentPlayer("white")
     setGameStatus("playing")
-  }
+  }, [initialBoard])
 
   useEffect(() => {
     fetchDailyPuzzle()
-  }, [])
+  }, [fetchDailyPuzzle])
 
   return (
     <div className="space-y-6">
@@ -319,7 +347,7 @@ const ChessGame = () => {
         <motion.button
           onClick={fetchDailyPuzzle}
           disabled={puzzleLoading}
-          className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-lg font-mono text-white hover:from-emerald-700 hover:to-teal-700 transition-all duration-300"
+          className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-lg font-mono text-white hover:from-emerald-700 hover:to-teal-700 transition-all duration-300 disabled:opacity-50"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
@@ -339,7 +367,6 @@ const ChessGame = () => {
 
       <div className="glass-dark p-6 rounded-lg border border-emerald-400/30">
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Chess Board */}
           <div className="lg:col-span-2 flex flex-col items-center">
             <div className="mb-4 text-center">
               <h3 className="text-xl font-bold text-emerald-400 font-mono mb-2">
@@ -353,30 +380,46 @@ const ChessGame = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-8 gap-0 border-2 border-emerald-400/50 rounded-lg overflow-hidden shadow-2xl">
+            {/* Optimized Chess Board with better contrast */}
+            <div className="grid grid-cols-8 gap-0 border-4 border-emerald-400/50 rounded-lg overflow-hidden shadow-2xl bg-slate-800">
               {chessBoard.map((row, rowIndex) =>
-                row.map((piece, colIndex) => (
-                  <motion.div
-                    key={`${rowIndex}-${colIndex}`}
-                    onClick={() => handleSquareClick(rowIndex, colIndex)}
-                    className={`w-12 h-12 flex items-center justify-center text-2xl cursor-pointer transition-all duration-200 ${
-                      (rowIndex + colIndex) % 2 === 0 ? "bg-amber-100" : "bg-amber-800"
-                    } ${
-                      selectedSquare && selectedSquare[0] === rowIndex && selectedSquare[1] === colIndex
-                        ? "ring-4 ring-emerald-400 ring-inset"
-                        : ""
-                    }`}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    {getPieceSymbol(piece)}
-                  </motion.div>
-                )),
+                row.map((piece, colIndex) => {
+                  const isLightSquare = (rowIndex + colIndex) % 2 === 0
+                  const isSelected = selectedSquare && selectedSquare[0] === rowIndex && selectedSquare[1] === colIndex
+
+                  return (
+                    <motion.div
+                      key={`${rowIndex}-${colIndex}`}
+                      onClick={() => handleSquareClick(rowIndex, colIndex)}
+                      className={`w-14 h-14 flex items-center justify-center text-3xl cursor-pointer transition-all duration-200 relative ${
+                        isLightSquare ? "bg-stone-200" : "bg-stone-700"
+                      } ${isSelected ? "ring-4 ring-emerald-400 ring-inset z-10" : ""}`}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <span
+                        className={`select-none ${
+                          piece && piece === piece.toUpperCase()
+                            ? "text-slate-900 drop-shadow-sm" // White pieces - dark color for contrast
+                            : "text-slate-100 drop-shadow-sm" // Black pieces - light color for contrast
+                        }`}
+                        style={{
+                          textShadow: piece
+                            ? piece === piece.toUpperCase()
+                              ? "1px 1px 2px rgba(0,0,0,0.8)" // White pieces get dark shadow
+                              : "1px 1px 2px rgba(255,255,255,0.8)" // Black pieces get light shadow
+                            : "none",
+                        }}
+                      >
+                        {getPieceSymbol(piece)}
+                      </span>
+                    </motion.div>
+                  )
+                }),
               )}
             </div>
           </div>
 
-          {/* Game Info */}
           <div className="space-y-4">
             {dailyPuzzle && (
               <div className="glass-emerald p-4 rounded-lg border border-emerald-400/30">
@@ -427,7 +470,7 @@ const ChessGame = () => {
   )
 }
 
-// Working Memory Game Component
+// Optimized Memory Game Component
 const MemoryGame = () => {
   const [cards, setCards] = useState<Array<{ id: number; symbol: string; isFlipped: boolean; isMatched: boolean }>>([])
   const [flippedCards, setFlippedCards] = useState<number[]>([])
@@ -435,13 +478,16 @@ const MemoryGame = () => {
   const [gameWon, setGameWon] = useState(false)
   const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">("medium")
 
-  const symbols = {
-    easy: ["🎮", "🎯", "🎲", "🎭"],
-    medium: ["🎮", "🎯", "🎲", "🎭", "🎨", "🎪", "🎸", "🎤"],
-    hard: ["🎮", "🎯", "🎲", "🎭", "🎨", "🎪", "🎸", "🎤", "🎺", "🎻", "🎹", "🎧"],
-  }
+  const symbols = useMemo(
+    () => ({
+      easy: ["🎮", "🎯", "🎲", "🎭"],
+      medium: ["🎮", "🎯", "🎲", "🎭", "🎨", "🎪", "🎸", "🎤"],
+      hard: ["🎮", "🎯", "🎲", "🎭", "🎨", "🎪", "🎸", "🎤", "🎺", "🎻", "🎹", "🎧"],
+    }),
+    [],
+  )
 
-  const initializeGame = () => {
+  const initializeGame = useCallback(() => {
     const gameSymbols = symbols[difficulty]
     const gameCards = [...gameSymbols, ...gameSymbols]
       .map((symbol, index) => ({
@@ -456,48 +502,50 @@ const MemoryGame = () => {
     setFlippedCards([])
     setMoves(0)
     setGameWon(false)
-  }
+  }, [difficulty, symbols])
 
-  const handleCardClick = (cardId: number) => {
-    if (flippedCards.length === 2) return
-    if (flippedCards.includes(cardId)) return
-    if (cards.find((c) => c.id === cardId)?.isMatched) return
+  const handleCardClick = useCallback(
+    (cardId: number) => {
+      if (flippedCards.length === 2) return
+      if (flippedCards.includes(cardId)) return
+      if (cards.find((c) => c.id === cardId)?.isMatched) return
 
-    const newFlipped = [...flippedCards, cardId]
-    setFlippedCards(newFlipped)
+      const newFlipped = [...flippedCards, cardId]
+      setFlippedCards(newFlipped)
 
-    if (newFlipped.length === 2) {
-      setMoves(moves + 1)
-      const [first, second] = newFlipped
-      const firstCard = cards.find((c) => c.id === first)
-      const secondCard = cards.find((c) => c.id === second)
+      if (newFlipped.length === 2) {
+        setMoves((prev) => prev + 1)
+        const [first, second] = newFlipped
+        const firstCard = cards.find((c) => c.id === first)
+        const secondCard = cards.find((c) => c.id === second)
 
-      if (firstCard?.symbol === secondCard?.symbol) {
-        setTimeout(() => {
-          setCards((prev) =>
-            prev.map((card) => (card.id === first || card.id === second ? { ...card, isMatched: true } : card)),
-          )
-          setFlippedCards([])
+        if (firstCard?.symbol === secondCard?.symbol) {
+          setTimeout(() => {
+            setCards((prev) =>
+              prev.map((card) => (card.id === first || card.id === second ? { ...card, isMatched: true } : card)),
+            )
+            setFlippedCards([])
 
-          // Check if game is won
-          const updatedCards = cards.map((card) =>
-            card.id === first || card.id === second ? { ...card, isMatched: true } : card,
-          )
-          if (updatedCards.every((card) => card.isMatched)) {
-            setGameWon(true)
-          }
-        }, 1000)
-      } else {
-        setTimeout(() => {
-          setFlippedCards([])
-        }, 1000)
+            const updatedCards = cards.map((card) =>
+              card.id === first || card.id === second ? { ...card, isMatched: true } : card,
+            )
+            if (updatedCards.every((card) => card.isMatched)) {
+              setGameWon(true)
+            }
+          }, 800)
+        } else {
+          setTimeout(() => {
+            setFlippedCards([])
+          }, 800)
+        }
       }
-    }
-  }
+    },
+    [flippedCards, cards],
+  )
 
   useEffect(() => {
     initializeGame()
-  }, [difficulty])
+  }, [initializeGame])
 
   const gridCols = difficulty === "easy" ? "grid-cols-4" : difficulty === "medium" ? "grid-cols-4" : "grid-cols-6"
 
@@ -590,7 +638,7 @@ const MemoryGame = () => {
   )
 }
 
-// Working Reaction Time Game
+// Optimized Reaction Time Game
 const ReactionGame = () => {
   const [gameState, setGameState] = useState<"waiting" | "ready" | "go" | "clicked" | "too-early">("waiting")
   const [reactionTime, setReactionTime] = useState<number | null>(null)
@@ -598,17 +646,17 @@ const ReactionGame = () => {
   const [attempts, setAttempts] = useState(0)
   const [startTime, setStartTime] = useState<number | null>(null)
 
-  const startGame = () => {
+  const startGame = useCallback(() => {
     setGameState("ready")
-    const delay = Math.random() * 4000 + 1000 // 1-5 seconds
+    const delay = Math.random() * 4000 + 1000
 
     setTimeout(() => {
       setGameState("go")
       setStartTime(Date.now())
     }, delay)
-  }
+  }, [])
 
-  const handleClick = () => {
+  const handleClick = useCallback(() => {
     if (gameState === "ready") {
       setGameState("too-early")
       setTimeout(() => setGameState("waiting"), 2000)
@@ -619,19 +667,17 @@ const ReactionGame = () => {
       const time = Date.now() - startTime
       setReactionTime(time)
       setGameState("clicked")
-      setAttempts(attempts + 1)
+      setAttempts((prev) => prev + 1)
 
-      if (!bestTime || time < bestTime) {
-        setBestTime(time)
-      }
+      setBestTime((prev) => (!prev || time < prev ? time : prev))
     }
-  }
+  }, [gameState, startTime])
 
-  const reset = () => {
+  const reset = useCallback(() => {
     setGameState("waiting")
     setReactionTime(null)
     setStartTime(null)
-  }
+  }, [])
 
   const getBackgroundColor = () => {
     switch (gameState) {
@@ -741,7 +787,7 @@ const ReactionGame = () => {
   )
 }
 
-// Working Dice Game
+// Optimized Dice Game
 const DiceGame = () => {
   const [dice, setDice] = useState([1, 1])
   const [isRolling, setIsRolling] = useState(false)
@@ -759,13 +805,13 @@ const DiceGame = () => {
     return <Icon className="w-16 h-16 text-emerald-400" />
   }
 
-  const rollDice = async () => {
+  const rollDice = useCallback(async () => {
     setIsRolling(true)
 
-    // Animate rolling
-    for (let i = 0; i < 10; i++) {
+    // Optimized rolling animation
+    for (let i = 0; i < 8; i++) {
       setDice([Math.floor(Math.random() * 6) + 1, Math.floor(Math.random() * 6) + 1])
-      await new Promise((resolve) => setTimeout(resolve, 100))
+      await new Promise((resolve) => setTimeout(resolve, 80))
     }
 
     const finalRoll = [Math.floor(Math.random() * 6) + 1, Math.floor(Math.random() * 6) + 1]
@@ -788,9 +834,9 @@ const DiceGame = () => {
       highestSum: Math.max(prev.highestSum, sum),
       lowestSum: Math.min(prev.lowestSum, sum),
     }))
-  }
+  }, [])
 
-  const resetStats = () => {
+  const resetStats = useCallback(() => {
     setHistory([])
     setStats({
       totalRolls: 0,
@@ -799,7 +845,7 @@ const DiceGame = () => {
       lowestSum: 12,
     })
     setDice([1, 1])
-  }
+  }, [])
 
   return (
     <div className="space-y-6">
@@ -893,7 +939,7 @@ const DiceGame = () => {
   )
 }
 
-// Enhanced Game Hook
+// Optimized Game Hook
 const useGameState = () => {
   const [gameStats, setGameStats] = useState({
     gamesPlayed: 0,
@@ -916,7 +962,7 @@ const useGameState = () => {
   return { gameStats, updateStats }
 }
 
-// Working Trivia Game Hook
+// Optimized Trivia Game Hook
 const useTrivia = () => {
   const [question, setQuestion] = useState<any>(null)
   const [loading, setLoading] = useState(false)
@@ -925,7 +971,7 @@ const useTrivia = () => {
   const [showResult, setShowResult] = useState(false)
   const [streak, setStreak] = useState(0)
 
-  const fetchQuestion = async () => {
+  const fetchQuestion = useCallback(async () => {
     setLoading(true)
     try {
       const response = await fetch("https://opentdb.com/api.php?amount=1&type=multiple")
@@ -941,19 +987,22 @@ const useTrivia = () => {
       console.error("Error fetching trivia:", error)
     }
     setLoading(false)
-  }
+  }, [])
 
-  const answerQuestion = (answer: string) => {
-    setSelectedAnswer(answer)
-    setShowResult(true)
-    if (answer === question.correct_answer) {
-      const points = 10 + streak * 2
-      setScore((prev) => prev + points)
-      setStreak((prev) => prev + 1)
-    } else {
-      setStreak(0)
-    }
-  }
+  const answerQuestion = useCallback(
+    (answer: string) => {
+      setSelectedAnswer(answer)
+      setShowResult(true)
+      if (answer === question.correct_answer) {
+        const points = 10 + streak * 2
+        setScore((prev) => prev + points)
+        setStreak((prev) => prev + 1)
+      } else {
+        setStreak(0)
+      }
+    },
+    [question, streak],
+  )
 
   return { question, loading, score, selectedAnswer, showResult, streak, fetchQuestion, answerQuestion }
 }
@@ -969,11 +1018,11 @@ export default function PlaygroundPage() {
     offset: ["start end", "end start"],
   })
 
-  const heroParallaxY = useTransform(scrollYProgress, [0, 1], [0, -100])
+  const heroParallaxY = useTransform(scrollYProgress, [0, 1], [0, -50])
   const { gameStats, updateStats } = useGameState()
   const trivia = useTrivia()
 
-  // Enhanced Games Data
+  // Optimized Games Data
   const games = useMemo(
     () => [
       {
@@ -1052,7 +1101,7 @@ export default function PlaygroundPage() {
     [],
   )
 
-  const renderGameContent = () => {
+  const renderGameContent = useCallback(() => {
     switch (activeGame) {
       case "chess":
         return <ChessGame />
@@ -1192,38 +1241,39 @@ export default function PlaygroundPage() {
           </div>
         )
     }
-  }
+  }, [activeGame, trivia])
 
   return (
     <div ref={containerRef} className="min-h-screen pt-20 px-4 relative overflow-hidden bg-slate-900">
-      {/* Matrix Rain Background */}
+      {/* Optimized Matrix Rain Background */}
       <MatrixRain />
 
-      {/* Hero Parallax Background */}
+      {/* Optimized Hero Parallax Background */}
       <motion.div
         style={{ y: heroParallaxY }}
-        className="fixed inset-0 z-0 opacity-20"
-        initial={{ scale: 1.1 }}
+        className="fixed inset-0 z-0 opacity-15"
+        initial={{ scale: 1.05 }}
         animate={{ scale: 1 }}
-        transition={{ duration: 20, ease: "linear" }}
+        transition={{ duration: 15, ease: "linear" }}
       >
         <Image
           src="https://images.unsplash.com/photo-1493711662062-fa541adb3fc8?w=1920&h=1080&fit=crop&q=80"
           alt="Gaming Controller Background"
           fill
-          className="object-contain"
+          className="object-cover"
           priority
+          sizes="100vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/70 via-slate-900/50 to-slate-900/90" />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/80 via-slate-900/60 to-slate-900/90" />
       </motion.div>
 
-      {/* Floating Particles */}
-      <div className="fixed inset-0 z-0 overflow-hidden opacity-20">
-        <FloatingParticles count={20} />
+      {/* Reduced Floating Particles */}
+      <div className="fixed inset-0 z-0 overflow-hidden opacity-15">
+        <FloatingParticles count={12} />
       </div>
 
       <div className="max-w-7xl mx-auto relative z-10">
-        {/* Enhanced Hero Section */}
+        {/* Optimized Hero Section */}
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
@@ -1248,7 +1298,7 @@ export default function PlaygroundPage() {
             bring chess directly into your browser — no login, no key required!
           </motion.p>
 
-          {/* Enhanced Stats */}
+          {/* Optimized Stats */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -1266,9 +1316,9 @@ export default function PlaygroundPage() {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.1 + 0.6 }}
-                className={`glass-dark p-4 rounded-lg border border-${stat.color}-400/20 hover:border-${stat.color}-400/40 transition-all duration-300`}
+                className="glass-dark p-4 rounded-lg border border-emerald-400/20 hover:border-emerald-400/40 transition-all duration-300"
               >
-                <div className={`text-${stat.color}-400 text-2xl font-bold font-mono`}>
+                <div className="text-emerald-400 text-2xl font-bold font-mono">
                   {stat.value}
                   {stat.suffix}
                 </div>
@@ -1328,7 +1378,7 @@ export default function PlaygroundPage() {
             whileHover={{ y: -8, scale: 1.01 }}
             className="glass-dark p-8 rounded-2xl border-2 border-yellow-400/50 bg-gradient-to-br from-yellow-400/10 to-orange-400/10 relative overflow-hidden"
           >
-            <FloatingParticles count={12} />
+            <FloatingParticles count={8} />
 
             <div className="relative z-10 grid lg:grid-cols-2 gap-8 items-center">
               <div>
@@ -1373,7 +1423,7 @@ export default function PlaygroundPage() {
 
               <div className="flex justify-center">
                 <div className="relative">
-                  <div className="w-64 h-64 bg-gradient-to-br from-amber-100 to-amber-800 rounded-lg grid grid-cols-8 gap-0 border-4 border-yellow-400/50 shadow-2xl">
+                  <div className="w-64 h-64 bg-gradient-to-br from-stone-200 to-stone-700 rounded-lg grid grid-cols-8 gap-0 border-4 border-yellow-400/50 shadow-2xl">
                     {Array.from({ length: 64 }, (_, i) => {
                       const row = Math.floor(i / 8)
                       const col = i % 8
@@ -1382,16 +1432,16 @@ export default function PlaygroundPage() {
                         <div
                           key={i}
                           className={`w-8 h-8 flex items-center justify-center text-lg ${
-                            isLight ? "bg-amber-100" : "bg-amber-800"
+                            isLight ? "bg-stone-200" : "bg-stone-700"
                           }`}
                         >
-                          {/* Sample chess pieces */}
-                          {i === 0 && "♜"}
-                          {i === 7 && "♜"}
-                          {i === 56 && "♖"}
-                          {i === 63 && "♖"}
-                          {i === 28 && "♛"}
-                          {i === 35 && "♕"}
+                          {/* Sample chess pieces with proper contrast */}
+                          {i === 0 && <span className="text-slate-100 drop-shadow-sm">♜</span>}
+                          {i === 7 && <span className="text-slate-100 drop-shadow-sm">♜</span>}
+                          {i === 56 && <span className="text-slate-900 drop-shadow-sm">♖</span>}
+                          {i === 63 && <span className="text-slate-900 drop-shadow-sm">♖</span>}
+                          {i === 28 && <span className="text-slate-100 drop-shadow-sm">♛</span>}
+                          {i === 35 && <span className="text-slate-900 drop-shadow-sm">♕</span>}
                         </div>
                       )
                     })}
@@ -1441,7 +1491,7 @@ export default function PlaygroundPage() {
                       : "border-emerald-400/20 hover:border-emerald-400/40"
                   }`}
                 >
-                  <FloatingParticles count={6} />
+                  <FloatingParticles count={4} />
 
                   <div className="relative z-10">
                     {/* Status Badges */}
@@ -1540,7 +1590,7 @@ export default function PlaygroundPage() {
               className="mb-24"
             >
               <div className="glass-dark p-8 rounded-2xl border border-emerald-400/40 bg-gradient-to-br from-emerald-400/5 to-cyan-400/5 relative overflow-hidden">
-                <FloatingParticles count={15} />
+                <FloatingParticles count={8} />
 
                 <div className="relative z-10">
                   <div className="flex items-center justify-between mb-8">
@@ -1573,7 +1623,7 @@ export default function PlaygroundPage() {
           className="mb-24"
         >
           <div className="glass-dark p-12 rounded-2xl border border-emerald-400/20 relative overflow-hidden text-center">
-            <FloatingParticles count={20} />
+            <FloatingParticles count={10} />
 
             <div className="relative z-10">
               <motion.div
@@ -1616,15 +1666,15 @@ export default function PlaygroundPage() {
       </div>
 
       {/* Custom Styles */}
-      <style jsx>{`
+      <style jsx global>{`
         .glass-dark {
-          background: rgba(15, 23, 42, 0.8);
+          background: rgba(15, 23, 42, 0.85);
           backdrop-filter: blur(16px);
           -webkit-backdrop-filter: blur(16px);
         }
         
         .glass-emerald {
-          background: rgba(16, 185, 129, 0.1);
+          background: rgba(16, 185, 129, 0.15);
           backdrop-filter: blur(16px);
           -webkit-backdrop-filter: blur(16px);
         }
@@ -1638,6 +1688,29 @@ export default function PlaygroundPage() {
         
         .gentle-glow {
           text-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+        }
+
+        /* Performance optimizations */
+        * {
+          box-sizing: border-box;
+        }
+
+        .will-change-transform {
+          will-change: transform;
+        }
+
+        /* Smooth scrolling */
+        html {
+          scroll-behavior: smooth;
+        }
+
+        /* Optimize animations */
+        @media (prefers-reduced-motion: reduce) {
+          * {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+          }
         }
       `}</style>
     </div>

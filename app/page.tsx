@@ -2,40 +2,164 @@
 
 import { memo, useRef, useEffect, useState, lazy, Suspense } from "react";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
-import {
-  ArrowDown,
-  Github,
-  Linkedin,
-  Mail,
-  ExternalLink,
-  Code2,
-  Rocket,
-  Star,
-  Eye,
-  Brain,
-  Cpu,
-  Zap,
-  Terminal,
-  Gamepad2,
-  Globe,
-  Smartphone,
-  Server,
-  Briefcase,
-  Database,
-  Layers,
-  Sparkles,
-} from "lucide-react";
+import { ArrowDown, Github, Linkedin, Mail, ExternalLink, Code2, Rocket, Star, Eye, Brain, Cpu, Zap, Terminal, Gamepad2, Globe, Smartphone, Server, Briefcase, Database, Layers, Sparkles, Trophy, Users } from 'lucide-react';
 import Link from "next/link";
 import Image from "next/image";
 import { useAudio } from "@/components/audio-provider";
 
 // Lazy-loaded components to improve initial load time
 const MatrixRain = lazy(() => import("@/components/matrix-rain").then(mod => ({ default: mod.MatrixRain })));
-const ParallaxBackground = lazy(() => import("@/components/parallax-background").then(mod => ({ default: mod.ParallaxBackground })));
-const ProfileShape = lazy(() => import("@/components/profile-shape").then(mod => ({ default: mod.ProfileShape })));
+
+// Enhanced Typing Animation Component
+const TypingAnimation = memo(() => {
+  const phrases = [
+    "Fullstack Developer",
+    "Mobile App Developer", 
+    "Cybersecurity Enthusiast",
+    "React | Next.js | Angular | Vue Lover",
+    "Tailwind CSS & SASS Wizard",
+    "Node.js | Express | MongoDB | PostgreSQL",
+    "React Native | Flutter | Expo Dev",
+    "Python & TypeScript Fan",
+    "Backend with Appwrite & REST APIs",
+    "Tech Is My Passion",
+    "Forever Building & Learning",
+    "Clean UI Addict",
+    "Open Source Contributor",
+    "Creative Thinker",
+    "Terminal UI Aesthetic"
+  ];
+
+  const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
+  const [currentText, setCurrentText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    const currentPhrase = phrases[currentPhraseIndex];
+    const timeout = setTimeout(() => {
+      if (!isDeleting) {
+        if (currentText.length < currentPhrase.length) {
+          setCurrentText(currentPhrase.slice(0, currentText.length + 1));
+        } else {
+          setTimeout(() => setIsDeleting(true), 2000);
+        }
+      } else {
+        if (currentText.length > 0) {
+          setCurrentText(currentText.slice(0, -1));
+        } else {
+          setIsDeleting(false);
+          setCurrentPhraseIndex((prev) => (prev + 1) % phrases.length);
+        }
+      }
+    }, isDeleting ? 50 : 100);
+
+    return () => clearTimeout(timeout);
+  }, [currentText, isDeleting, currentPhraseIndex, phrases]);
+
+  return (
+    <div className="text-lg md:text-xl text-emerald-300 font-mono h-8 flex items-center">
+      <span className="text-emerald-500 mr-2">{">"}</span>
+      <span>{currentText}</span>
+      <motion.span
+        animate={{ opacity: [0, 1, 0] }}
+        transition={{ duration: 1, repeat: Infinity }}
+        className="inline-block ml-1 text-emerald-400 text-xl"
+      >
+        ▋
+      </motion.span>
+    </div>
+  );
+});
+
+TypingAnimation.displayName = "TypingAnimation";
+
+// Enhanced Profile Shape Component with Name
+const ProfileShape = memo(({ imageUrl }: { imageUrl: string }) => {
+  return (
+    <div className="relative">
+      {/* Animated background rings */}
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+        className="absolute inset-0 w-80 h-80 border-2 border-emerald-400/30 rounded-full"
+      />
+      <motion.div
+        animate={{ rotate: -360 }}
+        transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+        className="absolute inset-4 w-72 h-72 border border-cyan-400/20 rounded-full"
+      />
+      
+      {/* Floating particles */}
+      {[...Array(8)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute w-2 h-2 bg-emerald-400/60 rounded-full"
+          style={{
+            top: `${20 + Math.sin(i * 0.8) * 30}%`,
+            left: `${20 + Math.cos(i * 0.8) * 30}%`,
+          }}
+          animate={{
+            y: [0, -20, 0],
+            opacity: [0.3, 1, 0.3],
+            scale: [1, 1.5, 1],
+          }}
+          transition={{
+            duration: 3 + i * 0.5,
+            repeat: Infinity,
+            delay: i * 0.3,
+          }}
+        />
+      ))}
+
+      {/* Main profile container */}
+      <motion.div
+        whileHover={{ scale: 1.05 }}
+        transition={{ type: "spring", stiffness: 300 }}
+        className="relative w-64 h-64 mx-auto"
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 to-cyan-400/20 rounded-full blur-xl" />
+        <div className="relative w-full h-full rounded-full overflow-hidden border-4 border-emerald-400/50 shadow-2xl shadow-emerald-400/20">
+          <Image
+            src={imageUrl || "/placeholder.svg"}
+            alt="Profile"
+            fill
+            className="object-cover"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-emerald-900/20 to-transparent" />
+        </div>
+        
+        {/* Status indicator */}
+        <div className="absolute bottom-4 right-4 flex items-center space-x-2 bg-slate-900/80 backdrop-blur-sm px-3 py-1 rounded-full border border-emerald-400/50">
+          <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+          <span className="text-xs text-emerald-300 font-mono">ONLINE</span>
+        </div>
+      </motion.div>
+
+      {/* Stylish Name Display */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.5 }}
+        className="text-center mt-6"
+      >
+        <h3 className="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400 font-mono tracking-wider">
+          Brian Chege
+        </h3>
+        <div className="flex items-center justify-center space-x-2 mt-2">
+          <div className="h-px bg-gradient-to-r from-transparent via-emerald-400 to-transparent w-16"></div>
+          <Terminal className="w-4 h-4 text-emerald-400" />
+          <div className="h-px bg-gradient-to-r from-transparent via-emerald-400 to-transparent w-16"></div>
+        </div>
+      </motion.div>
+    </div>
+  );
+});
+
+ProfileShape.displayName = "ProfileShape";
 
 // Memoized tech stack component to prevent unnecessary re-renders
-const TechStackItem = memo(({ tech, index }) => {
+const TechStackItem = memo(({ tech, index }: { tech: any; index: number }) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 50 }}
@@ -53,7 +177,7 @@ const TechStackItem = memo(({ tech, index }) => {
       `}>
         <div className="mb-4 relative">
           <Image
-            src={tech.icon}
+            src={tech.icon || "/placeholder.svg"}
             alt={`${tech.name} icon`}
             width={48}
             height={48}
@@ -70,76 +194,111 @@ const TechStackItem = memo(({ tech, index }) => {
 
 TechStackItem.displayName = "TechStackItem";
 
-// Memoized project card component
-const ProjectCard = memo(({ project, index }) => {
+// Enhanced Project Card Component
+const ProjectCard = memo(({ project, index }: { project: any; index: number }) => {
+  const [isHovered, setIsHovered] = useState(false);
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 50 }}
+      initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay: index * 0.1 }}
-      viewport={{ once: true, margin: "-100px" }}
-      whileHover={{ y: -10, scale: 1.01 }}
-      className="group relative"
+      viewport={{ once: true }}
+      whileHover={{ y: -8, scale: 1.02 }}
+      className="group relative cursor-pointer"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="relative bg-slate-900/90 border border-emerald-400/30 group-hover:border-emerald-400/70 transition-all duration-300 overflow-hidden rounded-lg">
-        {/* Project Image */}
-        <div className="relative overflow-hidden h-64 bg-slate-800">
-          <Image 
-            src={project.image} 
+      <motion.div 
+        className="bg-slate-900/90 backdrop-blur-sm border border-emerald-400/20 group-hover:border-emerald-400/60 transition-all duration-500 rounded-2xl overflow-hidden"
+        animate={{
+          height: isHovered ? "auto" : "auto"
+        }}
+        transition={{ duration: 0.3 }}
+      >
+        {/* Project Image Container */}
+        <div className="relative overflow-hidden aspect-[4/3]">
+          <Image
+            src={project.image || "/placeholder.svg"}
             alt={project.title}
-            width={600}
-            height={400}
-            className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105 group-hover:brightness-110"
+            fill
+            className="object-cover transition-transform duration-700 group-hover:scale-110"
+            loading="lazy"
           />
-          
-          {/* Action buttons overlay */}
-          <div className="absolute inset-0 bg-slate-900/80 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center space-x-6">
-            <motion.a
-              href={project.github}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-4 bg-slate-800/80 backdrop-blur border border-emerald-400/50 hover:border-emerald-400 transition-all duration-300 rounded-lg"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Github className="w-6 h-6 text-emerald-400" />
-            </motion.a>
 
-            <motion.a
-              href={project.live}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-4 bg-slate-800/80 backdrop-blur border border-cyan-400/50 hover:border-cyan-400 transition-all duration-300 rounded-lg"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <ExternalLink className="w-6 h-6 text-cyan-400" />
-            </motion.a>
+          {/* Featured Badge */}
+          <div className="absolute top-4 left-4">
+            <div className="flex items-center space-x-2 px-3 py-1 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full text-white text-xs font-mono font-bold">
+              <Trophy className="w-3 h-3" />
+              <span>FEATURED</span>
+            </div>
           </div>
+
+          {/* Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent" />
         </div>
 
-        {/* Project Info */}
-        <div className="p-6 bg-slate-900/95">
-          <h3 className="text-xl font-bold mb-3 text-white group-hover:text-emerald-400 transition-colors duration-300">
+        {/* Project Info - Always Visible */}
+        <div className="p-6">
+          <h3 className="text-xl font-bold text-white mb-3 font-mono group-hover:text-emerald-400 transition-colors duration-300">
             {project.title}
           </h3>
-          <p className="text-slate-300 mb-4 text-sm leading-relaxed">
-            {project.description}
-          </p>
+          <p className="text-gray-300 text-sm mb-4">{project.description}</p>
 
           {/* Tech Stack */}
-          <div className="flex flex-wrap gap-2 mt-4">
-            {project.tech.map((tech, techIndex) => (
+          <div className="flex flex-wrap gap-2 mb-4">
+            {project.tech.slice(0, 3).map((tech: string) => (
               <span
                 key={tech}
-                className="px-3 py-1 bg-slate-800/80 text-emerald-300 border border-emerald-400/30 text-xs rounded"
+                className="px-3 py-1 text-xs font-mono bg-emerald-500/20 text-emerald-300 rounded-full border border-emerald-400/30"
               >
                 {tech}
               </span>
             ))}
+            {project.tech.length > 3 && (
+              <span className="px-3 py-1 text-xs font-mono bg-gray-500/20 text-gray-400 rounded-full">
+                +{project.tech.length - 3}
+              </span>
+            )}
           </div>
+
+          {/* Action Buttons - Show on Hover */}
+          <AnimatePresence>
+            {isHovered && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ duration: 0.3 }}
+                className="flex space-x-4"
+              >
+                <motion.a
+                  href={project.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 flex items-center justify-center space-x-2 p-3 bg-slate-800/80 backdrop-blur rounded-lg border border-emerald-400/30 hover:border-emerald-400/60 transition-all duration-200 text-emerald-400 font-mono text-sm"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Github className="w-4 h-4" />
+                  <span>Code</span>
+                </motion.a>
+                <motion.a
+                  href={project.live}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 flex items-center justify-center space-x-2 p-3 bg-emerald-500/20 backdrop-blur rounded-lg border border-emerald-400/50 hover:border-emerald-400/80 transition-all duration-200 text-emerald-400 font-mono text-sm"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  <span>Live</span>
+                </motion.a>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-      </div>
+      </motion.div>
     </motion.div>
   );
 });
@@ -175,32 +334,32 @@ export default function HomePage() {
   // Featured projects data
   const featuredProjects = [
     {
-      title: "AI-Powered Code Assistant",
-      description: "Revolutionary AI assistant that helps developers write better code with real-time suggestions and automated refactoring",
-      image: "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=600&h=400&fit=crop",
-      tech: ["OpenAI", "TypeScript", "React", "Node.js"],
-      github: "https://github.com",
-      live: "https://example.com",
+      title: "Healthmaster mobile app",
+      description: "A medication adherence, drugs interaction checker, and health tracker app that helps users manage their medications, check for drug interactions, and track their health metrics. Powered by AI allows users to know their medications , track their health metrics, and check for drug interactions.",
+      image: "/assets/graphic.png",
+      tech: ["React Native", "Expo", "Appwrite", "Typescript", "Kotlin"],
+      github: "https://github.com/CHEGEBB/health-master-mobile-app",
+      live: "https://apkpure.com/p/com.health_master.healthmaster",
     },
     {
-      title: "Blockchain Voting System",
-      description: "Secure, transparent voting platform built on blockchain technology with end-to-end encryption",
-      image: "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=600&h=400&fit=crop",
-      tech: ["Solidity", "Web3.js", "React", "IPFS"],
-      github: "https://github.com",
-      live: "https://example.com",
+      title: "Werentonline real-estate",
+      description: "A real estate web app that allows users to search for properties, view listings, and connect with agents. Features include property search, listing management, and user profiles.",
+      image: "/assets/wrent.png",
+      tech: ["Html", "Javascript", "Node.js", "css", "Sendgrid"],
+      github: "https://github.com/muthonijulie/estates",
+      live: "https://www.werentonline.com",
     },
     {
-      title: "Real-time Collaboration Platform",
-      description: "Multi-user collaborative workspace with real-time editing, video calls, and project management",
-      image: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=400&fit=crop",
-      tech: ["Socket.io", "WebRTC", "React", "Express"],
-      github: "https://github.com",
-      live: "https://example.com",
+      title: "Jobplex",
+      description: "JobPlex matches candidates with opportunities that are based on real skills and potential.. Our AI-powered platform revolutionizes how talent connects with employers.",
+      image: "/assets/job.png",
+      tech: ["Angular", "Node.js", "AWS","Tailwind css", "Sass","Docker"],
+      github: "https://github.com/CHEGEBB/jobplex",
+      live: "http://jobplex-frontend.s3-website-us-east-1.amazonaws.com/",
     },
   ];
 
-  // Services data
+  // Services data with Unsplash backgrounds
   const services = [
     {
       title: "Full Stack Development",
@@ -208,20 +367,23 @@ export default function HomePage() {
       icon: Globe,
       features: ["React/Next.js", "Node.js/Express", "Database Design", "API Development"],
       iconColor: "text-blue-400",
+      bgImage: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&h=600&fit=crop&crop=center",
     },
     {
       title: "Mobile App Development",
       description: "Cross-platform mobile applications with native performance and user experience",
       icon: Smartphone,
       features: ["React Native", "Flutter", "iOS/Android", "App Store Deployment"],
-      iconColor: "text-slate-400",
+      iconColor: "text-emerald-400",
+      bgImage: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&h=600&fit=crop&crop=center",
     },
     {
       title: "Cloud & DevOps",
       description: "Scalable cloud infrastructure and automated deployment pipelines",
       icon: Server,
       features: ["AWS/Azure", "Docker/Kubernetes", "CI/CD Pipelines", "Monitoring"],
-      iconColor: "text-emerald-400",
+      iconColor: "text-cyan-400",
+      bgImage: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&h=600&fit=crop&crop=center",
     },
   ];
 
@@ -249,143 +411,117 @@ export default function HomePage() {
       ref={containerRef}
       className="relative min-h-screen overflow-hidden bg-slate-900"
     >
-      {/* Background Video - using HTML5 video for better performance */}
-      <div className="fixed inset-0 z-0">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 w-full h-full object-contain "
-        >
-          <source src="/assets/vid.mp4" type="video/mp4" />
-        </video>
-        <div className="absolute inset-0 bg-slate-900/70" />
-      </div>
-
-      {/* Matrix Rain Effect - lazy loaded */}
+      {/* Matrix Rain Effect - Only in Hero */}
       <Suspense fallback={null}>
         <div className="fixed inset-0 z-0 opacity-30">
           <MatrixRain />
         </div>
       </Suspense>
 
-      {/* Hero Section with Parallax */}
-      <Suspense fallback={<div className="min-h-screen" />}>
-        <section className="relative min-h-screen flex items-center justify-center px-4 z-10">
-          <motion.div
-            style={{ y, opacity, scale }}
-            className="max-w-7xl mx-auto w-full"
-          >
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              {/* Left Side - Text Content */}
-              <motion.div
-                initial={{ opacity: 0, x: -50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-                className="space-y-8"
-              >
-                <h1 className="text-4xl md:text-6xl lg:text-7xl font-black leading-tight font-mono">
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-500">
-                    DIGITAL
-                  </span>
-                  <br />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-500">
-                    ARCHITECT
-                  </span>
-                </h1>
-
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.8, delay: 0.3 }}
-                  className="text-lg md:text-xl text-emerald-300 font-mono tracking-wider"
-                >
-                  <span className="inline-block">{">"}</span>
-                  <motion.span
-                    animate={{ opacity: [1, 0.7, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                    className="inline-block ml-2"
-                  >
-                    Crafting tomorrow's digital experiences
-                  </motion.span>
-                  <motion.span
-                    animate={{ opacity: [0, 1, 0] }}
-                    transition={{ duration: 1, repeat: Infinity }}
-                    className="inline-block ml-1 text-emerald-400"
-                  >
-                    ▋
-                  </motion.span>
-                </motion.div>
-
-                {/* Action Buttons */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.6 }}
-                  className="flex flex-col sm:flex-row gap-4"
-                >
-                  <Link
-                    href="/projects"
-                    className="group relative px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl font-bold text-lg overflow-hidden transition-all duration-300"
-                    onMouseEnter={playHover}
-                    onClick={playClick}
-                  >
-                    <span className="relative z-10 flex items-center space-x-2 text-white">
-                      <Rocket className="w-5 h-5" />
-                      <span>Explore Projects</span>
-                    </span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-teal-600 to-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  </Link>
-
-                  <Link
-                    href="/contact"
-                    className="group relative px-8 py-4 bg-transparent border-2 border-emerald-400/50 rounded-xl font-bold text-lg hover:border-emerald-400 transition-all duration-300"
-                    onMouseEnter={playHover}
-                    onClick={playClick}
-                  >
-                    <span className="relative z-10 flex items-center space-x-2 text-emerald-300 group-hover:text-white">
-                      <Zap className="w-5 h-5" />
-                      <span>Get In Touch</span>
-                    </span>
-                  </Link>
-                </motion.div>
-              </motion.div>
-
-              {/* Right Side - Profile Shape */}
-              <motion.div
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
-                className="flex justify-center lg:justify-end"
-              >
-                <ProfileShape imageUrl="/assets/profile.jpg" />
-              </motion.div>
-            </div>
-          </motion.div>
-
-          {/* Scroll Indicator */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 1.5 }}
-            className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
-          >
+      {/* Hero Section */}
+      <section className="relative min-h-screen flex items-center justify-center px-4 z-10">
+        <motion.div
+          style={{ y, opacity, scale }}
+          className="max-w-7xl mx-auto w-full"
+        >
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left Side - Profile Shape */}
             <motion.div
-              animate={{ y: [0, 8, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="flex flex-col items-center space-y-2 text-emerald-400"
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="flex justify-center lg:justify-start"
             >
-              <span className="text-sm font-mono">Scroll to explore</span>
-              <ArrowDown className="w-6 h-6" />
+              <ProfileShape imageUrl="/assets/profile.jpg" />
             </motion.div>
-          </motion.div>
-        </section>
-      </Suspense>
 
-      {/* Tech Stack Showcase */}
+            {/* Right Side - Text Content */}
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
+              className="space-y-8"
+            >
+              <h1 className="text-4xl md:text-6xl lg:text-7xl font-black leading-tight font-mono">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-500">
+                  DIGITAL
+                </span>
+                <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-500">
+                  ARCHITECT
+                </span>
+              </h1>
+
+              <TypingAnimation />
+
+              {/* Action Buttons */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.6 }}
+                className="flex flex-col sm:flex-row gap-4"
+              >
+                <Link
+                  href="/projects"
+                  className="group relative px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl font-bold text-lg overflow-hidden transition-all duration-300"
+                  onMouseEnter={playHover}
+                  onClick={playClick}
+                >
+                  <span className="relative z-10 flex items-center space-x-2 text-white">
+                    <Rocket className="w-5 h-5" />
+                    <span>Explore Projects</span>
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-teal-600 to-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                </Link>
+
+                <Link
+                  href="/contact"
+                  className="group relative px-8 py-4 bg-transparent border-2 border-emerald-400/50 rounded-xl font-bold text-lg hover:border-emerald-400 transition-all duration-300"
+                  onMouseEnter={playHover}
+                  onClick={playClick}
+                >
+                  <span className="relative z-10 flex items-center space-x-2 text-emerald-300 group-hover:text-white">
+                    <Zap className="w-5 h-5" />
+                    <span>Get In Touch</span>
+                  </span>
+                </Link>
+              </motion.div>
+            </motion.div>
+          </div>
+        </motion.div>
+
+        {/* Scroll Indicator */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 1.5 }}
+          className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
+        >
+          <motion.div
+            animate={{ y: [0, 8, 0] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="flex flex-col items-center space-y-2 text-emerald-400"
+          >
+            <span className="text-sm font-mono">Scroll to explore</span>
+            <ArrowDown className="w-6 h-6" />
+          </motion.div>
+        </motion.div>
+      </section>
+
+      {/* Tech Stack Showcase with Unsplash Background */}
       <section className="relative py-24 px-4 z-10">
-        <div className="max-w-6xl mx-auto">
+        {/* Background Image */}
+        <div className="absolute inset-0 opacity-50">
+          <Image
+            src="/assets/1.jpg"
+            alt="Tech Background"
+            fill
+            className="object-cover"
+          />
+        </div>
+        <div className="absolute inset-0 bg-slate-900/80" />
+
+        <div className="max-w-6xl mx-auto relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -422,9 +558,18 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Stats Section */}
+      {/* Stats Section with Unsplash Background */}
       <section className="relative py-24 px-4 z-10">
-        <div className="absolute inset-0 bg-slate-900/80" />
+        {/* Background Image */}
+        <div className="absolute inset-0 opacity-25">
+          <Image
+            src="/assets/1.jpg"
+            alt="Analytics Background"
+            fill
+            className="object-cover"
+          />
+        </div>
+        <div className="absolute inset-0 bg-slate-900/85" />
 
         <div className="max-w-6xl mx-auto relative z-10">
           <motion.div
@@ -483,19 +628,16 @@ export default function HomePage() {
                 whileHover={{ y: -10, scale: 1.03 }}
                 className="group"
               >
-                <div className="bg-slate-900/90 border border-emerald-400/20 group-hover:border-emerald-400/60 transition-all duration-300 rounded-lg overflow-hidden">
+                <div className="bg-slate-900/90 backdrop-blur-sm border border-emerald-400/20 group-hover:border-emerald-400/60 transition-all duration-300 rounded-lg overflow-hidden">
                   <div className="p-6 text-center">
-                    {/* Icon */}
                     <div className="mb-4">
                       <stat.icon className={`w-12 h-12 ${stat.color} mx-auto`} />
                     </div>
                     
-                    {/* Value */}
                     <div className={`text-3xl font-black ${stat.color} mb-2`}>
                       {stat.value}
                     </div>
                     
-                    {/* Label and description */}
                     <div className="space-y-1">
                       <div className="text-lg font-bold text-white group-hover:text-emerald-400 transition-colors duration-300 font-mono">
                         {stat.label}
@@ -505,7 +647,6 @@ export default function HomePage() {
                       </div>
                     </div>
                     
-                    {/* Status indicator */}
                     <div className="flex items-center justify-center space-x-2 mt-4 pt-3 border-t border-emerald-400/20">
                       <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
                       <span className="text-xs text-emerald-300 font-mono">
@@ -520,9 +661,23 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Featured Projects */}
+      {/* Featured Projects with MP4 Background */}
       <section className="relative py-24 px-4 z-10">
-        <div className="max-w-6xl mx-auto">
+        {/* MP4 Video Background */}
+        <div className="absolute inset-0 z-0 opacity-30">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover"
+          >
+            <source src="/assets/vid.mp4" type="video/mp4" />
+          </video>
+          <div className="absolute inset-0 bg-slate-900/80" />
+        </div>
+
+        <div className="max-w-6xl mx-auto relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -555,7 +710,7 @@ export default function HomePage() {
           >
             <Link
               href="/projects"
-              className="inline-flex items-center space-x-3 px-8 py-4 bg-gradient-to-r from-emerald-600/20 to-cyan-600/20 border border-emerald-400/50 hover:border-emerald-400 rounded-lg transition-all duration-300 group"
+              className="inline-flex items-center space-x-3 px-8 py-4 bg-gradient-to-r from-emerald-600/20 to-cyan-600/20 border border-emerald-400/50 hover:border-emerald-400 rounded-lg transition-all duration-300 group backdrop-blur-sm"
             >
               <span className="text-emerald-300 group-hover:text-white transition-colors duration-300 font-mono">
                 VIEW_ALL_PROJECTS
@@ -566,9 +721,21 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Services Section */}
-      <section className="relative py-24 px-4 z-10 bg-gradient-to-br from-slate-900 via-slate-800/60 to-emerald-900/30">
-        <div className="max-w-6xl mx-auto">
+      {/* Services Section with Blurred Unsplash Background */}
+      <section className="relative py-24 px-4 z-10">
+        {/* Blurred Background Image */}
+        <div className="absolute inset-0 opacity-40">
+          <Image
+            src="/assets/1.jpg"
+            alt="Services Background"
+            fill
+            className="object-cover"
+
+          />
+        </div>
+        <div className="absolute inset-0 bg-slate-900/70" />
+
+        <div className="max-w-6xl mx-auto relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -595,25 +762,38 @@ export default function HomePage() {
                 whileHover={{ y: -10, scale: 1.02 }}
                 className="group"
               >
-                <div className="bg-black/40 backdrop-blur-sm p-8 rounded-xl border border-emerald-400/20 group-hover:border-emerald-400/60 transition-all duration-300 h-full">
-                  <service.icon className={`w-12 h-12 ${service.iconColor} mb-6 group-hover:scale-110 transition-all duration-300`} />
+                <div className="relative bg-black/20 backdrop-blur-md p-8 rounded-xl border border-emerald-400/20 group-hover:border-emerald-400/60 transition-all duration-300 h-full overflow-hidden">
+                  {/* Background Image */}
+                  <div className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity duration-300">
+                    <Image
+                      src={service.bgImage || "/placeholder.svg"}
+                      alt={service.title}
+                      fill
+                      className="object-cover blur-sm"
+                    />
+                  </div>
+                  
+                  {/* Content */}
+                  <div className="relative z-10">
+                    <service.icon className={`w-12 h-12 ${service.iconColor} mb-6 group-hover:scale-110 transition-all duration-300`} />
 
-                  <h3 className="text-2xl font-bold mb-4 text-white group-hover:text-emerald-400 transition-colors duration-300">
-                    {service.title}
-                  </h3>
+                    <h3 className="text-2xl font-bold mb-4 text-white group-hover:text-emerald-400 transition-colors duration-300">
+                      {service.title}
+                    </h3>
 
-                  <p className="text-slate-300 mb-6 leading-relaxed">
-                    {service.description}
-                  </p>
+                    <p className="text-slate-300 mb-6 leading-relaxed">
+                      {service.description}
+                    </p>
 
-                  <ul className="space-y-3">
-                    {service.features.map((feature) => (
-                      <li key={feature} className="flex items-center space-x-3 text-sm text-slate-400 group-hover:text-slate-300">
-                        <div className={`w-2 h-2 ${service.iconColor.replace("text-", "bg-")} rounded-full`}></div>
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
+                    <ul className="space-y-3">
+                      {service.features.map((feature) => (
+                        <li key={feature} className="flex items-center space-x-3 text-sm text-slate-400 group-hover:text-slate-300">
+                          <div className={`w-2 h-2 ${service.iconColor.replace("text-", "bg-")} rounded-full`}></div>
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
               </motion.div>
             ))}

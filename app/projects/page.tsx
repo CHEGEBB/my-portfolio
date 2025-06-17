@@ -4,23 +4,7 @@ import type React from "react"
  
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion" 
 import { useState, useEffect, useRef, useMemo, useCallback } from "react" 
-import { 
-  Github, 
-  ExternalLink, 
-  Star, 
-  GitFork, 
-  Zap, 
-  Brain, 
-  Shield, 
-  Globe, 
-  Smartphone, 
-  Search, 
-  TrendingUp, 
-  Award, 
-  Users, 
-  Code, 
-  Trophy, 
-} from "lucide-react" 
+import { Github, ExternalLink, Star, GitFork, Zap, Brain, Shield, Globe, Smartphone, Search, TrendingUp, Award, Users, Code, Trophy } from 'lucide-react' 
 import Image from "next/image" 
  
 // Optimized Particle System 
@@ -732,79 +716,54 @@ export default function ProjectsPage() {
                 onMouseEnter={() => setHoveredFeaturedProject(project.id)}
                 onMouseLeave={() => setHoveredFeaturedProject(null)}
               >
-                <div className="relative overflow-hidden rounded-2xl aspect-[4/3] glass-dark border-2 border-emerald-400/30 group-hover:border-emerald-400/70 transition-all duration-500">
-                  <Image
-                    src={project.image || "/placeholder.svg"}
-                    alt={project.title}
-                    fill
-                    className="object-cover transition-transform duration-700 group-hover:scale-110"
-                    loading="lazy"
-                  />
+                <motion.div 
+                  className="glass-dark border-2 border-emerald-400/30 group-hover:border-emerald-400/70 transition-all duration-500 rounded-2xl overflow-hidden"
+                  animate={{
+                    height: hoveredFeaturedProject === project.id ? "auto" : "auto"
+                  }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {/* Image Container */}
+                  <div className="relative overflow-hidden aspect-[4/3]">
+                    <Image
+                      src={project.image || "/placeholder.svg"}
+                      alt={project.title}
+                      fill
+                      className="object-cover transition-transform duration-700 group-hover:scale-110"
+                      loading="lazy"
+                    />
 
-                  {/* Featured Badge */}
-                  <div className="absolute top-4 left-4">
-                    <div className="flex items-center space-x-2 px-3 py-1 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full text-white text-xs font-mono font-bold">
-                      <Trophy className="w-3 h-3" />
-                      <span>FEATURED</span>
+                    {/* Featured Badge */}
+                    <div className="absolute top-4 left-4">
+                      <div className="flex items-center space-x-2 px-3 py-1 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full text-white text-xs font-mono font-bold">
+                        <Trophy className="w-3 h-3" />
+                        <span>FEATURED</span>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Status Badge */}
-                  <div className="absolute top-4 right-4">
-                    <span
-                      className={`px-3 py-1 text-xs font-mono rounded-full border backdrop-blur-sm ${
-                        project.status === "Production"
-                          ? "bg-green-500/20 text-green-400 border-green-400/50"
-                          : "bg-blue-500/20 text-blue-400 border-blue-400/50"
-                      }`}
-                    >
-                      {project.status}
-                    </span>
-                  </div>
-
-                  {/* Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/95 via-slate-900/20 to-transparent" />
-
-                  {/* Hover Actions */}
-                  <AnimatePresence>
-                    {hoveredFeaturedProject === project.id && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        transition={{ duration: 0.3 }}
-                        className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex space-x-4"
+                    {/* Status Badge */}
+                    <div className="absolute top-4 right-4">
+                      <span
+                        className={`px-3 py-1 text-xs font-mono rounded-full border backdrop-blur-sm ${
+                          project.status === "Production"
+                            ? "bg-green-500/20 text-green-400 border-green-400/50"
+                            : "bg-blue-500/20 text-blue-400 border-blue-400/50"
+                        }`}
                       >
-                        <motion.a
-                          href={project.github}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-4 glass-dark rounded-full border border-emerald-400/30 hover:border-emerald-400/60 transition-all duration-200"
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                        >
-                          <Github className="w-6 h-6 text-emerald-400" />
-                        </motion.a>
-                        <motion.a
-                          href={project.live}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-4 glass-emerald rounded-full border border-emerald-400/50 hover:border-emerald-400/80 transition-all duration-200"
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                        >
-                          <ExternalLink className="w-6 h-6 text-emerald-400" />
-                        </motion.a>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                        {project.status}
+                      </span>
+                    </div>
 
-                  {/* Project Info */}
-                  <div className="absolute bottom-0 left-0 right-0 p-6">
+                    {/* Gradient Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent" />
+                  </div>
+
+                  {/* Project Info - Always Visible */}
+                  <div className="p-6">
                     <h3 className="text-xl font-bold text-white mb-3 font-mono group-hover:text-emerald-400 transition-colors duration-300">
                       {project.title}
                     </h3>
-                    <p className="text-gray-300 text-sm mb-4 line-clamp-2">{project.description}</p>
+                    <p className="text-gray-300 text-sm mb-4">{project.description}</p>
 
                     {/* Tech Stack */}
                     <div className="flex flex-wrap gap-2 mb-4">
@@ -824,7 +783,7 @@ export default function ProjectsPage() {
                     </div>
 
                     {/* Stats */}
-                    <div className="flex items-center justify-between text-xs text-gray-400 font-mono">
+                    <div className="flex items-center justify-between text-xs text-gray-400 font-mono mb-4">
                       <div className="flex items-center space-x-4">
                         <div className="flex items-center space-x-1">
                           <Users className="w-3 h-3" />
@@ -837,22 +796,44 @@ export default function ProjectsPage() {
                       </div>
                       <span className="text-emerald-400">{project.year}</span>
                     </div>
-                  </div>
 
-                  {/* Floating Particles on Hover */}
-                  <AnimatePresence>
-                    {hoveredFeaturedProject === project.id && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="absolute inset-0"
-                      >
-                        <FloatingParticles count={12} />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
+                    {/* Action Buttons - Always Visible on Hover */}
+                    <AnimatePresence>
+                      {hoveredFeaturedProject === project.id && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 10 }}
+                          transition={{ duration: 0.3 }}
+                          className="flex space-x-4"
+                        >
+                          <motion.a
+                            href={project.github}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-1 flex items-center justify-center space-x-2 p-3 glass-dark rounded-lg border border-emerald-400/30 hover:border-emerald-400/60 transition-all duration-200 text-emerald-400 font-mono text-sm"
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            <Github className="w-4 h-4" />
+                            <span>Code</span>
+                          </motion.a>
+                          <motion.a
+                            href={project.live}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-1 flex items-center justify-center space-x-2 p-3 glass-emerald rounded-lg border border-emerald-400/50 hover:border-emerald-400/80 transition-all duration-200 text-emerald-400 font-mono text-sm"
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                            <span>Live</span>
+                          </motion.a>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </motion.div>
               </motion.div>
             ))}
           </div>
@@ -945,83 +926,57 @@ export default function ProjectsPage() {
                   onMouseEnter={() => setHoveredProject(project.id)}
                   onMouseLeave={() => setHoveredProject(null)}
                 >
-                  {/* Project Image Container */}
-                  <div className="relative overflow-hidden rounded-2xl aspect-[4/3] glass-dark border border-emerald-400/20 group-hover:border-emerald-400/60 transition-all duration-500">
-                    <Image
-                      src={project.image || "/placeholder.svg"}
-                      alt={project.title}
-                      fill
-                      className="object-cover transition-transform duration-700 group-hover:scale-110"
-                      loading="lazy"
-                    />
+                  <motion.div 
+                    className="glass-dark border border-emerald-400/20 group-hover:border-emerald-400/60 transition-all duration-500 rounded-2xl overflow-hidden"
+                    animate={{
+                      height: hoveredProject === project.id ? "auto" : "auto"
+                    }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {/* Project Image Container */}
+                    <div className="relative overflow-hidden aspect-[4/3]">
+                      <Image
+                        src={project.image || "/placeholder.svg"}
+                        alt={project.title}
+                        fill
+                        className="object-cover transition-transform duration-700 group-hover:scale-110"
+                        loading="lazy"
+                      />
 
-                    {/* Gradient Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/20 to-transparent" />
-
-                    {/* Status Badge */}
-                    <div className="absolute top-4 left-4">
-                      <span
-                        className={`px-3 py-1 text-xs font-mono rounded-full border backdrop-blur-sm ${
-                          project.status === "Production"
-                            ? "bg-green-500/20 text-green-400 border-green-400/50"
-                            : "bg-blue-500/20 text-blue-400 border-blue-400/50"
-                        }`}
-                      >
-                        {project.status}
-                      </span>
-                    </div>
-
-                    {/* Year Badge */}
-                    <div className="absolute top-4 right-4">
-                      <span className="px-3 py-1 text-xs font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-400/50 rounded-full backdrop-blur-sm">
-                        {project.year}
-                      </span>
-                    </div>
-
-                    {/* Hover Actions */}
-                    <AnimatePresence>
-                      {hoveredProject === project.id && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: 20 }}
-                          transition={{ duration: 0.3 }}
-                          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex space-x-4"
+                      {/* Status Badge */}
+                      <div className="absolute top-4 left-4">
+                        <span
+                          className={`px-3 py-1 text-xs font-mono rounded-full border backdrop-blur-sm ${
+                            project.status === "Production"
+                              ? "bg-green-500/20 text-green-400 border-green-400/50"
+                              : "bg-blue-500/20 text-blue-400 border-blue-400/50"
+                          }`}
                         >
-                          <motion.a
-                            href={project.github}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-3 glass-dark rounded-full border border-emerald-400/30 hover:border-emerald-400/60 transition-all duration-200"
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                          >
-                            <Github className="w-6 h-6 text-emerald-400" />
-                          </motion.a>
-                          <motion.a
-                            href={project.live}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-3 glass-emerald rounded-full border border-emerald-400/50 hover:border-emerald-400/80 transition-all duration-200"
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                          >
-                            <ExternalLink className="w-6 h-6 text-emerald-400" />
-                          </motion.a>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                          {project.status}
+                        </span>
+                      </div>
 
-                    {/* Project Info Overlay */}
-                    <div className="absolute bottom-0 left-0 right-0 p-6">
+                      {/* Year Badge */}
+                      <div className="absolute top-4 right-4">
+                        <span className="px-3 py-1 text-xs font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-400/50 rounded-full backdrop-blur-sm">
+                          {project.year}
+                        </span>
+                      </div>
+
+                      {/* Gradient Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent" />
+                    </div>
+
+                    {/* Project Info - Always Visible */}
+                    <div className="p-6">
                       <h3 className="text-xl font-bold text-white mb-2 font-mono group-hover:text-emerald-400 transition-colors duration-300">
                         {project.title}
                       </h3>
-                      <p className="text-gray-300 text-sm mb-4 line-clamp-2">{project.description}</p>
+                      <p className="text-gray-300 text-sm mb-4">{project.description}</p>
 
                       {/* Tech Stack Pills */}
                       <div className="flex flex-wrap gap-2 mb-4">
-                        {project.tech.slice(0, 3).map((tech) => (
+                        {project.tech.slice(0, 4).map((tech) => (
                           <span
                             key={tech}
                             className="px-2 py-1 text-xs font-mono glass-emerald text-emerald-300 rounded-full border border-emerald-400/30"
@@ -1029,15 +984,15 @@ export default function ProjectsPage() {
                             {tech}
                           </span>
                         ))}
-                        {project.tech.length > 3 && (
+                        {project.tech.length > 4 && (
                           <span className="px-2 py-1 text-xs font-mono bg-gray-500/20 text-gray-400 rounded-full">
-                            +{project.tech.length - 3}
+                            +{project.tech.length - 4}
                           </span>
                         )}
                       </div>
 
                       {/* Project Stats */}
-                      <div className="flex items-center justify-between text-xs text-gray-400 font-mono">
+                      <div className="flex items-center justify-between text-xs text-gray-400 font-mono mb-4">
                         <div className="flex items-center space-x-4">
                           <div className="flex items-center space-x-1">
                             <Users className="w-3 h-3" />
@@ -1050,22 +1005,44 @@ export default function ProjectsPage() {
                         </div>
                         <span className="text-emerald-400">{project.category}</span>
                       </div>
-                    </div>
 
-                    {/* Floating Particles on Hover */}
-                    <AnimatePresence>
-                      {hoveredProject === project.id && (
-                        <motion.div
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          className="absolute inset-0"
-                        >
-                          <FloatingParticles count={8} />
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
+                      {/* Action Buttons - Show on Hover */}
+                      <AnimatePresence>
+                        {hoveredProject === project.id && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 10 }}
+                            transition={{ duration: 0.3 }}
+                            className="flex space-x-4"
+                          >
+                            <motion.a
+                              href={project.github}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex-1 flex items-center justify-center space-x-2 p-3 glass-dark rounded-lg border border-emerald-400/30 hover:border-emerald-400/60 transition-all duration-200 text-emerald-400 font-mono text-sm"
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                            >
+                              <Github className="w-4 h-4" />
+                              <span>Code</span>
+                            </motion.a>
+                            <motion.a
+                              href={project.live}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex-1 flex items-center justify-center space-x-2 p-3 glass-emerald rounded-lg border border-emerald-400/50 hover:border-emerald-400/80 transition-all duration-200 text-emerald-400 font-mono text-sm"
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                              <span>Live</span>
+                            </motion.a>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  </motion.div>
                 </motion.div>
               ))}
             </motion.div>
@@ -1154,7 +1131,7 @@ export default function ProjectsPage() {
           </div>
         </motion.section>
 
-        {/* Frontend Mentor Projects Section - Moved here after Project Analytics */}
+        {/* Frontend Mentor Projects Section */}
         <motion.section
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -1167,7 +1144,7 @@ export default function ProjectsPage() {
             <p className="text-gray-400 font-mono">Completed challenges • Pixel-perfect implementations</p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {frontendMentorProjects.map((project, index) => (
               <motion.div
                 key={project.id}
@@ -1175,90 +1152,66 @@ export default function ProjectsPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: index * 0.05 }}
                 viewport={{ once: true }}
-                whileHover={{ y: -3, scale: 1.01 }}
+                whileHover={{ y: -5, scale: 1.02 }}
                 className="group relative cursor-pointer"
                 onMouseEnter={() => setHoveredFrontendProject(project.id)}
                 onMouseLeave={() => setHoveredFrontendProject(null)}
               >
-                <div className="relative overflow-hidden rounded-xl aspect-[3/2] glass-dark border border-emerald-400/20 group-hover:border-emerald-400/50 transition-all duration-300">
-                  <Image
-                    src={project.image || "/placeholder.svg"}
-                    alt={project.title}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    loading="lazy"
-                  />
+                <motion.div 
+                  className="glass-dark border border-emerald-400/20 group-hover:border-emerald-400/50 transition-all duration-300 rounded-xl overflow-hidden"
+                  animate={{
+                    height: hoveredFrontendProject === project.id ? "auto" : "auto"
+                  }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {/* Image Container */}
+                  <div className="relative overflow-hidden aspect-[3/2]">
+                    <Image
+                      src={project.image || "/placeholder.svg"}
+                      alt={project.title}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
+                    />
 
-                  {/* Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/95 via-slate-900/20 to-transparent" />
+                    {/* Difficulty Badge */}
+                    <div className="absolute top-3 left-3">
+                      <span
+                        className={`px-2 py-1 text-xs font-mono rounded-full border backdrop-blur-sm ${
+                          project.difficulty === "Newbie"
+                            ? "bg-green-500/20 text-green-400 border-green-400/50"
+                            : project.difficulty === "Junior"
+                              ? "bg-blue-500/20 text-blue-400 border-blue-400/50"
+                              : "bg-purple-500/20 text-purple-400 border-purple-400/50"
+                        }`}
+                      >
+                        {project.difficulty}
+                      </span>
+                    </div>
 
-                  {/* Difficulty Badge */}
-                  <div className="absolute top-3 left-3">
-                    <span
-                      className={`px-2 py-1 text-xs font-mono rounded-full border backdrop-blur-sm ${
-                        project.difficulty === "Newbie"
-                          ? "bg-green-500/20 text-green-400 border-green-400/50"
-                          : project.difficulty === "Junior"
-                            ? "bg-blue-500/20 text-blue-400 border-blue-400/50"
-                            : "bg-purple-500/20 text-purple-400 border-purple-400/50"
-                      }`}
-                    >
-                      {project.difficulty}
-                    </span>
+                    {/* Completion Badge */}
+                    {project.completed && (
+                      <div className="absolute top-3 right-3">
+                        <div className="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center">
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ delay: index * 0.1 + 0.5, type: "spring" }}
+                            className="w-3 h-3 bg-white rounded-full"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Gradient Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent" />
                   </div>
 
-                  {/* Completion Badge */}
-                  {project.completed && (
-                    <div className="absolute top-3 right-3">
-                      <div className="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center">
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ delay: index * 0.1 + 0.5, type: "spring" }}
-                          className="w-3 h-3 bg-white rounded-full"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Hover Actions */}
-                  <AnimatePresence>
-                    {hoveredFrontendProject === project.id && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        transition={{ duration: 0.2 }}
-                        className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex space-x-3"
-                      >
-                        <motion.a
-                          href={project.github}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-2 glass-dark rounded-full border border-emerald-400/30 hover:border-emerald-400/60 transition-all duration-200"
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                        >
-                          <Github className="w-4 h-4 text-emerald-400" />
-                        </motion.a>
-                        <motion.a
-                          href={project.live}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-2 glass-emerald rounded-full border border-emerald-400/50 hover:border-emerald-400/80 transition-all duration-200"
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                        >
-                          <ExternalLink className="w-4 h-4 text-emerald-400" />
-                        </motion.a>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
                   {/* Project Info */}
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <h3 className="text-sm font-bold text-white mb-2 font-mono">{project.title}</h3>
-                    <p className="text-gray-300 text-sm mb-4 line-clamp-2">{project.description}</p>
+                  <div className="p-4">
+                    <h3 className="text-sm font-bold text-white mb-2 font-mono group-hover:text-emerald-400 transition-colors duration-300">
+                      {project.title}
+                    </h3>
 
                     {/* Tech Stack Pills */}
                     <div className="flex flex-wrap gap-2 mb-4">
@@ -1276,8 +1229,44 @@ export default function ProjectsPage() {
                         </span>
                       )}
                     </div>
+
+                    {/* Action Buttons - Show on Hover */}
+                    <AnimatePresence>
+                      {hoveredFrontendProject === project.id && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 10 }}
+                          transition={{ duration: 0.3 }}
+                          className="flex space-x-3"
+                        >
+                          <motion.a
+                            href={project.github}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-1 flex items-center justify-center space-x-2 p-2 glass-dark rounded-lg border border-emerald-400/30 hover:border-emerald-400/60 transition-all duration-200 text-emerald-400 font-mono text-xs"
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            <Github className="w-3 h-3" />
+                            <span>Code</span>
+                          </motion.a>
+                          <motion.a
+                            href={project.live}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-1 flex items-center justify-center space-x-2 p-2 glass-emerald rounded-lg border border-emerald-400/50 hover:border-emerald-400/80 transition-all duration-200 text-emerald-400 font-mono text-xs"
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                            <span>Live</span>
+                          </motion.a>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
-                </div>
+                </motion.div>
               </motion.div>
             ))}
           </div>
