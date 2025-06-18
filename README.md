@@ -1,4 +1,5 @@
 # CHEGEBB Portfolio - Next-Level Interactive Experience
+## Live Website [https://brianchege.vercel.app/]
 
 A cutting-edge portfolio website that pushes the boundaries of web development with immersive 3D experiences, interactive terminals, and mind-blowing animations.
 
@@ -203,32 +204,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 Built with ❤️ by Brian Chege (CHEGEBB)
 \`\`\`
 
-## Installation Commands
-
-Here are the exact commands to install all the modules used:
-
-\`\`\`bash
-# Create new Next.js project
-npx create-next-app@latest chegebb-portfolio --typescript --tailwind --eslint --app --src-dir
-
-# Navigate to project directory
-cd chegebb-portfolio
-
-# Install core dependencies
-npm install framer-motion lucide-react
-
-# Install 3D graphics dependencies
-npm install three @react-three/fiber @react-three/drei
-
-# Install TypeScript types
-npm install --save-dev @types/three
-
-# Install additional development dependencies (if needed)
-npm install --save-dev @types/node @types/react @types/react-dom
-
-# Start development server
-npm run dev
-\`\`\`
 
 ## Key Features Implemented:
 
@@ -242,17 +217,3 @@ npm run dev
 8. **Consistent Theme** - All pages follow the same design language
 9. **Futuristic Cards** - Glass morphism and unique styling
 10. **Professional Yet Creative** - Balance of professionalism and innovation
-
-The portfolio now features:
-- Matrix rain background on all pages
-- Consistent glass morphism design
-- Interactive terminals
-- 3D elements and animations
-- Responsive design
-- Performance optimizations
-- Professional contact system
-- Gaming elements
-- Ethical hacking simulations
-- Dimensional portal experience
-
-All pages maintain the same theme while offering unique interactive experiences!
