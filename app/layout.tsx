@@ -33,6 +33,7 @@ export default function RootLayout({
           <Navigation />
           <PageTransition>
             <main className="relative">{children}</main>
+            <Analytics />
           </PageTransition>
         </AudioProvider>
       </body>
