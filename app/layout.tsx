@@ -6,6 +6,7 @@ import { Navigation } from "@/components/navigation"
 import { CustomCursor } from "@/components/custom-cursor"
 import { PageTransition } from "@/components/page-transition"
 import { AudioProvider } from "@/components/audio-provider"
+import { Analytics } from "@vercel/analytics/next"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space-grotesk" })
