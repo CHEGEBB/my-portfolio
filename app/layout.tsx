@@ -12,9 +12,8 @@ const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space
 const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains" })
 
 export const metadata: Metadata = {
-  title: "PORTAL//CHEGEBB - Enter My Mind",
+  title: "BrianChege - Enter My Mind",
   description: "A next-level interactive portfolio that pushes the boundaries of web experience",
-    generator: 'v0.dev'
 }
 
 export default function RootLayout({

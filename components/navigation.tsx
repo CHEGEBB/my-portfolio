@@ -45,8 +45,8 @@ export function Navigation() {
 
   const handleDownloadCV = () => {
     const link = document.createElement("a")
-    link.href = "/placeholder.svg"
-    link.download = "Brian_Chege_CV.pdf"
+    link.href = "/assets/brian.pdf"
+    link.download = "brian.pdf"
     link.click()
     playClick()
   }
