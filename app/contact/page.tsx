@@ -171,20 +171,36 @@ export default function ContactPage() {
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-    playClick()
-
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-
-    setIsSubmitting(false)
-    setFormSubmitted(true)
-    
-    setTimeout(() => {
-      setFormData({ name: "", email: "", subject: "", message: "" })
-      setFormSubmitted(false)
-    }, 5000)
-  }
+    e.preventDefault();
+    setIsSubmitting(true);
+    playClick();
+  
+    try {
+      const response = await fetch('https://portfolio-api-1-br7n.onrender.com/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+  
+      if (response.ok) {
+        setFormSubmitted(true);
+        setFormData({ name: "", email: "", subject: "", message: "" });
+        
+        setTimeout(() => {
+          setFormSubmitted(false);
+        }, 5000);
+      } else {
+        alert('Failed to send message. Please try again later.');
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      alert('An error occurred. Please try again later.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData((prev) => ({
