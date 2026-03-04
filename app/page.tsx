@@ -4,6 +4,8 @@ import { About }        from "@/components/sections/about"
 import { Skills }       from "@/components/sections/skills"
 import { FeaturedWork } from "@/components/sections/featured-work"
 
+import { Footer }       from "@/components/layout/footer"
+
 export default function HomePage() {
   return (
     <>
@@ -12,6 +14,7 @@ export default function HomePage() {
       <About />
       <Skills />
       <FeaturedWork />
+      <Footer />
     </>
   )
 }
