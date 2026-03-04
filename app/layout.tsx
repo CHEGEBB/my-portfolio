@@ -3,6 +3,9 @@ import type { Metadata, Viewport } from "next"
 import { Syne, DM_Sans, JetBrains_Mono } from "next/font/google"
 import { ThemeProvider } from "@/context/theme-context"
 import "./globals.css"
+import { Snow } from "@/components/snow"
+import { SmoothScroll } from "@/components/smooth-scroll"
+import { Cursor } from "@/components/cursor"
 
 const syne = Syne({
   subsets: ["latin"],
@@ -70,7 +73,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <body className="antialiased overflow-x-hidden">
         <ThemeProvider>
+        <SmoothScroll>
+        <Cursor />
+        <Snow/>
           {children}
+          </SmoothScroll>
         </ThemeProvider>
       </body>
     </html>
