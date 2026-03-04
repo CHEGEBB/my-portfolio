@@ -1,41 +1,77 @@
 import type React from "react"
-import type { Metadata } from "next"
-import { Inter, Space_Grotesk, JetBrains_Mono } from "next/font/google"
+import type { Metadata, Viewport } from "next"
+import { Syne, DM_Sans, JetBrains_Mono } from "next/font/google"
+import { ThemeProvider } from "@/context/theme-context"
 import "./globals.css"
-import { Navigation } from "@/components/navigation"
-import { CustomCursor } from "@/components/custom-cursor"
-import { PageTransition } from "@/components/page-transition"
-import { AudioProvider } from "@/components/audio-provider"
-import { Analytics } from "@vercel/analytics/next"
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
-const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space-grotesk" })
-const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains" })
+const syne = Syne({
+  subsets: ["latin"],
+  variable: "--font-syne",
+  display: "swap",
+  weight: ["400", "500", "600", "700", "800"],
+})
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  variable: "--font-dm-sans",
+  display: "swap",
+  weight: ["300", "400", "500", "600"],
+})
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains",
+  display: "swap",
+  weight: ["300", "400", "500"],
+})
 
 export const metadata: Metadata = {
-  title: "BrianChege - Enter My Mind",
-  description: "A next-level interactive portfolio that pushes the boundaries of web experience",
+  title: {
+    default: "Brian Chege — Full Stack Developer",
+    template: "%s | Brian Chege",
+  },
+  description: "Full Stack Developer building fast, beautiful, and purposeful digital experiences.",
+  keywords: ["Full Stack Developer", "React", "Next.js", "TypeScript", "Brian Chege"],
+  authors: [{ name: "Brian Chege", url: "https://brianchege.me" }],
+  creator: "Brian Chege",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://brianchege.me",
+    title: "Brian Chege — Full Stack Developer",
+    description: "Full Stack Developer building fast, beautiful, and purposeful digital experiences.",
+    siteName: "Brian Chege",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Brian Chege — Full Stack Developer",
+    description: "Full Stack Developer building fast, beautiful, and purposeful digital experiences.",
+    creator: "@brianchege",
+  },
+  robots: { index: true, follow: true },
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)",  color: "#07070F" },
+    { media: "(prefers-color-scheme: light)", color: "#F6F6FC" },
+  ],
+}
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} font-sans antialiased bg-black text-white overflow-x-hidden`}
-        style={{ cursor: "none" }}
-      >
-        <AudioProvider>
-          <CustomCursor />
-          <Navigation />
-          <PageTransition>
-            <main className="relative">{children}</main>
-            <Analytics />
-          </PageTransition>
-        </AudioProvider>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${syne.variable} ${dmSans.variable} ${jetbrainsMono.variable}`}
+    >
+      <body className="antialiased overflow-x-hidden">
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   )

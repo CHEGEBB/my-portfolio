@@ -1,219 +1,161 @@
-# CHEGEBB Portfolio - Next-Level Interactive Experience
-## Live Website [https://brianchege.vercel.app/]
+# Brian Chege — Portfolio
 
-A cutting-edge portfolio website that pushes the boundaries of web development with immersive 3D experiences, interactive terminals, and mind-blowing animations.
-
-## 🚀 Features
-
-- **Interactive 3D Portal** - Immersive dimensional travel experience
-- **Hacking Terminal** - Functional terminal with ethical hacking simulations
-- **Custom Cursor** - Advanced cursor with hover effects and animations
-- **Matrix Rain** - Dynamic background particle system
-- **Skills Matrix** - Interactive skill visualization with progress bars
-- **Gaming Playground** - Interactive games and challenges
-- **Responsive Design** - Optimized for all devices
-- **Performance Optimized** - Fast loading with code splitting
-
-## 🛠️ Tech Stack
-
-- **Frontend**: Next.js 14, React 18, TypeScript
-- **Styling**: Tailwind CSS, Custom CSS animations
-- **3D Graphics**: Three.js, React Three Fiber, React Three Drei
-- **Animations**: Framer Motion
-- **Icons**: Lucide React
-- **Performance**: Optimized with Next.js features
-
-## 📦 Installation
-
-1. **Clone the repository**
-\`\`\`bash
-git clone https://github.com/chegebb/portfolio.git
-cd portfolio
-\`\`\`
-
-2. **Install dependencies**
-\`\`\`bash
-npm install
-# or
-yarn install
-# or
-pnpm install
-\`\`\`
-
-3. **Run the development server**
-\`\`\`bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-\`\`\`
-
-4. **Open your browser**
-Navigate to [http://localhost:3000](http://localhost:3000)
-
-## 🎮 Features Breakdown
-
-### 🏠 Landing Page
-- Hero section with 3D portal
-- Animated tech stack showcase
-- Performance metrics
-- Featured projects
-- Quick access navigation
-
-### 👨‍💻 About Page
-- Interactive terminal
-- Personal journey timeline
-- Interests and hobbies
-- Core values
-- Fun facts
-
-### 🧠 Skills Page
-- Filterable skill categories
-- Animated progress bars
-- Certifications showcase
-- Learning path visualization
-- Performance metrics
-
-### 🎯 Projects Page
-- Project filtering and search
-- Interactive project cards
-- Live demos and GitHub links
-- Technology stack display
-- Project statistics
-
-### 🎮 Playground Page
-- Interactive hacking terminal
-- Ethical hacking games
-- Live code editor
-- Security learning resources
-- Command-line interface
-
-### 🌀 Portal Page
-- 3D portal activation
-- Dimension explorer
-- Portal navigation
-- Access terminal
-- Safety protocols
-
-### 📧 Contact Page
-- Interactive contact form
-- Real-time status indicators
-- Social media links
-- Response time information
-- Availability status
-
-## 🎨 Design Features
-
-### Custom Cursor
-- Responsive to different elements
-- Smooth animations
-- Context-aware styling
-- Performance optimized
-
-### Matrix Rain Effect
-- Dynamic particle system
-- Customizable parameters
-- Smooth performance
-- Background integration
-
-### Glass Morphism
-- Modern glass effects
-- Subtle transparency
-- Elegant borders
-- Consistent theming
-
-### Animations
-- Framer Motion integration
-- Smooth page transitions
-- Interactive hover effects
-- Performance optimized
-
-## ⚡ Performance Optimizations
-
-- **Code Splitting**: Automatic route-based splitting
-- **Image Optimization**: Next.js Image component
-- **Bundle Analysis**: Webpack optimization
-- **CSS Optimization**: Tailwind CSS purging
-- **Lazy Loading**: Component-based lazy loading
-- **Caching**: Optimized caching strategies
-
-## 🔧 Configuration
-
-### Environment Variables
-Create a \`.env.local\` file:
-\`\`\`env
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
-\`\`\`
-
-### Customization
-- Update personal information in components
-- Modify color schemes in \`tailwind.config.ts\`
-- Customize animations in component files
-- Add your own projects and skills
-
-## 📱 Responsive Design
-
-- **Mobile First**: Optimized for mobile devices
-- **Tablet Support**: Enhanced tablet experience
-- **Desktop**: Full-featured desktop version
-- **Large Screens**: Optimized for large displays
-
-## 🚀 Deployment
-
-### Vercel (Recommended)
-\`\`\`bash
-npm run build
-vercel --prod
-\`\`\`
-
-### Other Platforms
-\`\`\`bash
-npm run build
-npm start
-\`\`\`
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🙏 Acknowledgments
-
-- **Three.js** - 3D graphics library
-- **Framer Motion** - Animation library
-- **Tailwind CSS** - Utility-first CSS framework
-- **Next.js** - React framework
-- **Vercel** - Deployment platform
-
-## 📞 Contact
-
-- **Email**: brian@chegebb.com
-- **GitHub**: [@chegebb](https://github.com/chegebb)
-- **LinkedIn**: [Brian Chege](https://linkedin.com/in/chegebb)
+> Personal portfolio built with **Next.js 16**, **TypeScript**, **Tailwind CSS**, and **Framer Motion**.
+> Fully theme-aware, responsive, and animated.
 
 ---
 
-Built with ❤️ by Brian Chege (CHEGEBB)
-\`\`\`
+## 🗂 Project Structure
 
+```
+my-portfolio/
+├── app/                          # Next.js App Router
+│   ├── layout.tsx                # Root layout — fonts, metadata, ThemeProvider
+│   ├── globals.css               # CSS reset, variables, utilities
+│   ├── page.tsx                  # Home / Landing page
+│   ├── about/
+│   │   └── page.tsx
+│   ├── projects/
+│   │   └── page.tsx
+│   ├── skills/
+│   │   └── page.tsx
+│   └── contact/
+│       └── page.tsx
+│
+├── context/
+│   └── theme-context.tsx         # ThemeProvider, useTheme hook, all theme logic
+│
+├── components/
+│   ├── ui/                       # Reusable primitives
+│   │   ├── button.tsx
+│   │   ├── badge.tsx
+│   │   └── card.tsx
+│   ├── layout/
+│   │   ├── navbar.tsx            # Navigation bar
+│   │   └── footer.tsx
+│   ├── theme/
+│   │   └── theme-switcher.tsx    # Theme panel UI (preset + accent + radius)
+│   ├── sections/                 # Page sections
+│   │   ├── hero.tsx
+│   │   ├── about-preview.tsx
+│   │   ├── projects-grid.tsx
+│   │   ├── skills-cloud.tsx
+│   │   └── contact-cta.tsx
+│   └── animations/
+│       ├── reveal.tsx            # Scroll-triggered reveal wrapper
+│       └── magnetic.tsx          # Magnetic hover effect
+│
+├── lib/
+│   ├── data/
+│   │   ├── projects.ts           # All project data
+│   │   └── skills.ts             # Tech stack / skills data
+│   └── utils.ts                  # cn(), formatDate(), etc.
+│
+├── public/
+│   ├── cv.pdf
+│   └── og-image.png
+│
+├── next.config.mjs
+├── tailwind.config.ts
+├── tsconfig.json
+└── package.json
+```
 
-## Key Features Implemented:
+---
 
-1. **Enhanced Custom Cursor** - Responsive cursor with different states
-2. **Complete Skills Page** - Interactive skill matrix with progress bars
-3. **Improved Navigation** - Added Skills and Portal links
-4. **Playground Page** - Interactive terminal and hacking games
-5. **Portal Page** - Immersive dimensional travel experience
-6. **Contact Page** - Professional contact interface
-7. **Performance Optimizations** - Code splitting and optimizations
-8. **Consistent Theme** - All pages follow the same design language
-9. **Futuristic Cards** - Glass morphism and unique styling
-10. **Professional Yet Creative** - Balance of professionalism and innovation
+## 🎨 Theme System
+
+Located in `context/theme-context.tsx`.
+
+### Presets
+| Preset    | Mode  | Accent | Vibe             |
+|-----------|-------|--------|------------------|
+| Obsidian  | Dark  | Ember  | Dark & fiery     |
+| Glacier   | Dark  | Arctic | Dark & icy       |
+| Midnight  | Dark  | Violet | Dark & electric  |
+| Matrix    | Dark  | Acid   | Dark & acidic    |
+| Parchment | Light | Gold   | Light & warm     |
+| Paper     | Light | Slate  | Light & minimal  |
+| Blush     | Light | Bloom  | Light & soft     |
+
+### Accent Colors
+`ember` · `arctic` · `acid` · `bloom` · `gold` · `violet` · `slate`
+
+### CSS Variables (available everywhere)
+```css
+var(--color-bg)
+var(--color-bg-secondary)
+var(--color-surface)
+var(--color-text-primary)
+var(--color-text-secondary)
+var(--color-accent)
+var(--color-accent-hover)
+var(--color-accent-muted)
+var(--shadow-glow)
+var(--gradient-ambient)
+var(--radius)
+var(--font-display)    /* Syne */
+var(--font-body)       /* DM Sans */
+var(--font-mono)       /* JetBrains Mono */
+```
+
+### Using the theme in components
+```tsx
+import { useTheme } from "@/context/theme-context"
+
+const { theme, setAccent, toggleMode, setPreset } = useTheme()
+```
+
+---
+
+## 🚀 Getting Started
+
+```bash
+pnpm install
+pnpm run dev
+```
+
+---
+
+## 📦 Key Dependencies
+
+| Package          | Purpose                    |
+|------------------|----------------------------|
+| next             | Framework                  |
+| react            | UI                         |
+| typescript       | Types                      |
+| tailwindcss      | Utility CSS                |
+| framer-motion    | Animations                 |
+| @vercel/analytics| Analytics                  |
+
+---
+
+## 📱 Responsive Strategy
+
+- Mobile-first layouts using Tailwind breakpoints (`sm`, `md`, `lg`, `xl`)
+- Fluid typography via `clamp()` in `globals.css`
+- Safe area padding for notched devices
+- Touch-friendly tap targets (min 44×44px)
+- No horizontal overflow
+
+---
+
+## 🎞 Animation Strategy
+
+- **Page load**: staggered reveal with Framer Motion
+- **Scroll**: `useInView` triggers for section reveals
+- **Hover**: magnetic effects on CTAs, accent glow on cards
+- **Theme switch**: smooth CSS variable transitions (300ms)
+- **Respects**: `prefers-reduced-motion` at CSS and JS level
+
+---
+
+## 📄 Pages
+
+| Route       | Description                        |
+|-------------|------------------------------------|
+| `/`         | Landing — hero, featured work, CTA |
+| `/about`    | Bio, story, values                 |
+| `/projects` | Full project grid with filters     |
+| `/skills`   | Tech stack visual                  |
+| `/contact`  | Contact form + socials             |
