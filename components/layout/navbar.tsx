@@ -8,12 +8,66 @@ import { useTheme } from "@/context/theme-context"
 import { ThemeSwitcher } from "@/components/theme/theme-switcher"
 
 const NAV_LINKS = [
-  { label: "Home",     href: "/",         num: "00" },
-  { label: "Work",     href: "/projects",  num: "01" },
-  { label: "Services", href: "/services",  num: "02" },
-  { label: "Process",  href: "/process",   num: "03" },
-  { label: "Contact",  href: "/contact",   num: "04" },
+  { label: "Home",      href: "/",          num: "00" },
+  { label: "Portfolio", href: "/projects",  num: "01" },
+  { label: "Services",  href: "/services",  num: "02" },
+  { label: "About",     href: "/about",     num: "03" },
+  { label: "Process",   href: "/process",   num: "04" },
+  { label: "Contact",   href: "/contact",   num: "05" },
 ]
+
+// Staircase hamburger — 3 bars stepping down in width
+const StaircaseMenu = ({ open, color }: { open: boolean; color: string }) => (
+  <div style={{
+    display: "flex", flexDirection: "column",
+    alignItems: "flex-start", justifyContent: "center",
+    gap: "4px", width: 20, height: 16,
+    position: "relative",
+  }}>
+    {open ? (
+      // When open → becomes a clean X (two full-width bars crossing)
+      <>
+        <span style={{
+          display: "block", width: "18px", height: "1.5px",
+          background: color, borderRadius: "2px",
+          transform: "translateY(5.75px) rotate(45deg)",
+          transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
+        }}/>
+        <span style={{
+          display: "block", width: "18px", height: "1.5px",
+          background: color, borderRadius: "2px",
+          opacity: 0,
+          transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
+        }}/>
+        <span style={{
+          display: "block", width: "18px", height: "1.5px",
+          background: color, borderRadius: "2px",
+          transform: "translateY(-5.75px) rotate(-45deg)",
+          transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
+        }}/>
+      </>
+    ) : (
+      // Staircase: long → medium → short (left-aligned, stepping in)
+      <>
+        <span style={{
+          display: "block", width: "18px", height: "1.5px",
+          background: color, borderRadius: "2px",
+          transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
+        }}/>
+        <span style={{
+          display: "block", width: "13px", height: "1.5px",
+          background: color, borderRadius: "2px",
+          transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
+        }}/>
+        <span style={{
+          display: "block", width: "8px", height: "1.5px",
+          background: color, borderRadius: "2px",
+          transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
+        }}/>
+      </>
+    )}
+  </div>
+)
 
 export function Navbar() {
   const { theme }  = useTheme()
@@ -48,13 +102,18 @@ export function Navbar() {
 
   const toggle = () => { setMenuOpen(v => !v); setThemeOpen(false) }
 
+  const hamburgerColor = menuOpen
+    ? "var(--color-accent)"
+    : "var(--color-text-primary)"
+
   return (
     <>
       {/* ══════════════════════════════════════════════
-          DESKTOP — PILL NAV
-          Always present. Pre-scroll: full-width transparent.
-          Post-scroll: floating condensed pill, centered top.
-          INDEPENDENT of the hamburger — both coexist.
+          DESKTOP NAV
+          — Pre-scroll:  full-width transparent bar
+          — Post-scroll: floating pill, centered
+          Hamburger lives INSIDE the pill on the right,
+          same row as nav links. Always visible.
       ══════════════════════════════════════════════ */}
       <header
         className="desktop-header"
@@ -66,15 +125,14 @@ export function Navbar() {
           transform: scrolled ? "translateX(-50%)" : "none",
           width:     scrolled ? "auto" : "100%",
           zIndex: 100,
-          // Dim (don't hide) the pill when the fullscreen menu is open
           opacity: menuOpen ? 0 : 1,
-          transition: "all 0.6s cubic-bezier(0.16,1,0.3,1), opacity 0.3s ease",
           pointerEvents: menuOpen ? "none" : "all",
+          transition: "all 0.6s cubic-bezier(0.16,1,0.3,1), opacity 0.3s ease",
         }}
       >
         <div style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
-          gap: "0.5rem",
+          gap: scrolled ? "0.375rem" : "0",
           padding: scrolled ? "0.5rem 0.75rem" : "1.5rem clamp(1rem,4vw,3rem)",
           background: scrolled
             ? isDark ? "rgba(13,13,28,0.92)" : "rgba(237,237,248,0.92)"
@@ -96,11 +154,11 @@ export function Navbar() {
             />
           </Link>
 
-          {/* Nav links */}
+          {/* Nav links — centered */}
           <ul style={{
             display: "flex", alignItems: "center", listStyle: "none",
             margin: "0 auto", padding: 0,
-            gap: scrolled ? "0.125rem" : "clamp(1.5rem,3vw,3rem)",
+            gap: scrolled ? "0.125rem" : "clamp(1.25rem,2.5vw,2.5rem)",
             transition: "gap 0.4s ease",
           }}>
             {NAV_LINKS.map(link => (
@@ -118,16 +176,15 @@ export function Navbar() {
                       ? "var(--color-accent)"
                       : hovered === link.href ? "var(--color-accent)" : "var(--color-text-secondary)",
                     textDecoration: "none",
-                    padding: scrolled ? "0.375rem 0.625rem" : "0.25rem 0",
+                    padding: scrolled ? "0.375rem 0.5rem" : "0.25rem 0",
                     borderRadius: scrolled ? "9999px" : "0",
                     background: scrolled && (hovered === link.href || isActive(link.href))
                       ? "var(--color-accent-muted)" : "transparent",
-                    display: "flex", alignItems: "center", gap: "0.25rem",
+                    display: "flex", alignItems: "center", gap: "0.2rem",
                     position: "relative",
                     transition: "all 0.2s ease",
                   }}
                 >
-                  {/* Underline for non-pill state */}
                   {!scrolled && (
                     <span style={{
                       position: "absolute", bottom: -2, left: 0, height: "1.5px",
@@ -138,7 +195,7 @@ export function Navbar() {
                     }} />
                   )}
                   {scrolled && (
-                    <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.6rem", color: "var(--color-accent)", opacity: 0.7 }}>
+                    <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.55rem", color: "var(--color-accent)", opacity: 0.65 }}>
                       {link.num}
                     </span>
                   )}
@@ -148,8 +205,10 @@ export function Navbar() {
             ))}
           </ul>
 
-          {/* Right: theme + Hire Me */}
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexShrink: 0 }}>
+          {/* Right side: theme + Hire Me + staircase hamburger */}
+          <div style={{ display: "flex", alignItems: "center", gap: scrolled ? "0.375rem" : "0.625rem", flexShrink: 0 }}>
+
+            {/* Theme toggle */}
             <button
               onClick={() => { setThemeOpen(!themeOpen); setMenuOpen(false) }}
               aria-label="Customize theme"
@@ -170,6 +229,7 @@ export function Navbar() {
               </svg>
             </button>
 
+            {/* Hire Me CTA */}
             <Link
               href="/contact"
               style={{
@@ -187,64 +247,27 @@ export function Navbar() {
             >
               Hire Me
             </Link>
+
+            {/* ── Staircase hamburger — ALWAYS in the nav row ── */}
+            <button
+              onClick={toggle}
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
+              style={{
+                width: scrolled ? 32 : 38, height: scrolled ? 32 : 38,
+                borderRadius: scrolled ? "9999px" : "var(--radius)",
+                border: `1px solid ${menuOpen ? "var(--color-accent)" : "var(--color-surface-border)"}`,
+                background: menuOpen ? "var(--color-accent-muted)" : "var(--color-bg-glass)",
+                backdropFilter: "blur(8px)", cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                transition: "all 0.3s ease",
+                flexShrink: 0,
+              }}
+            >
+              <StaircaseMenu open={menuOpen} color={hamburgerColor} />
+            </button>
           </div>
         </div>
       </header>
-
-      {/* ══════════════════════════════════════════════
-          DESKTOP — FLOATING HAMBURGER (bottom-right corner)
-          Completely separate from the pill nav.
-          Floats in from bottom-right once user scrolls.
-          Clicking opens the same fullscreen overlay.
-          BOTH the pill and this exist simultaneously.
-      ══════════════════════════════════════════════ */}
-      <button
-        className="desktop-fab"
-        onClick={toggle}
-        aria-label={menuOpen ? "Close menu" : "Open menu"}
-        style={{
-          position: "fixed",
-          bottom: "2rem",
-          left: "2rem",
-          zIndex: 160,
-          width: 52, height: 52,
-          borderRadius: "9999px",
-          border: `1.5px solid ${menuOpen ? "var(--color-accent)" : "var(--color-surface-border)"}`,
-          background: menuOpen
-            ? "var(--color-accent)"
-            : isDark ? "rgba(13,13,28,0.92)" : "rgba(237,237,248,0.92)",
-          backdropFilter: "blur(20px) saturate(200%)",
-          WebkitBackdropFilter: "blur(20px) saturate(200%)",
-          boxShadow: menuOpen
-            ? "0 0 32px var(--color-accent-muted), 0 8px 32px rgba(0,0,0,0.3)"
-            : "0 4px 24px rgba(0,0,0,0.18)",
-          cursor: "pointer",
-          display: "flex", flexDirection: "column",
-          alignItems: "center", justifyContent: "center",
-          gap: 0, padding: "18px",
-          // Slide up from off-screen when user scrolls
-          opacity: scrolled ? 1 : 0,
-          transform: scrolled
-            ? menuOpen ? "scale(1.08)" : "scale(1) translateY(0)"
-            : "translateY(20px) scale(0.8)",
-          transition: "all 0.5s cubic-bezier(0.16,1,0.3,1)",
-        }}
-      >
-        <span style={{
-          display: "block", width: "16px", height: "1.5px",
-          background: menuOpen ? "var(--color-accent-fg)" : "var(--color-text-primary)",
-          transform: menuOpen ? "translateY(1.5px) rotate(45deg)" : "none",
-          transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
-          borderRadius: "2px", marginBottom: menuOpen ? 0 : "5px",
-        }}/>
-        <span style={{
-          display: "block", width: "16px", height: "1.5px",
-          background: menuOpen ? "var(--color-accent-fg)" : "var(--color-text-primary)",
-          transform: menuOpen ? "translateY(-1.5px) rotate(-45deg)" : "none",
-          transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
-          borderRadius: "2px",
-        }}/>
-      </button>
 
       {/* ══════════════════════════════════════════════
           MOBILE HEADER
@@ -273,6 +296,7 @@ export function Navbar() {
         </Link>
 
         <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+          {/* Theme */}
           <button
             onClick={() => { setThemeOpen(!themeOpen); setMenuOpen(false) }}
             style={{
@@ -289,7 +313,7 @@ export function Navbar() {
             </svg>
           </button>
 
-          {/* Mobile hamburger → X */}
+          {/* Mobile staircase hamburger → X */}
           <button
             onClick={toggle}
             aria-label={menuOpen ? "Close menu" : "Open menu"}
@@ -298,26 +322,11 @@ export function Navbar() {
               border: `1px solid ${menuOpen ? "var(--color-accent)" : "var(--color-surface-border)"}`,
               background: menuOpen ? "var(--color-accent-muted)" : "var(--color-bg-glass)",
               backdropFilter: "blur(8px)", cursor: "pointer",
-              display: "flex", flexDirection: "column",
-              alignItems: "center", justifyContent: "center",
-              padding: "10px", gap: 0,
+              display: "flex", alignItems: "center", justifyContent: "center",
               transition: "all 0.3s ease",
             }}
           >
-            <span style={{
-              display: "block", width: "16px", height: "1.5px",
-              background: menuOpen ? "var(--color-accent)" : "var(--color-text-primary)",
-              transform: menuOpen ? "translateY(1.5px) rotate(45deg)" : "none",
-              transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)",
-              borderRadius: "2px", marginBottom: menuOpen ? 0 : "4px",
-            }}/>
-            <span style={{
-              display: "block", width: "16px", height: "1.5px",
-              background: menuOpen ? "var(--color-accent)" : "var(--color-text-primary)",
-              transform: menuOpen ? "translateY(-1.5px) rotate(-45deg)" : "none",
-              transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
-              borderRadius: "2px",
-            }}/>
+            <StaircaseMenu open={menuOpen} color={menuOpen ? "var(--color-accent)" : "var(--color-text-primary)"} />
           </button>
         </div>
       </header>
@@ -331,9 +340,7 @@ export function Navbar() {
       />
 
       {/* ══════════════════════════════════════════════
-          FULLSCREEN OVERLAY — opened by EITHER the pill's
-          hamburger OR the floating FAB on desktop,
-          or the mobile hamburger
+          FULLSCREEN OVERLAY MENU
       ══════════════════════════════════════════════ */}
       <div style={{
         position: "fixed", inset: 0, zIndex: 150,
@@ -366,7 +373,7 @@ export function Navbar() {
           Navigation
         </div>
 
-        {/* Links */}
+        {/* Staircase effect in the overlay too — each link indented more */}
         {NAV_LINKS.map((link, i) => (
           <Link
             key={link.href}
@@ -377,6 +384,8 @@ export function Navbar() {
               gap: "clamp(0.75rem,2vw,1.25rem)",
               textDecoration: "none", lineHeight: 1.0,
               marginBottom: "clamp(0.25rem,1vw,0.5rem)",
+              // Each link steps further right — staircase layout
+              paddingLeft: `${i * 1.2}rem`,
               opacity: menuOpen ? 1 : 0,
               transform: menuOpen ? "translateX(0)" : "translateX(-40px)",
               transition: `all 0.6s cubic-bezier(0.16,1,0.3,1) ${i * 0.08 + 0.1}s`,
@@ -408,7 +417,7 @@ export function Navbar() {
             </span>
             <span className="menu-txt" style={{
               fontFamily: "var(--font-display)",
-              fontSize: "clamp(3.5rem,14vw,7rem)",
+              fontSize: "clamp(3rem,12vw,6.5rem)",
               fontWeight: 800, letterSpacing: "-0.04em",
               color: isActive(link.href) ? "var(--color-accent)" : "transparent",
               WebkitTextStroke: isActive(link.href) ? "0px" : `2px var(--color-text-primary)`,
@@ -427,7 +436,7 @@ export function Navbar() {
           display: "flex", justifyContent: "space-between", alignItems: "center",
           opacity: menuOpen ? 1 : 0,
           transform: menuOpen ? "translateY(0)" : "translateY(16px)",
-          transition: "all 0.5s ease 0.45s",
+          transition: "all 0.5s ease 0.55s",
         }}>
           <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: "var(--color-text-muted)", letterSpacing: "0.08em" }}>
             © 2025 Brian Chege
@@ -450,16 +459,12 @@ export function Navbar() {
 
       <style jsx global>{`
         .desktop-header { display: block !important; }
-        .desktop-fab    { display: flex  !important; }
         .mobile-header  { display: none  !important; }
 
         @media (max-width: 768px) {
           .desktop-header { display: none !important; }
-          .desktop-fab    { display: none !important; }
           .mobile-header  { display: flex !important; }
         }
-
-
       `}</style>
     </>
   )
