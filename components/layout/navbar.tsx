@@ -9,7 +9,7 @@ import { ThemeSwitcher } from "@/components/theme/theme-switcher"
 
 const NAV_LINKS = [
   { label: "Home",      href: "/",          num: "00" },
-  { label: "Portfolio", href: "/projects",  num: "01" },
+  { label: "Portfolio", href: "/portfolio",  num: "01" },
   { label: "Services",  href: "/services",  num: "02" },
   { label: "About",     href: "/about",     num: "03" },
   { label: "Process",   href: "/process",   num: "04" },
