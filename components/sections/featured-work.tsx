@@ -443,7 +443,7 @@ export function FeaturedWork() {
           transition: "opacity 0.8s ease 0.7s",
         }}>
           <div style={{ flex: 1, height: "1px", background: `linear-gradient(90deg, transparent, var(--color-surface-border))` }} />
-          <Link href="//portfolio" style={{
+          <Link href="https://www.brianchege.me/portfolio" style={{
             fontFamily: "var(--font-display)",
             fontSize: "clamp(1rem,2.5vw,1.5rem)",
             fontWeight: 700, letterSpacing: "-0.02em",
