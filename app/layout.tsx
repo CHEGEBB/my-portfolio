@@ -6,6 +6,7 @@ import "./globals.css"
 import { Snow } from "@/components/snow"
 import { SmoothScroll } from "@/components/smooth-scroll"
 import { Cursor } from "@/components/cursor"
+import { FloatingActions } from "@/components/FloatingActions"
 
 const syne = Syne({
   subsets: ["latin"],
@@ -76,6 +77,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SmoothScroll>
         <Cursor />
         <Snow/>
+        <FloatingActions />
     
           {children}
           </SmoothScroll>
