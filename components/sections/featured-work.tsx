@@ -7,14 +7,14 @@ import { ArrowUpRight } from "lucide-react"
 
 // ─── DATA ────────────────────────────────────────────────────────────────────
 const PROJECTS = [
-  { id:"01", title:"IntelliMark",     category:"AI · EdTech",        type:"CLIENT",  year:"2024", image:"/projects/intellimark.png",   href:"/projects/intellimark"   },
-  { id:"02", title:"TabooTalks",      category:"Social · Web App",   type:"CLIENT",  year:"2024", image:"/projects/tabootalks.png",    href:"/projects/tabootalks"    },
-  { id:"03", title:"H-mex Health",    category:"HealthTech · AI",    type:"CLIENT",  year:"2024", image:"/projects/hmex.png",          href:"/projects/healthmaster"  },
-  { id:"04", title:"WerEntOnline",    category:"PropTech · Web",     type:"CLIENT",  year:"2024", image:"/projects/werentonline.png",  href:"/projects/werentonline"  },
-  { id:"05", title:"FarmSense",       category:"AgriTech · Web",     type:"CLIENT",  year:"2024", image:"/projects/farmsense.png",     href:"/projects/farmsense"     },
-  { id:"06", title:"DjAfro StreamBox",category:"Mobile · Streaming", type:"CLIENT",  year:"2024", image:"/projects/djafro.png",        href:"/projects/djafro"        },
-  { id:"07", title:"Softrinx",        category:"SaaS · Enterprise",  type:"STARTUP", year:"2025", image:"/projects/softrinx.png",      href:"/projects/softrinx"      },
-  { id:"08", title:"Teach2Give",      category:"EdTech · Web",       type:"CLIENT",  year:"2025", image:"/projects/teach2give.png",    href:"/projects/teach2give"    },
+  { id:"01", title:"IntelliMark",     category:"AI · EdTech",        type:"CLIENT",  year:"2024", image:"/projects/intellimark.png",   href:"/portfolio"   },
+  { id:"02", title:"TabooTalks",      category:"Social · Web App",   type:"CLIENT",  year:"2024", image:"/projects/tabootalks.png",    href:"/portfolio"    },
+  { id:"03", title:"H-mex Health",    category:"HealthTech · AI",    type:"CLIENT",  year:"2024", image:"/projects/hmex.png",          href:"/portfolio"  },
+  { id:"04", title:"WerEntOnline",    category:"PropTech · Web",     type:"CLIENT",  year:"2024", image:"/projects/werentonline.png",  href:"/portfolio"  },
+  { id:"05", title:"FarmSense",       category:"AgriTech · Web",     type:"CLIENT",  year:"2024", image:"/projects/farmsense.png",     href:"/portfolio"     },
+  { id:"06", title:"DjAfro StreamBox",category:"Mobile · Streaming", type:"CLIENT",  year:"2024", image:"/projects/djafro.png",        href:"/portfolio"        },
+  { id:"07", title:"Softrinx",        category:"SaaS · Enterprise",  type:"STARTUP", year:"2025", image:"/projects/softrinx.png",      href:"/portfolio"      },
+  { id:"08", title:"Teach2Give",      category:"EdTech · Web",       type:"CLIENT",  year:"2025", image:"/projects/teach2give.png",    href:"/portfolio"    },
 ]
 
 const FALLBACKS = [
@@ -406,7 +406,7 @@ export function FeaturedWork() {
               <Counter to={3}  label="Years" />
             </div>
 
-            <Link href="/projects" style={{
+            <Link href="/portfolio" style={{
               display: "inline-flex", alignItems: "center", gap: "0.6rem",
               fontFamily: "var(--font-body)", fontSize: "0.875rem",
               fontWeight: 600, letterSpacing: "0.04em",
@@ -443,7 +443,7 @@ export function FeaturedWork() {
           transition: "opacity 0.8s ease 0.7s",
         }}>
           <div style={{ flex: 1, height: "1px", background: `linear-gradient(90deg, transparent, var(--color-surface-border))` }} />
-          <Link href="/projects" style={{
+          <Link href="//portfolio" style={{
             fontFamily: "var(--font-display)",
             fontSize: "clamp(1rem,2.5vw,1.5rem)",
             fontWeight: 700, letterSpacing: "-0.02em",
