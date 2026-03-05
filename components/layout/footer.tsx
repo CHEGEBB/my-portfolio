@@ -228,7 +228,7 @@ export function Footer() {
           <div style={{ overflow:"hidden", lineHeight:.85 }}>
             <h2 style={{
               fontFamily:"var(--font-display)",
-              fontSize:"clamp(4rem,14vw,13rem)",
+              fontSize:"clamp(3rem,8vw,13rem)",
               fontWeight:900, letterSpacing:"-.05em",
               color:"transparent",
               WebkitTextStroke:`1.5px ${isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.1)"}`,
