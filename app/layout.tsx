@@ -76,6 +76,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SmoothScroll>
         <Cursor />
         <Snow/>
+    
           {children}
           </SmoothScroll>
         </ThemeProvider>

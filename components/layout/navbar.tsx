@@ -3,22 +3,25 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
+import { usePathname } from "next/navigation"
 import { useTheme } from "@/context/theme-context"
 import { ThemeSwitcher } from "@/components/theme/theme-switcher"
 
 const NAV_LINKS = [
-  { label: "Work",    href: "/projects", num: "01" },
-  { label: "About",   href: "/about",    num: "02" },
-  { label: "Skills",  href: "/skills",   num: "03" },
-  { label: "Contact", href: "/contact",  num: "04" },
+  { label: "Home",     href: "/",         num: "00" },
+  { label: "Work",     href: "/projects",  num: "01" },
+  { label: "Services", href: "/services",  num: "02" },
+  { label: "Process",  href: "/process",   num: "03" },
+  { label: "Contact",  href: "/contact",   num: "04" },
 ]
 
 export function Navbar() {
-  const { theme } = useTheme()
-  const [scrolled, setScrolled]   = useState(false)
-  const [menuOpen, setMenuOpen]   = useState(false)
+  const { theme }  = useTheme()
+  const pathname   = usePathname()
+  const [scrolled,  setScrolled]  = useState(false)
+  const [menuOpen,  setMenuOpen]  = useState(false)
   const [themeOpen, setThemeOpen] = useState(false)
-  const [hovered, setHovered]     = useState<string | null>(null)
+  const [hovered,   setHovered]   = useState<string | null>(null)
   const isDark = theme.mode === "dark"
 
   useEffect(() => {
@@ -40,70 +43,64 @@ export function Navbar() {
     return () => { document.body.style.overflow = "" }
   }, [menuOpen])
 
+  const isActive = (href: string) =>
+    href === "/" ? pathname === "/" : pathname.startsWith(href)
+
+  const toggle = () => { setMenuOpen(v => !v); setThemeOpen(false) }
+
   return (
     <>
-      {/* ── DESKTOP NAVBAR: morphing pill ───────────────── */}
+      {/* ══════════════════════════════════════════════
+          DESKTOP — PILL NAV
+          Always present. Pre-scroll: full-width transparent.
+          Post-scroll: floating condensed pill, centered top.
+          INDEPENDENT of the hamburger — both coexist.
+      ══════════════════════════════════════════════ */}
       <header
         className="desktop-header"
         style={{
           position: "fixed",
-          top: scrolled ? "1rem" : "0",
-          left: scrolled ? "50%" : "0",
-          right: scrolled ? "auto" : "0",
+          top:       scrolled ? "1rem" : "0",
+          left:      scrolled ? "50%"  : "0",
+          right:     scrolled ? "auto" : "0",
           transform: scrolled ? "translateX(-50%)" : "none",
-          width: scrolled ? "auto" : "100%",
+          width:     scrolled ? "auto" : "100%",
           zIndex: 100,
-          transition: "all 0.6s cubic-bezier(0.16,1,0.3,1)",
+          // Dim (don't hide) the pill when the fullscreen menu is open
+          opacity: menuOpen ? 0 : 1,
+          transition: "all 0.6s cubic-bezier(0.16,1,0.3,1), opacity 0.3s ease",
+          pointerEvents: menuOpen ? "none" : "all",
         }}
       >
         <div style={{
-          display: "flex",
-          alignItems: "center",
-          gap: scrolled ? "0.25rem" : "0",
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          gap: "0.5rem",
           padding: scrolled ? "0.5rem 0.75rem" : "1.5rem clamp(1rem,4vw,3rem)",
           background: scrolled
             ? isDark ? "rgba(13,13,28,0.92)" : "rgba(237,237,248,0.92)"
             : "transparent",
-          backdropFilter: scrolled ? "blur(24px) saturate(200%)" : "none",
+          backdropFilter:       scrolled ? "blur(24px) saturate(200%)" : "none",
           WebkitBackdropFilter: scrolled ? "blur(24px) saturate(200%)" : "none",
           borderRadius: scrolled ? "9999px" : "0",
-          border: scrolled ? `1px solid var(--color-surface-border)` : "none",
+          border:    scrolled ? "1px solid var(--color-surface-border)" : "none",
           boxShadow: scrolled ? "var(--shadow-default)" : "none",
           transition: "all 0.6s cubic-bezier(0.16,1,0.3,1)",
-          justifyContent: "space-between",
-          maxWidth: scrolled ? "none" : "none",
         }}>
+
           {/* Logo */}
-          <Link href="/" style={{
-            display: "flex",
-            alignItems: "center",
-            textDecoration: "none",
-            flexShrink: 0,
-            marginRight: scrolled ? "0.5rem" : "0",
-            transition: "all 0.4s ease",
-          }}>
+          <Link href="/" style={{ display: "flex", alignItems: "center", textDecoration: "none", flexShrink: 0 }}>
             <Image
               src={isDark ? "/logo-dark.png" : "/logo-light.png"}
-              alt="Brian Chege"
-              width={110}
-              height={32}
-              priority
-              style={{
-                height: "auto",
-                width: scrolled ? "clamp(70px,8vw,90px)" : "clamp(90px,10vw,120px)",
-                transition: "width 0.4s ease",
-              }}
+              alt="Brian Chege" width={110} height={32} priority
+              style={{ height: "auto", width: scrolled ? "clamp(70px,8vw,90px)" : "clamp(90px,10vw,120px)", transition: "width 0.4s ease" }}
             />
           </Link>
 
           {/* Nav links */}
           <ul style={{
-            display: "flex",
-            alignItems: "center",
+            display: "flex", alignItems: "center", listStyle: "none",
+            margin: "0 auto", padding: 0,
             gap: scrolled ? "0.125rem" : "clamp(1.5rem,3vw,3rem)",
-            listStyle: "none",
-            margin: 0,
-            padding: 0,
             transition: "gap 0.4s ease",
           }}>
             {NAV_LINKS.map(link => (
@@ -115,40 +112,35 @@ export function Navbar() {
                   style={{
                     fontFamily: "var(--font-body)",
                     fontSize: scrolled ? "0.8125rem" : "0.875rem",
-                    fontWeight: 500,
+                    fontWeight: isActive(link.href) ? 700 : 500,
                     letterSpacing: "0.02em",
-                    color: hovered === link.href ? "var(--color-accent)" : "var(--color-text-secondary)",
+                    color: isActive(link.href)
+                      ? "var(--color-accent)"
+                      : hovered === link.href ? "var(--color-accent)" : "var(--color-text-secondary)",
                     textDecoration: "none",
                     padding: scrolled ? "0.375rem 0.625rem" : "0.25rem 0",
                     borderRadius: scrolled ? "9999px" : "0",
-                    background: scrolled && hovered === link.href ? "var(--color-accent-muted)" : "transparent",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.25rem",
-                    transition: "all 0.2s ease",
+                    background: scrolled && (hovered === link.href || isActive(link.href))
+                      ? "var(--color-accent-muted)" : "transparent",
+                    display: "flex", alignItems: "center", gap: "0.25rem",
                     position: "relative",
+                    transition: "all 0.2s ease",
                   }}
                 >
                   {/* Underline for non-pill state */}
                   {!scrolled && (
                     <span style={{
-                      position: "absolute",
-                      bottom: -2,
-                      left: 0,
-                      height: "1.5px",
-                      width: hovered === link.href ? "100%" : "0%",
+                      position: "absolute", bottom: -2, left: 0, height: "1.5px",
+                      width: (hovered === link.href || isActive(link.href)) ? "100%" : "0%",
                       background: "var(--color-accent)",
                       transition: "width 0.3s cubic-bezier(0.16,1,0.3,1)",
                       borderRadius: "2px",
                     }} />
                   )}
                   {scrolled && (
-                    <span style={{
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "0.6rem",
-                      color: "var(--color-accent)",
-                      opacity: 0.7,
-                    }}>{link.num}</span>
+                    <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.6rem", color: "var(--color-accent)", opacity: 0.7 }}>
+                      {link.num}
+                    </span>
                   )}
                   {link.label}
                 </Link>
@@ -156,26 +148,20 @@ export function Navbar() {
             ))}
           </ul>
 
-          {/* Right side */}
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginLeft: scrolled ? "0.5rem" : "0" }}>
-            {/* Theme btn */}
+          {/* Right: theme + Hire Me */}
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexShrink: 0 }}>
             <button
               onClick={() => { setThemeOpen(!themeOpen); setMenuOpen(false) }}
               aria-label="Customize theme"
               style={{
-                width: scrolled ? 32 : 38,
-                height: scrolled ? 32 : 38,
+                width: scrolled ? 32 : 38, height: scrolled ? 32 : 38,
                 borderRadius: scrolled ? "9999px" : "var(--radius)",
                 border: `1px solid ${themeOpen ? "var(--color-accent)" : "var(--color-surface-border)"}`,
                 background: themeOpen ? "var(--color-accent-muted)" : "var(--color-bg-glass)",
-                backdropFilter: "blur(8px)",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
+                backdropFilter: "blur(8px)", cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center",
                 transition: "all 0.3s ease",
                 color: themeOpen ? "var(--color-accent)" : "var(--color-text-secondary)",
-                flexShrink: 0,
               }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -184,24 +170,17 @@ export function Navbar() {
               </svg>
             </button>
 
-            {/* CTA */}
             <Link
               href="/contact"
               style={{
                 fontFamily: "var(--font-body)",
                 fontSize: scrolled ? "0.75rem" : "0.8125rem",
-                fontWeight: 600,
-                letterSpacing: "0.05em",
-                textTransform: "uppercase",
-                color: "var(--color-accent-fg)",
-                background: "var(--color-accent)",
+                fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase",
+                color: "var(--color-accent-fg)", background: "var(--color-accent)",
                 padding: scrolled ? "0.375rem 0.875rem" : "0.5rem 1.25rem",
-                borderRadius: "9999px",
-                textDecoration: "none",
+                borderRadius: "9999px", textDecoration: "none",
+                whiteSpace: "nowrap", boxShadow: "0 0 20px var(--color-accent-muted)",
                 transition: "all 0.3s ease",
-                whiteSpace: "nowrap",
-                boxShadow: "0 0 20px var(--color-accent-muted)",
-                flexShrink: 0,
               }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "scale(1.05)" }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "scale(1)" }}
@@ -212,21 +191,74 @@ export function Navbar() {
         </div>
       </header>
 
-      {/* ── MOBILE HEADER ────────────────────────────────── */}
+      {/* ══════════════════════════════════════════════
+          DESKTOP — FLOATING HAMBURGER (bottom-right corner)
+          Completely separate from the pill nav.
+          Floats in from bottom-right once user scrolls.
+          Clicking opens the same fullscreen overlay.
+          BOTH the pill and this exist simultaneously.
+      ══════════════════════════════════════════════ */}
+      <button
+        className="desktop-fab"
+        onClick={toggle}
+        aria-label={menuOpen ? "Close menu" : "Open menu"}
+        style={{
+          position: "fixed",
+          bottom: "2rem",
+          right: "2rem",
+          zIndex: 160,
+          width: 52, height: 52,
+          borderRadius: "9999px",
+          border: `1.5px solid ${menuOpen ? "var(--color-accent)" : "var(--color-surface-border)"}`,
+          background: menuOpen
+            ? "var(--color-accent)"
+            : isDark ? "rgba(13,13,28,0.92)" : "rgba(237,237,248,0.92)",
+          backdropFilter: "blur(20px) saturate(200%)",
+          WebkitBackdropFilter: "blur(20px) saturate(200%)",
+          boxShadow: menuOpen
+            ? "0 0 32px var(--color-accent-muted), 0 8px 32px rgba(0,0,0,0.3)"
+            : "0 4px 24px rgba(0,0,0,0.18)",
+          cursor: "pointer",
+          display: "flex", flexDirection: "column",
+          alignItems: "center", justifyContent: "center",
+          gap: 0, padding: "18px",
+          // Slide up from off-screen when user scrolls
+          opacity: scrolled ? 1 : 0,
+          transform: scrolled
+            ? menuOpen ? "scale(1.08)" : "scale(1) translateY(0)"
+            : "translateY(20px) scale(0.8)",
+          transition: "all 0.5s cubic-bezier(0.16,1,0.3,1)",
+        }}
+      >
+        <span style={{
+          display: "block", width: "16px", height: "1.5px",
+          background: menuOpen ? "var(--color-accent-fg)" : "var(--color-text-primary)",
+          transform: menuOpen ? "translateY(1.5px) rotate(45deg)" : "none",
+          transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
+          borderRadius: "2px", marginBottom: menuOpen ? 0 : "5px",
+        }}/>
+        <span style={{
+          display: "block", width: "16px", height: "1.5px",
+          background: menuOpen ? "var(--color-accent-fg)" : "var(--color-text-primary)",
+          transform: menuOpen ? "translateY(-1.5px) rotate(-45deg)" : "none",
+          transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
+          borderRadius: "2px",
+        }}/>
+      </button>
+
+      {/* ══════════════════════════════════════════════
+          MOBILE HEADER
+      ══════════════════════════════════════════════ */}
       <header
         className="mobile-header"
         style={{
-          position: "fixed",
-          top: 0, left: 0, right: 0,
-          zIndex: 100,
+          position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
           padding: "0.875rem clamp(1rem,5vw,1.5rem)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
+          display: "flex", alignItems: "center", justifyContent: "space-between",
           background: scrolled
             ? isDark ? "rgba(7,7,15,0.90)" : "rgba(246,246,252,0.90)"
             : "transparent",
-          backdropFilter: scrolled ? "blur(20px)" : "none",
+          backdropFilter:       scrolled ? "blur(20px)" : "none",
           WebkitBackdropFilter: scrolled ? "blur(20px)" : "none",
           borderBottom: scrolled ? "1px solid var(--color-surface-border)" : "none",
           transition: "all 0.4s ease",
@@ -235,10 +267,7 @@ export function Navbar() {
         <Link href="/" style={{ textDecoration: "none" }}>
           <Image
             src={isDark ? "/logo-dark.svg" : "/logo-light.svg"}
-            alt="Brian Chege"
-            width={90}
-            height={28}
-            priority
+            alt="Brian Chege" width={90} height={28} priority
             style={{ height: "auto", width: "clamp(80px,20vw,100px)" }}
           />
         </Link>
@@ -247,13 +276,10 @@ export function Navbar() {
           <button
             onClick={() => { setThemeOpen(!themeOpen); setMenuOpen(false) }}
             style={{
-              width: 36, height: 36,
-              borderRadius: "var(--radius)",
-              border: `1px solid var(--color-surface-border)`,
-              background: "var(--color-bg-glass)",
-              backdropFilter: "blur(8px)",
-              cursor: "pointer",
-              display: "flex", alignItems: "center", justifyContent: "center",
+              width: 36, height: 36, borderRadius: "var(--radius)",
+              border: "1px solid var(--color-surface-border)",
+              background: "var(--color-bg-glass)", backdropFilter: "blur(8px)",
+              cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
               color: "var(--color-text-secondary)",
             }}
           >
@@ -263,20 +289,19 @@ export function Navbar() {
             </svg>
           </button>
 
-          {/* Hamburger */}
+          {/* Mobile hamburger → X */}
           <button
-            onClick={() => { setMenuOpen(!menuOpen); setThemeOpen(false) }}
-            aria-label={menuOpen ? "Close" : "Menu"}
+            onClick={toggle}
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
             style={{
-              width: 36, height: 36,
-              borderRadius: "var(--radius)",
-              border: `1px solid var(--color-surface-border)`,
+              width: 36, height: 36, borderRadius: "var(--radius)",
+              border: `1px solid ${menuOpen ? "var(--color-accent)" : "var(--color-surface-border)"}`,
               background: menuOpen ? "var(--color-accent-muted)" : "var(--color-bg-glass)",
-              backdropFilter: "blur(8px)",
-              cursor: "pointer",
+              backdropFilter: "blur(8px)", cursor: "pointer",
               display: "flex", flexDirection: "column",
               alignItems: "center", justifyContent: "center",
-              gap: 0, padding: "10px",
+              padding: "10px", gap: 0,
+              transition: "all 0.3s ease",
             }}
           >
             <span style={{
@@ -290,66 +315,49 @@ export function Navbar() {
               display: "block", width: "16px", height: "1.5px",
               background: menuOpen ? "var(--color-accent)" : "var(--color-text-primary)",
               transform: menuOpen ? "translateY(-1.5px) rotate(-45deg)" : "none",
-              transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)",
+              transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
               borderRadius: "2px",
             }}/>
           </button>
         </div>
       </header>
 
-      {/* ── THEME PANEL ─────────────────────────────────── */}
-      {themeOpen && (
-        <>
-          <div style={{
-            position: "fixed",
-            top: "clamp(60px,10vw,80px)",
-            right: "clamp(1rem,4vw,3rem)",
-            zIndex: 200,
-            animation: "slideDown 0.3s cubic-bezier(0.16,1,0.3,1) forwards",
-          }}>
-            <ThemeSwitcher onClose={() => setThemeOpen(false)} />
-          </div>
-          <div onClick={() => setThemeOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 199 }} />
-        </>
-      )}
+      {/* ══════════════════════════════════════════════
+          THEME PANEL — full-width drop from top
+      ══════════════════════════════════════════════ */}
+      <ThemeSwitcher
+        isOpen={themeOpen}
+        onClose={() => setThemeOpen(false)}
+      />
 
-      {/* ── MOBILE FULLSCREEN MENU ───────────────────────── */}
+      {/* ══════════════════════════════════════════════
+          FULLSCREEN OVERLAY — opened by EITHER the pill's
+          hamburger OR the floating FAB on desktop,
+          or the mobile hamburger
+      ══════════════════════════════════════════════ */}
       <div style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 150,
+        position: "fixed", inset: 0, zIndex: 150,
         background: isDark ? "rgba(7,7,15,0.97)" : "rgba(246,246,252,0.97)",
-        backdropFilter: "blur(28px)",
-        WebkitBackdropFilter: "blur(28px)",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "flex-start",
+        backdropFilter: "blur(28px)", WebkitBackdropFilter: "blur(28px)",
+        display: "flex", flexDirection: "column",
+        justifyContent: "center", alignItems: "flex-start",
         padding: "clamp(2rem,8vw,4rem)",
         opacity: menuOpen ? 1 : 0,
         pointerEvents: menuOpen ? "all" : "none",
         transition: "opacity 0.4s ease",
         overflow: "hidden",
       }}>
-        {/* Big ambient blob */}
+        {/* Ambient blob */}
         <div style={{
-          position: "absolute",
-          width: "80vw", height: "80vw",
-          borderRadius: "50%",
-          background: "var(--color-accent-muted)",
-          filter: "blur(100px)",
-          right: "-20vw", top: "50%",
-          transform: "translateY(-50%)",
-          pointerEvents: "none",
+          position: "absolute", width: "80vw", height: "80vw", borderRadius: "50%",
+          background: "var(--color-accent-muted)", filter: "blur(100px)",
+          right: "-20vw", top: "50%", transform: "translateY(-50%)", pointerEvents: "none",
         }}/>
 
-        {/* Index label */}
+        {/* Label */}
         <div style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "0.6875rem",
-          color: "var(--color-accent)",
-          letterSpacing: "0.12em",
-          textTransform: "uppercase",
+          fontFamily: "var(--font-mono)", fontSize: "0.6875rem",
+          color: "var(--color-accent)", letterSpacing: "0.12em", textTransform: "uppercase",
           marginBottom: "clamp(1.5rem,5vw,2.5rem)",
           opacity: menuOpen ? 1 : 0,
           transform: menuOpen ? "translateY(0)" : "translateY(16px)",
@@ -365,55 +373,47 @@ export function Navbar() {
             href={link.href}
             onClick={() => setMenuOpen(false)}
             style={{
-              display: "flex",
-              alignItems: "baseline",
+              display: "flex", alignItems: "baseline",
               gap: "clamp(0.75rem,2vw,1.25rem)",
-              textDecoration: "none",
-              lineHeight: 1.0,
+              textDecoration: "none", lineHeight: 1.0,
               marginBottom: "clamp(0.25rem,1vw,0.5rem)",
               opacity: menuOpen ? 1 : 0,
               transform: menuOpen ? "translateX(0)" : "translateX(-40px)",
               transition: `all 0.6s cubic-bezier(0.16,1,0.3,1) ${i * 0.08 + 0.1}s`,
-              position: "relative",
-              zIndex: 1,
+              position: "relative", zIndex: 1,
             }}
             onMouseEnter={e => {
               const num = e.currentTarget.querySelector(".menu-num") as HTMLElement
               const txt = e.currentTarget.querySelector(".menu-txt") as HTMLElement
               if (num) num.style.color = "var(--color-accent)"
-              if (txt) { txt.style.color = "var(--color-accent)"; txt.style.WebkitTextStroke = "0px" }
+              if (txt) { txt.style.color = "var(--color-accent)"; txt.style.webkitTextStroke = "0px" }
             }}
             onMouseLeave={e => {
               const num = e.currentTarget.querySelector(".menu-num") as HTMLElement
               const txt = e.currentTarget.querySelector(".menu-txt") as HTMLElement
-              if (num) num.style.color = "var(--color-text-muted)"
-              if (txt) { txt.style.color = "transparent"; txt.style.WebkitTextStroke = `2px var(--color-text-primary)` }
+              const active = isActive(link.href)
+              if (num) num.style.color = active ? "var(--color-accent)" : "var(--color-text-muted)"
+              if (txt) {
+                txt.style.color = active ? "var(--color-accent)" : "transparent"
+                txt.style.webkitTextStroke = active ? "0px" : `2px var(--color-text-primary)`
+              }
             }}
           >
-            <span
-              className="menu-num"
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "clamp(0.75rem,2vw,0.9rem)",
-                color: "var(--color-text-muted)",
-                transition: "color 0.2s ease",
-                userSelect: "none",
-              }}
-            >
+            <span className="menu-num" style={{
+              fontFamily: "var(--font-mono)", fontSize: "clamp(0.75rem,2vw,0.9rem)",
+              color: isActive(link.href) ? "var(--color-accent)" : "var(--color-text-muted)",
+              transition: "color 0.2s ease", userSelect: "none",
+            }}>
               {link.num}
             </span>
-            <span
-              className="menu-txt"
-              style={{
-                fontFamily: "var(--font-display)",
-                fontSize: "clamp(3.5rem,14vw,7rem)",
-                fontWeight: 800,
-                letterSpacing: "-0.04em",
-                color: "transparent",
-                WebkitTextStroke: `2px var(--color-text-primary)`,
-                transition: "all 0.2s ease",
-              }}
-            >
+            <span className="menu-txt" style={{
+              fontFamily: "var(--font-display)",
+              fontSize: "clamp(3.5rem,14vw,7rem)",
+              fontWeight: 800, letterSpacing: "-0.04em",
+              color: isActive(link.href) ? "var(--color-accent)" : "transparent",
+              WebkitTextStroke: isActive(link.href) ? "0px" : `2px var(--color-text-primary)`,
+              transition: "all 0.2s ease",
+            }}>
               {link.label}
             </span>
           </Link>
@@ -423,11 +423,8 @@ export function Navbar() {
         <div style={{
           position: "absolute",
           bottom: "clamp(1.5rem,5vw,2.5rem)",
-          left: "clamp(2rem,8vw,4rem)",
-          right: "clamp(2rem,8vw,4rem)",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
+          left: "clamp(2rem,8vw,4rem)", right: "clamp(2rem,8vw,4rem)",
+          display: "flex", justifyContent: "space-between", alignItems: "center",
           opacity: menuOpen ? 1 : 0,
           transform: menuOpen ? "translateY(0)" : "translateY(16px)",
           transition: "all 0.5s ease 0.45s",
@@ -439,16 +436,10 @@ export function Navbar() {
             href="/contact"
             onClick={() => setMenuOpen(false)}
             style={{
-              fontFamily: "var(--font-body)",
-              fontSize: "0.8125rem",
-              fontWeight: 600,
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-              color: "var(--color-accent-fg)",
-              background: "var(--color-accent)",
-              padding: "0.625rem 1.5rem",
-              borderRadius: "9999px",
-              textDecoration: "none",
+              fontFamily: "var(--font-body)", fontSize: "0.8125rem",
+              fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase",
+              color: "var(--color-accent-fg)", background: "var(--color-accent)",
+              padding: "0.625rem 1.5rem", borderRadius: "9999px", textDecoration: "none",
               boxShadow: "0 0 20px var(--color-accent-muted)",
             }}
           >
@@ -459,17 +450,16 @@ export function Navbar() {
 
       <style jsx global>{`
         .desktop-header { display: block !important; }
-        .mobile-header  { display: none !important; }
+        .desktop-fab    { display: flex  !important; }
+        .mobile-header  { display: none  !important; }
 
         @media (max-width: 768px) {
           .desktop-header { display: none !important; }
+          .desktop-fab    { display: none !important; }
           .mobile-header  { display: flex !important; }
         }
 
-        @keyframes slideDown {
-          from { opacity: 0; transform: translateY(-10px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
+
       `}</style>
     </>
   )
