@@ -101,10 +101,8 @@ function FilmCard({ project, idx, trackPaused, onEnter, onLeave }: {
           objectFit: "cover",
           // Infinite slow zoom in/out while on screen
           animation: "filmZoom 8s ease-in-out infinite alternate",
-          filter: hovered
-            ? "saturate(1.1) brightness(0.72)"
-            : "saturate(0.25) brightness(0.45)",
-          transition: "filter 0.6s ease",
+          filter: hovered ? "brightness(0.82)" : "brightness(0.92)",
+          transition: "filter 0.5s ease",
           willChange: "transform, filter",
           animationPlayState: trackPaused ? "paused" : "running",
         }}
@@ -119,37 +117,7 @@ function FilmCard({ project, idx, trackPaused, onEnter, onLeave }: {
         opacity: hovered ? 0.7 : 1,
       }} />
 
-      {/* Accent diagonal sweep on hover */}
-      <div style={{
-        position: "absolute", inset: 0, zIndex: 2,
-        overflow: "hidden", pointerEvents: "none",
-      }}>
-        <div style={{
-          position: "absolute",
-          left: "-20%", right: "-20%",
-          height: "1.5px",
-          background: `linear-gradient(90deg, transparent 0%, ${acc} 40%, ${acc} 60%, transparent 100%)`,
-          top: "50%",
-          transform: hovered
-            ? "rotate(-12deg) translateY(-20px) scaleX(1)"
-            : "rotate(-12deg) translateY(60px) scaleX(0.3)",
-          opacity: hovered ? 0.9 : 0,
-          transition: "transform 0.5s cubic-bezier(0.16,1,0.3,1), opacity 0.3s ease",
-          boxShadow: `0 0 12px ${acc}`,
-        }} />
-        <div style={{
-          position: "absolute",
-          left: "-20%", right: "-20%",
-          height: "1px",
-          background: `linear-gradient(90deg, transparent 0%, ${acc}66 40%, ${acc}66 60%, transparent 100%)`,
-          top: "50%",
-          transform: hovered
-            ? "rotate(-12deg) translateY(8px) scaleX(1)"
-            : "rotate(-12deg) translateY(60px) scaleX(0.3)",
-          opacity: hovered ? 0.5 : 0,
-          transition: "transform 0.55s cubic-bezier(0.16,1,0.3,1) 0.04s, opacity 0.3s ease",
-        }} />
-      </div>
+
 
       {/* Content */}
       <div style={{
@@ -254,7 +222,7 @@ function FilmStrip({ projects, direction, speed, inView }: {
 
       <div style={{
         display: "flex",
-        gap: "1px",
+        gap: "clamp(0.75rem,1.5vw,1.25rem)",
         width: "max-content",
         padding: "18px 0",
         animation: `strip-${direction} ${speed}s linear infinite`,
