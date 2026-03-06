@@ -1,0 +1,27 @@
+@keyframes charReveal {
+    from {
+      opacity: 0;
+      transform: translateY(60px) rotateX(-80deg);
+      transform-origin: 50% 100%;
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) rotateX(0deg);
+      transform-origin: 50% 100%;
+    }
+  }
+  
+  @keyframes wordReveal {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  
+  @keyframes eyebrowReveal {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.25; }
+    50%      { opacity: 1; }
+  }
