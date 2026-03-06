@@ -289,7 +289,7 @@ export function Navbar() {
       >
         <Link href="/" style={{ textDecoration: "none" }}>
           <Image
-            src={isDark ? "/logo-dark.svg" : "/logo-light.svg"}
+            src={isDark ? "/logo-dark.png" : "/logo-light.png"}
             alt="Brian Chege" width={90} height={28} priority
             style={{ height: "auto", width: "clamp(80px,20vw,100px)" }}
           />
