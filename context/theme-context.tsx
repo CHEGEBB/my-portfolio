@@ -15,7 +15,7 @@ export type AccentColor =
   | "violet"
 
 export type ThemePreset =
-  | "signature"  // dark + indigo (DEFAULT)
+  | "signature"  // dark + acid (DEFAULT)
   | "mint"       // dark + teal
   | "obsidian"   // dark + ember
   | "glacier"    // dark + arctic
@@ -85,7 +85,7 @@ function buildColors(mode: ThemeMode, accent: AccentColor): ThemeColors {
 }
 
 const presets: Record<ThemePreset, { mode: ThemeMode; accent: AccentColor }> = {
-  signature: { mode: "dark",  accent: "indigo"  },
+  signature: { mode: "dark",  accent: "acid"    }, // ← changed: was indigo, now acid
   mint:      { mode: "dark",  accent: "teal"    },
   obsidian:  { mode: "dark",  accent: "ember"   },
   glacier:   { mode: "dark",  accent: "arctic"  },
@@ -94,20 +94,20 @@ const presets: Record<ThemePreset, { mode: ThemeMode; accent: AccentColor }> = {
   parchment: { mode: "light", accent: "gold"    },
   paper:     { mode: "light", accent: "indigo"  },
   blush:     { mode: "light", accent: "bloom"   },
-  custom:    { mode: "dark",  accent: "indigo"  },
+  custom:    { mode: "dark",  accent: "acid"    }, // ← also updated custom fallback
 }
 
 export const presetMeta: Record<ThemePreset, { label: string; description: string; emoji: string }> = {
-  signature: { label: "Signature", description: "Dark & indigo",   emoji: "✦"  },
-  mint:      { label: "Mint",      description: "Dark & teal",     emoji: "🌊" },
-  obsidian:  { label: "Obsidian",  description: "Dark & fiery",    emoji: "🔥" },
-  glacier:   { label: "Glacier",   description: "Dark & icy",      emoji: "🧊" },
-  midnight:  { label: "Midnight",  description: "Dark & electric", emoji: "⚡" },
-  matrix:    { label: "Matrix",    description: "Dark & acid",     emoji: "💚" },
-  parchment: { label: "Parchment", description: "Light & warm",    emoji: "📜" },
-  paper:     { label: "Paper",     description: "Light & clean",   emoji: "🤍" },
-  blush:     { label: "Blush",     description: "Light & soft",    emoji: "🌸" },
-  custom:    { label: "Custom",    description: "Your own mix",    emoji: "🎨" },
+  signature: { label: "Signature", description: "Dark & acid",    emoji: "✦"  }, // ← label updated
+  mint:      { label: "Mint",      description: "Dark & teal",    emoji: "🌊" },
+  obsidian:  { label: "Obsidian",  description: "Dark & fiery",   emoji: "🔥" },
+  glacier:   { label: "Glacier",   description: "Dark & icy",     emoji: "🧊" },
+  midnight:  { label: "Midnight",  description: "Dark & electric",emoji: "⚡" },
+  matrix:    { label: "Matrix",    description: "Dark & acid",    emoji: "💚" },
+  parchment: { label: "Parchment", description: "Light & warm",   emoji: "📜" },
+  paper:     { label: "Paper",     description: "Light & clean",  emoji: "🤍" },
+  blush:     { label: "Blush",     description: "Light & soft",   emoji: "🌸" },
+  custom:    { label: "Custom",    description: "Your own mix",   emoji: "🎨" },
 }
 
 export const accentMeta: Record<AccentColor, { label: string; hex: string }> = {
