@@ -50,7 +50,7 @@ export function Cursor() {
 
   // Hover ring colour — accent normally, bright white/contrasting on hover
   const ringColor = hovered ? "#ffffff" : acc
-  const ringSize  = hovered ? 48 : 36
+  const ringSize  = hovered ? 64 : 48
 
   return (
     <>
