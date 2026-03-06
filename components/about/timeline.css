@@ -1,0 +1,31 @@
+/* components/about/timeline.css */
+
+@keyframes tl-sweep {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+  }
+  
+  @keyframes tl-fade-up {
+    from { opacity: 0; transform: translateY(28px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  
+  @keyframes tl-num-in {
+    from { opacity: 0; transform: translateY(40px) skewY(3deg); }
+    to   { opacity: 1; transform: translateY(0) skewY(0deg); }
+  }
+  
+  @keyframes tl-bar {
+    from { width: 0; }
+    to   { width: 100%; }
+  }
+  
+  @keyframes tl-cursor {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0; }
+  }
+  
+  @keyframes tl-dot-drop {
+    from { opacity: 0; transform: translateX(-50%) scale(0); }
+    to   { opacity: 1; transform: translateX(-50%) scale(1); }
+  }

@@ -10,7 +10,7 @@ export default function AboutPage() {
   return (
     <>
       <Navbar />
-      <AboutHero />
+<AboutHero/>
       <AboutStory />
       <AboutManifesto />
       <AboutTimeline />

@@ -2,8 +2,10 @@
 
 import { useEffect, useRef } from "react"
 import { useTheme } from "@/context/theme-context"
+import { useInView } from "framer-motion"
 import gsap from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
+import "./timeline.css"
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -13,7 +15,7 @@ const TIMELINE = [
     role: "Co-Founder & CTO",
     org: "Softrinx",
     type: "work",
-    color: "#5567F7",
+    duration: 95,
     bullets: [
       "Lead all technical operations, architecture and deployment",
       "Client-facing technical solutions end-to-end",
@@ -25,7 +27,7 @@ const TIMELINE = [
     role: "Full-Stack Developer",
     org: "Teach2Give",
     type: "work",
-    color: "#45D2B0",
+    duration: 42,
     bullets: [
       "Angular, TypeScript, Docker, PostgreSQL, AWS",
       "API integration and backend workflow management",
@@ -34,14 +36,13 @@ const TIMELINE = [
   },
   {
     period: "Feb 2025 – Jul 2025",
-    role: "Software Development Intern",
+    role: "Software Dev Intern",
     org: "Power Learn Project",
     type: "work",
-    color: "#00D4FF",
+    duration: 55,
     bullets: [
       "16-week mobile app specialisation — Flutter & Dart",
       "Agile practices from concept through deployment",
-      "Entrepreneurial skills alongside technical expertise",
     ],
   },
   {
@@ -49,19 +50,19 @@ const TIMELINE = [
     role: "Co-Founder & CTO",
     org: "HealthMaster",
     type: "work",
-    color: "#FF6B9D",
+    duration: 88,
     bullets: [
       "Health-tech startup — medication adherence + AI",
-      "Architected core mobile app and web tool",
+      "Architected core mobile app and web platform",
       "AI-driven analytics for NCD risk assessment",
     ],
   },
   {
     period: "Jul 2024 – Sep 2024",
-    role: "Software Development Intern",
+    role: "Software Dev Intern",
     org: "Prodigy InfoTech",
     type: "work",
-    color: "#F5A623",
+    duration: 28,
     bullets: [
       "RESTful APIs with Node.js and MongoDB",
       "Responsive MERN stack systems",
@@ -72,7 +73,7 @@ const TIMELINE = [
     role: "Software Engineer Intern",
     org: "ALX Africa",
     type: "work",
-    color: "#8B5CF6",
+    duration: 72,
     bullets: [
       "Multi-module systems in Python and shell scripting",
       "DevOps practices and scalable architecture",
@@ -83,74 +84,283 @@ const TIMELINE = [
     role: "BSc Computer Science",
     org: "Dedan Kimathi University of Technology",
     type: "edu",
-    color: "#AAFF00",
+    duration: 100,
     bullets: [
-      "Second Class Upper Honours",
-      "Nyeri, Kenya",
+      "Second Class Upper Honours · Nyeri, Kenya",
     ],
   },
 ]
 
+// ── Single band entry ──────────────────────────────────────────────────────────
+function TimelineBand({
+  item,
+  index,
+  acc,
+  isDark,
+  total,
+}: {
+  item: typeof TIMELINE[0]
+  index: number
+  acc: string
+  isDark: boolean
+  total: number
+}) {
+  const ref    = useRef<HTMLDivElement>(null)
+  const inView = useInView(ref, { once: true, margin: "-12%" })
+  const delay  = index * 0.06
+
+  const isEdu = item.type === "edu"
+
+  return (
+    <div
+      ref={ref}
+      style={{
+        position: "relative",
+        borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.055)" : "rgba(0,0,0,0.06)"}`,
+        overflow: "hidden",
+        // Each band is slightly different height for rhythm
+        minHeight: isEdu
+          ? "clamp(120px,14vw,160px)"
+          : "clamp(140px,17vw,200px)",
+      }}
+    >
+      {/* Sweep fill — scaleX from left on entry */}
+      <div style={{
+        position: "absolute",
+        inset: 0,
+        background: isDark ? `${acc}09` : `${acc}07`,
+        transform: inView ? "scaleX(1)" : "scaleX(0)",
+        transformOrigin: "left",
+        transition: `transform 0.9s cubic-bezier(0.16,1,0.3,1) ${delay}s`,
+        pointerEvents: "none",
+      }} />
+
+      {/* Ghost index number — architectural watermark */}
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          right: "clamp(4rem,8vw,7rem)",
+          top: "50%",
+          transform: "translateY(-50%)",
+          fontFamily: "var(--font-display)",
+          fontSize: "clamp(6rem,14vw,18rem)",
+          fontWeight: 800,
+          lineHeight: 1,
+          letterSpacing: "-0.08em",
+          color: "transparent",
+          WebkitTextStroke: `1px ${acc}${isDark ? "12" : "0e"}`,
+          userSelect: "none",
+          pointerEvents: "none",
+          opacity: inView ? 1 : 0,
+          transition: `opacity 0.6s ease ${delay + 0.2}s`,
+        }}
+      >
+        {String(index + 1).padStart(2, "0")}
+      </div>
+
+      {/* Main content */}
+      <div style={{
+        position: "relative",
+        zIndex: 2,
+        display: "grid",
+        gridTemplateColumns: "clamp(3rem,6vw,5rem) 1fr auto",
+        alignItems: "center",
+        height: "100%",
+        gap: "0",
+        padding: "clamp(1.5rem,3vw,2.5rem) clamp(1.5rem,4vw,3rem)",
+      }}>
+
+        {/* Left: type badge vertical */}
+        <div style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "0.4rem",
+          opacity: inView ? 1 : 0,
+          transform: inView ? "none" : "translateY(12px)",
+          transition: `all 0.5s ease ${delay}s`,
+        }}>
+          <span style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "0.38rem",
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+            color: acc,
+            writingMode: "vertical-rl",
+            textOrientation: "mixed",
+            transform: "rotate(180deg)",
+            opacity: 0.7,
+          }}>
+            {isEdu ? "EDU" : "WORK"}
+          </span>
+          <div style={{
+            width: 1,
+            height: "clamp(20px,3vw,32px)",
+            background: `linear-gradient(to bottom, ${acc}88, transparent)`,
+          }} />
+        </div>
+
+        {/* Centre: role + org + bullets */}
+        <div style={{
+          paddingLeft: "clamp(1rem,2vw,2rem)",
+          opacity: inView ? 1 : 0,
+          transform: inView ? "none" : "translateY(20px)",
+          transition: `all 0.65s cubic-bezier(0.16,1,0.3,1) ${delay + 0.05}s`,
+        }}>
+          {/* Period */}
+          <div style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "clamp(0.44rem,0.7vw,0.56rem)",
+            letterSpacing: "0.12em",
+            color: "var(--color-text-muted)",
+            opacity: 0.45,
+            marginBottom: "0.3rem",
+          }}>
+            {item.period}
+          </div>
+
+          {/* Role */}
+          <div style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "clamp(1.2rem,2.8vw,2.2rem)",
+            fontWeight: 800,
+            letterSpacing: "-0.04em",
+            lineHeight: 1.0,
+            color: "var(--color-text-primary)",
+            marginBottom: "0.2rem",
+          }}>
+            {item.role}
+          </div>
+
+          {/* Org */}
+          <div style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "clamp(0.58rem,1vw,0.75rem)",
+            color: acc,
+            letterSpacing: "0.04em",
+            fontWeight: 600,
+            marginBottom: isEdu ? "0" : "clamp(0.5rem,1vw,0.8rem)",
+          }}>
+            {item.org}
+          </div>
+
+          {/* Bullets — hidden on edu to keep it clean */}
+          {!isEdu && (
+            <div style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "0.3rem 1.5rem",
+              marginTop: "0.35rem",
+            }}>
+              {item.bullets.map((b, bi) => (
+                <span key={bi} style={{
+                  fontFamily: "var(--font-body)",
+                  fontSize: "clamp(0.65rem,0.9vw,0.78rem)",
+                  color: "var(--color-text-muted)",
+                  lineHeight: 1.5,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.35rem",
+                }}>
+                  <span style={{ color: acc, opacity: 0.5, fontSize: "0.6em" }}>◆</span>
+                  {b}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Edu bullets inline */}
+          {isEdu && item.bullets.map((b, bi) => (
+            <div key={bi} style={{
+              fontFamily: "var(--font-body)",
+              fontSize: "clamp(0.65rem,0.9vw,0.78rem)",
+              color: "var(--color-text-muted)",
+              marginTop: "0.25rem",
+            }}>{b}</div>
+          ))}
+        </div>
+
+        {/* Right: duration bar + progress */}
+        <div style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-end",
+          gap: "0.5rem",
+          minWidth: "clamp(60px,8vw,100px)",
+          opacity: inView ? 1 : 0,
+          transition: `opacity 0.5s ease ${delay + 0.3}s`,
+        }}>
+          {/* Vertical fill bar */}
+          <div style={{
+            width: 2,
+            height: "clamp(40px,6vw,72px)",
+            background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)",
+            position: "relative",
+            overflow: "hidden",
+          }}>
+            <div style={{
+              position: "absolute",
+              bottom: 0, left: 0, right: 0,
+              height: inView ? `${item.duration}%` : "0%",
+              background: acc,
+              boxShadow: `0 0 8px ${acc}`,
+              transition: `height 1.1s cubic-bezier(0.16,1,0.3,1) ${delay + 0.4}s`,
+            }} />
+          </div>
+
+          {/* Percentage */}
+          <span style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "0.42rem",
+            letterSpacing: "0.1em",
+            color: acc,
+            opacity: 0.55,
+          }}>
+            {item.duration}%
+          </span>
+        </div>
+      </div>
+
+      {/* Bottom accent line — draws in on entry */}
+      <div style={{
+        position: "absolute",
+        bottom: 0, left: 0,
+        height: 1,
+        width: inView ? `${item.duration}%` : "0%",
+        background: `linear-gradient(90deg, ${acc}, transparent)`,
+        transition: `width 1.2s cubic-bezier(0.16,1,0.3,1) ${delay + 0.15}s`,
+      }} />
+    </div>
+  )
+}
+
+// ── Main section ──────────────────────────────────────────────────────────────
 export function AboutTimeline() {
   const { theme }  = useTheme()
   const sectionRef = useRef<HTMLDivElement>(null)
-  const lineRef    = useRef<HTMLDivElement>(null)
+  const railRef    = useRef<HTMLDivElement>(null)
   const isDark     = theme.mode === "dark"
   const acc        = theme.colors.accent
 
+  // GSAP scrub: right-side chapter rail fills as you scroll
   useEffect(() => {
     const ctx = gsap.context(() => {
-      // Draw the vertical line as user scrolls
-      gsap.fromTo(lineRef.current,
+      gsap.fromTo(
+        railRef.current,
         { scaleY: 0 },
         {
           scaleY: 1,
           ease: "none",
           scrollTrigger: {
             trigger: sectionRef.current,
-            start: "top 60%",
+            start: "top 50%",
             end: "bottom 60%",
-            scrub: 0.5,
+            scrub: 0.8,
           },
         }
       )
-
-      // Each node pops in
-      gsap.utils.toArray<HTMLElement>(".tl-node").forEach((node, i) => {
-        gsap.fromTo(node,
-          { scale: 0, opacity: 0 },
-          {
-            scale: 1, opacity: 1,
-            duration: 0.5,
-            ease: "back.out(2)",
-            scrollTrigger: {
-              trigger: node,
-              start: "top 75%",
-              toggleActions: "play none none reverse",
-            },
-          }
-        )
-      })
-
-      // Each card slides in from alternating sides
-      gsap.utils.toArray<HTMLElement>(".tl-card").forEach((card, i) => {
-        const isLeft = i % 2 === 0
-        gsap.fromTo(card,
-          { opacity: 0, x: isLeft ? -50 : 50 },
-          {
-            opacity: 1, x: 0,
-            duration: 0.8,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: card,
-              start: "top 78%",
-              toggleActions: "play none none reverse",
-            },
-          }
-        )
-      })
     }, sectionRef)
-
     return () => ctx.revert()
   }, [])
 
@@ -159,222 +369,132 @@ export function AboutTimeline() {
       ref={sectionRef}
       style={{
         position: "relative",
-        background: isDark ? "#07070F" : "#F0F0FA",
-        padding: "clamp(5rem,10vw,8rem) clamp(1.5rem,5vw,4rem)",
+        background: isDark ? "#07070f" : "#f0f0f8",
         overflow: "hidden",
       }}
     >
-      {/* Ambient glow */}
-      <div style={{
-        position: "absolute", top: "30%", left: "50%",
-        transform: "translate(-50%, -50%)",
-        width: "60vw", height: "60vw",
-        borderRadius: "50%",
-        background: `radial-gradient(circle, ${acc}0a 0%, transparent 70%)`,
+      {/* Ambient glow — top right */}
+      <div aria-hidden style={{
+        position: "absolute",
+        top: 0, right: 0,
+        width: "40vw", height: "40vw",
+        background: `radial-gradient(ellipse at 100% 0%, ${acc}0b 0%, transparent 65%)`,
         pointerEvents: "none",
       }} />
 
-      {/* Header */}
+      {/* Right-side scrub rail */}
       <div style={{
-        textAlign: "center",
-        marginBottom: "clamp(3rem,7vw,6rem)",
+        position: "absolute",
+        right: "clamp(1rem,2vw,1.75rem)",
+        top: "clamp(5rem,10vw,8rem)",
+        bottom: "clamp(5rem,10vw,8rem)",
+        width: 1,
+        background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)",
+      }}>
+        <div
+          ref={railRef}
+          style={{
+            position: "absolute",
+            top: 0, left: 0, right: 0,
+            height: "100%",
+            background: `linear-gradient(to bottom, ${acc}, ${acc}44)`,
+            transformOrigin: "top",
+          }}
+        />
+        {/* Chapter dots */}
+        {TIMELINE.map((_, i) => (
+          <div key={i} style={{
+            position: "absolute",
+            left: "50%",
+            top: `${(i / (TIMELINE.length - 1)) * 100}%`,
+            transform: "translateX(-50%)",
+            width: 5, height: 5,
+            borderRadius: "50%",
+            background: acc,
+            opacity: 0.5,
+          }} />
+        ))}
+      </div>
+
+      {/* ── Header ── */}
+      <div style={{
+        padding: "clamp(5rem,10vw,8rem) clamp(1.5rem,6vw,5rem) clamp(2.5rem,5vw,4rem)",
+        borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.055)" : "rgba(0,0,0,0.06)"}`,
         position: "relative", zIndex: 2,
       }}>
         <div style={{
-          display: "inline-flex", alignItems: "center", gap: "0.6rem",
-          marginBottom: "1rem",
+          display: "flex", alignItems: "center", gap: "0.6rem",
+          marginBottom: "1.1rem",
         }}>
           <div style={{ width: 20, height: "1px", background: acc }} />
           <span style={{
-            fontFamily: "var(--font-mono)", fontSize: "0.58rem",
-            letterSpacing: "0.16em", textTransform: "uppercase", color: acc,
-          }}>Experience & Education</span>
-          <div style={{ width: 20, height: "1px", background: acc }} />
+            fontFamily: "var(--font-mono)", fontSize: "0.56rem",
+            letterSpacing: "0.18em", textTransform: "uppercase", color: acc,
+          }}>
+            Experience & Education
+          </span>
         </div>
+
         <h2 style={{
           fontFamily: "var(--font-display)",
-          fontSize: "clamp(2.5rem,7vw,6rem)",
-          fontWeight: 800, letterSpacing: "-0.05em", lineHeight: 0.9, margin: 0,
+          fontSize: "clamp(3rem,9vw,8rem)",
+          fontWeight: 800, letterSpacing: "-0.055em", lineHeight: 0.87,
+          margin: "0 0 clamp(1rem,2vw,1.5rem)",
         }}>
-          <span style={{ color: "var(--color-text-primary)" }}>The </span>
-          <span style={{ color: "transparent", WebkitTextStroke: `2px ${acc}` }}>Record.</span>
+          <span style={{ display: "block", color: "var(--color-text-primary)" }}>
+            The
+          </span>
+          <span style={{
+            display: "block",
+            color: "transparent",
+            WebkitTextStroke: `2px ${acc}`,
+            textShadow: `0 0 60px ${acc}44`,
+          }}>
+            Record.
+          </span>
         </h2>
-      </div>
 
-      {/* Timeline */}
-      <div style={{
-        position: "relative",
-        maxWidth: 900,
-        margin: "0 auto",
-        zIndex: 2,
-      }}>
-        {/* Vertical line track */}
+        {/* Meta row */}
         <div style={{
-          position: "absolute",
-          left: "50%", transform: "translateX(-50%)",
-          top: 0, bottom: 0,
-          width: 1,
-          background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)",
-        }} />
-
-        {/* Animated fill line */}
-        <div
-          ref={lineRef}
-          style={{
-            position: "absolute",
-            left: "50%", transform: "translateX(-50%)",
-            top: 0, bottom: 0,
-            width: 1,
-            background: `linear-gradient(to bottom, ${acc}, ${acc}44)`,
-            transformOrigin: "top",
-            zIndex: 1,
-          }}
-        />
-
-        {/* Items */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "clamp(2rem,4vw,3.5rem)" }}>
-          {TIMELINE.map((item, i) => {
-            const isLeft = i % 2 === 0
-            return (
-              <div key={i} style={{
-                display: "grid",
-                gridTemplateColumns: "1fr clamp(32px,4vw,48px) 1fr",
-                alignItems: "center",
-                gap: "clamp(1rem,2vw,2rem)",
-              }}>
-                {/* Left content or spacer */}
-                <div className="tl-card" style={{ opacity: 0 }}>
-                  {isLeft ? (
-                    <TimelineCard item={item} align="right" isDark={isDark} />
-                  ) : (
-                    <div />
-                  )}
-                </div>
-
-                {/* Center node */}
-                <div style={{
-                  display: "flex", justifyContent: "center", alignItems: "center",
-                  position: "relative", zIndex: 2,
-                }}>
-                  <div
-                    className="tl-node"
-                    style={{
-                      width: "clamp(12px,2vw,16px)",
-                      height: "clamp(12px,2vw,16px)",
-                      borderRadius: "50%",
-                      background: item.color,
-                      border: `2px solid ${isDark ? "#07070F" : "#F0F0FA"}`,
-                      boxShadow: `0 0 0 4px ${item.color}33, 0 0 16px ${item.color}55`,
-                      opacity: 0,
-                    }}
-                  />
-                </div>
-
-                {/* Right content or spacer */}
-                <div className="tl-card" style={{ opacity: 0 }}>
-                  {!isLeft ? (
-                    <TimelineCard item={item} align="left" isDark={isDark} />
-                  ) : (
-                    <div />
-                  )}
-                </div>
-              </div>
-            )
-          })}
+          display: "flex", alignItems: "center", gap: "1.5rem",
+          flexWrap: "wrap",
+        }}>
+          <span style={{
+            fontFamily: "var(--font-mono)", fontSize: "0.5rem",
+            letterSpacing: "0.1em", color: "var(--color-text-muted)", opacity: 0.4,
+          }}>
+            {TIMELINE.filter(t => t.type === "work").length} ROLES
+          </span>
+          <div style={{ width: 1, height: 10, background: "var(--color-text-muted)", opacity: 0.15 }} />
+          <span style={{
+            fontFamily: "var(--font-mono)", fontSize: "0.5rem",
+            letterSpacing: "0.1em", color: "var(--color-text-muted)", opacity: 0.4,
+          }}>
+            {TIMELINE.filter(t => t.type === "edu").length} DEGREE
+          </span>
+          <div style={{ width: 1, height: 10, background: "var(--color-text-muted)", opacity: 0.15 }} />
+          <span style={{
+            fontFamily: "var(--font-mono)", fontSize: "0.5rem",
+            letterSpacing: "0.1em", color: acc, opacity: 0.6,
+          }}>
+            2022 → PRESENT
+          </span>
         </div>
       </div>
 
-      {/* Mobile: single column override */}
-      <style jsx global>{`
-        @media (max-width: 640px) {
-          .tl-mobile-override {
-            grid-template-columns: 24px 1fr !important;
-          }
-        }
-      `}</style>
-    </section>
-  )
-}
-
-function TimelineCard({ item, align, isDark }: {
-  item: typeof TIMELINE[0]
-  align: "left" | "right"
-  isDark: boolean
-}) {
-  return (
-    <div style={{
-      padding: "clamp(1.25rem,2vw,1.75rem)",
-      border: `1px solid ${isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)"}`,
-      background: isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)",
-      position: "relative",
-      overflow: "hidden",
-      textAlign: align,
-    }}>
-      {/* Top colour bar */}
-      <div style={{
-        position: "absolute", top: 0,
-        left: align === "left" ? 0 : "auto",
-        right: align === "right" ? 0 : "auto",
-        width: "40%", height: 2,
-        background: `linear-gradient(${align === "left" ? "90deg" : "270deg"}, ${item.color}, transparent)`,
-      }} />
-
-      {/* Type badge */}
-      <div style={{
-        display: "inline-flex", alignItems: "center",
-        marginBottom: "0.6rem",
-      }}>
-        <span style={{
-          fontFamily: "var(--font-mono)", fontSize: "0.44rem",
-          letterSpacing: "0.14em", textTransform: "uppercase",
-          color: item.color,
-          border: `1px solid ${item.color}44`,
-          background: `${item.color}0d`,
-          padding: "0.15rem 0.45rem",
-        }}>{item.type === "work" ? "Work" : "Education"}</span>
-      </div>
-
-      <div style={{
-        fontFamily: "var(--font-mono)", fontSize: "0.5rem",
-        letterSpacing: "0.08em", color: "var(--color-text-muted)",
-        opacity: 0.55, marginBottom: "0.4rem",
-      }}>{item.period}</div>
-
-      <div style={{
-        fontFamily: "var(--font-display)",
-        fontSize: "clamp(1rem,1.8vw,1.35rem)",
-        fontWeight: 800, letterSpacing: "-0.03em",
-        color: "var(--color-text-primary)",
-        marginBottom: "0.2rem",
-      }}>{item.role}</div>
-
-      <div style={{
-        fontFamily: "var(--font-body)",
-        fontSize: "clamp(0.72rem,1vw,0.825rem)",
-        color: item.color, marginBottom: "0.875rem",
-        fontWeight: 600,
-      }}>{item.org}</div>
-
-      <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
-        {item.bullets.map((b, bi) => (
-          <div key={bi} style={{
-            display: "flex", alignItems: "flex-start", gap: "0.5rem",
-            justifyContent: align === "right" ? "flex-end" : "flex-start",
-            flexDirection: align === "right" ? "row-reverse" : "row",
-          }}>
-            <div style={{
-              width: 4, height: 4, borderRadius: "50%",
-              background: item.color, flexShrink: 0,
-              marginTop: "0.35rem",
-            }} />
-            <span style={{
-              fontFamily: "var(--font-body)",
-              fontSize: "clamp(0.7rem,0.9vw,0.8rem)",
-              color: "var(--color-text-muted)", lineHeight: 1.55,
-            }}>{b}</span>
-          </div>
+      {/* ── Bands ── */}
+      <div style={{ position: "relative", zIndex: 2 }}>
+        {TIMELINE.map((item, i) => (
+          <TimelineBand
+            key={i}
+            item={item}
+            index={i}
+            acc={acc}
+            isDark={isDark}
+            total={TIMELINE.length}
+          />
         ))}
       </div>
-    </div>
+    </section>
   )
 }

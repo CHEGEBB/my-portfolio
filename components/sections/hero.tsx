@@ -136,8 +136,7 @@ export function Hero() {
         opacity: fade, transition:"background 0.1s ease",
       }}/>
 
-      {/* ── IMAGE — positioned absolutely on the right, full height ── */}
-      {/* Ground glow — pools at feet */}
+      {/* ── IMAGE glows (desktop only) ── */}
       <div
         className="hero-img-glow"
         style={{
@@ -155,7 +154,6 @@ export function Hero() {
           animation:"glowBreathe 5s ease-in-out infinite",
         }}
       />
-      {/* Top-right glow */}
       <div
         className="hero-img-glow"
         style={{
@@ -174,9 +172,9 @@ export function Hero() {
         }}
       />
 
-      {/* The actual image — anchored to bottom-right, full section height */}
+      {/* ── DESKTOP IMAGE — anchored bottom-right, full height ── */}
       <div
-        className="hero-photo-container"
+        className="hero-photo-container hero-photo-desktop"
         style={{
           position:"absolute",
           bottom:50,
@@ -212,7 +210,7 @@ export function Hero() {
         />
       </div>
 
-      {/* ── CONTENT ───────────────────────────────────────── */}
+      {/* ── CONTENT ── */}
       <div style={{
         position:"relative",
         zIndex:10,
@@ -226,7 +224,6 @@ export function Hero() {
         padding:"clamp(4.5rem,8vw,7rem) clamp(1rem,4vw,3rem) clamp(1rem,2vw,2rem)",
         opacity: fade,
       }}>
-        {/* Text lives in the left 58% — image takes right 42% absolutely */}
         <div style={{ maxWidth:"58%", minWidth:0 }} className="hero-text">
 
           {/* Eyebrow */}
@@ -247,35 +244,84 @@ export function Hero() {
             Open to work
           </div>
 
-          {/* BRIAN — splits up on scroll */}
-          <div style={{ overflow:"visible", marginBottom:"clamp(.1rem,.3vw,.3rem)" }}>
-            <div style={{
-              fontFamily:"var(--font-display)",
-              fontSize:"clamp(3.5rem,9vw,8rem)",
-              fontWeight:800, lineHeight:.9, letterSpacing:"-.04em",
-              color:"var(--color-text-primary)",
-              transform:`translateY(${splitTop}px)`,
-              willChange:"transform", userSelect:"none",
-              opacity: mounted?1:0,
-              animation: mounted?"revealUp .85s cubic-bezier(.16,1,.3,1) .2s both":"none",
-              whiteSpace:"nowrap",
-            }}>BRIAN</div>
-          </div>
+          {/* ── MOBILE: name + image side by side ── */}
+          {/* This wrapper becomes a row on mobile */}
+          <div className="hero-name-row">
 
-          {/* CHEGE — splits down on scroll, full text visible */}
-          <div style={{ overflow:"visible", marginBottom:"clamp(.875rem,1.5vw,1.5rem)" }}>
-            <div style={{
-              fontFamily:"var(--font-display)",
-              fontSize:"clamp(3.5rem,9vw,8rem)",
-              fontWeight:800, lineHeight:.9, letterSpacing:"-.04em",
-              color:"transparent",
-              WebkitTextStroke:"clamp(1.5px,.2vw,2.5px) var(--color-accent)",
-              transform:`translateY(${splitBot}px)`,
-              willChange:"transform", userSelect:"none",
-              opacity: mounted?1:0,
-              animation: mounted?"revealUp .85s cubic-bezier(.16,1,.3,1) .32s both":"none",
-              whiteSpace:"nowrap",
-            }}>CHEGE</div>
+            {/* Name block */}
+            <div className="hero-name-block">
+              {/* BRIAN */}
+              <div style={{ overflow:"visible", marginBottom:"clamp(.1rem,.3vw,.3rem)" }}>
+                <div style={{
+                  fontFamily:"var(--font-display)",
+                  fontSize:"clamp(3.5rem,9vw,8rem)",
+                  fontWeight:800, lineHeight:.9, letterSpacing:"-.04em",
+                  color:"var(--color-text-primary)",
+                  transform:`translateY(${splitTop}px)`,
+                  willChange:"transform", userSelect:"none",
+                  opacity: mounted?1:0,
+                  animation: mounted?"revealUp .85s cubic-bezier(.16,1,.3,1) .2s both":"none",
+                  whiteSpace:"nowrap",
+                }}>BRIAN</div>
+              </div>
+
+              {/* CHEGE */}
+              <div style={{ overflow:"visible", marginBottom:"clamp(.875rem,1.5vw,1.5rem)" }}>
+                <div style={{
+                  fontFamily:"var(--font-display)",
+                  fontSize:"clamp(3.5rem,9vw,8rem)",
+                  fontWeight:800, lineHeight:.9, letterSpacing:"-.04em",
+                  color:"transparent",
+                  WebkitTextStroke:"clamp(1.5px,.2vw,2.5px) var(--color-accent)",
+                  transform:`translateY(${splitBot}px)`,
+                  willChange:"transform", userSelect:"none",
+                  opacity: mounted?1:0,
+                  animation: mounted?"revealUp .85s cubic-bezier(.16,1,.3,1) .32s both":"none",
+                  whiteSpace:"nowrap",
+                }}>CHEGE</div>
+              </div>
+            </div>
+
+            {/* Mobile-only inline photo */}
+            <div
+              className="hero-photo-mobile"
+              style={{
+                opacity: mounted ? 1 : 0,
+                transform: mounted ? "translateY(0)" : "translateY(40px)",
+                transition:"opacity 1.1s cubic-bezier(.16,1,.3,1) .35s, transform 1.1s cubic-bezier(.16,1,.3,1) .35s",
+                animation: mounted ? "imageFloat 7s ease-in-out 1.5s infinite" : "none",
+              }}
+            >
+              <Image
+                src="/me4.png"
+                alt="Brian Chege"
+                width={260}
+                height={340}
+                priority
+                style={{
+                  width:"100%",
+                  height:"100%",
+                  objectFit:"contain",
+                  objectPosition:"bottom center",
+                  display:"block",
+                  filter:`drop-shadow(0 16px 40px color-mix(in srgb, ${theme.colors.accent} 30%, transparent))`,
+                }}
+              />
+              {/* Glow under mobile image */}
+              <div style={{
+                position:"absolute",
+                bottom:"-8%",
+                left:"50%",
+                transform:"translateX(-50%)",
+                width:"80%",
+                height:"35%",
+                background:`radial-gradient(ellipse 80% 60% at 50% 100%, #45D2B0 0%, transparent 65%)`,
+                opacity:0.22,
+                filter:"blur(18px)",
+                pointerEvents:"none",
+                animation:"glowBreathe 5s ease-in-out infinite",
+              }}/>
+            </div>
           </div>
 
           {/* Typewriter */}
@@ -395,7 +441,7 @@ export function Hero() {
         </div>
       </div>
 
-      {/* ── TECH TICKER ─────────────────────────────────── */}
+      {/* ── TECH TICKER ── */}
       <div style={{
         position:"relative", zIndex:10,
         overflow:"hidden",
@@ -445,16 +491,62 @@ export function Hero() {
         @keyframes imageFloat     { 0%,100%{transform:translateY(0px)} 50%{transform:translateY(-12px)} }
         @keyframes glowBreathe    { 0%,100%{opacity:.18} 50%{opacity:.28} }
 
+        /* Desktop: absolute photo visible, mobile photo hidden */
+        .hero-photo-mobile  { display: none; }
+        .hero-photo-desktop { display: flex; }
+        .hero-name-row      { display: block; }
+
         @media (max-width: 900px) {
+          /* Full-width content wrapper */
           .hero-text { max-width: 100% !important; }
-          .hero-photo-container {
-            position: relative !important;
-            width: 100% !important;
-            height: clamp(220px, 40vw, 320px) !important;
-            right: auto !important;
-            bottom: auto !important;
+
+          /* Hide desktop absolute image + glows */
+          .hero-photo-desktop { display: none !important; }
+          .hero-img-glow      { display: none !important; }
+
+          /* Two-column row: text left (55%), image right (45%) */
+          .hero-name-row {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: stretch !important;
+            gap: 0.75rem;
+            width: 100%;
           }
-          .hero-img-glow { display: none !important; }
+
+          /* Left: text column */
+          .hero-name-block {
+            flex: 0 0 54%;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+          }
+
+          /* Right: photo column — no overlap, clean edge */
+          .hero-photo-mobile {
+            display: flex !important;
+            flex: 0 0 42%;
+            position: relative;
+            align-items: flex-end;
+            justify-content: center;
+            height: clamp(160px, 48vw, 260px);
+            overflow: visible;
+          }
+
+          /* Scale name text down to fit the 54% column */
+          .hero-name-block > div > div {
+            font-size: clamp(2rem, 10.5vw, 4rem) !important;
+            white-space: nowrap !important;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .hero-name-block > div > div {
+            font-size: clamp(1.75rem, 10vw, 3rem) !important;
+          }
+          .hero-photo-mobile {
+            height: clamp(140px, 44vw, 200px) !important;
+          }
         }
       `}</style>
     </section>
