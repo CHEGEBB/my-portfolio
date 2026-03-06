@@ -261,35 +261,6 @@ export function PortfolioHero() {
         opacity: 0.5,
       }} />
 
-      {/* ── HUD TOP BAR ── */}
-      <div style={{
-        position: "absolute", top: 0, left: 0, right: 0, zIndex: 20,
-        display: "flex", justifyContent: "space-between", alignItems: "center",
-        padding: "clamp(1rem,1.8vw,1.5rem) clamp(1.25rem,4vw,3rem)",
-        borderBottom: `1px solid ${acc}15`,
-        opacity: mounted ? 1 : 0,
-        transition: "opacity 0.7s ease 0.2s",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.52rem", letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--color-text-muted)" }}>Portfolio</span>
-          <span style={{ width: 1, height: 10, background: "var(--color-surface-border)", display: "inline-block" }} />
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.52rem", letterSpacing: "0.1em", color: acc }}>2025</span>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.5rem", letterSpacing: "0.1em", color: "var(--color-text-muted)" }}>
-            EAT <LiveClock />
-          </span>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-            <span style={{
-              width: 5, height: 5, borderRadius: "50%", flexShrink: 0,
-              background: "var(--color-success)", display: "inline-block",
-              boxShadow: `0 0 6px var(--color-success)`,
-              animation: "heroPulse 2s ease-in-out infinite",
-            }} />
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.5rem", letterSpacing: "0.1em", color: "var(--color-success)" }}>AVAILABLE</span>
-          </div>
-        </div>
-      </div>
 
       {/* ── MAIN CONTENT ── */}
       <div style={{
