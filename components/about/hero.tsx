@@ -158,18 +158,7 @@ export function AboutHero() {
           : "linear-gradient(to top,#F0F0FA 0%,#F0F0FAcc 30%,transparent 60%)",
       }}/>
 
-      {/* Corner label */}
-      <div style={{
-        position:"absolute", top:"clamp(5rem,9vw,7rem)", right:"clamp(1.5rem,4vw,3rem)",
-        zIndex:5, display:"flex", flexDirection:"column", alignItems:"flex-end", gap:".3rem",
-        ...fade(0.1),
-      }}>
-        <span style={{ fontFamily:"var(--font-mono)", fontSize:".5rem", letterSpacing:".18em", textTransform:"uppercase", color:"var(--color-text-muted)", opacity:.4 }}>BRIAN_CHEGE.EXE</span>
-        <div style={{ display:"flex", alignItems:"center", gap:".4rem" }}>
-          <div style={{ width:6, height:6, borderRadius:"50%", background:"#22c55e", boxShadow:"0 0 8px #22c55e" }}/>
-          <span style={{ fontFamily:"var(--font-mono)", fontSize:".5rem", letterSpacing:".12em", color:acc, opacity:.7 }}>v3.0 · RUNNING</span>
-        </div>
-      </div>
+     
 
       {/* Text */}
       <div style={{ position:"relative", zIndex:5, padding:"0 clamp(1.5rem,6vw,5rem) clamp(3rem,6vw,5rem)" }}>
