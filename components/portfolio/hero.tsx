@@ -13,8 +13,7 @@ function AnimCount({ to, suffix = "" }: { to: number; suffix?: string }) {
     const obs = new IntersectionObserver(([entry]) => {
       if (!entry.isIntersecting || fired.current) return
       fired.current = true
-      const dur = 1200
-      const start = performance.now()
+      const dur = 1200, start = performance.now()
       const tick = (now: number) => {
         const p = Math.min((now - start) / dur, 1)
         setVal(Math.round((1 - Math.pow(1 - p, 3)) * to))
@@ -44,9 +43,8 @@ function LiveClock() {
   return <>{time || "00:00:00"}</>
 }
 
-// ─── TYPEWRITER ──────────────────────────────────────────────────────────────
+// ─── TYPEWRITER ───────────────────────────────────────────────────────────────
 const ROLES = ["Full Stack Developer", "Co-Founder & CTO", "React & Next.js Engineer", "Mobile App Developer"]
-
 function Typewriter({ acc }: { acc: string }) {
   const [idx, setIdx] = useState(0)
   const [text, setText] = useState("")
@@ -66,130 +64,150 @@ function Typewriter({ acc }: { acc: string }) {
     }, del ? 30 : 70)
     return () => clearTimeout(id)
   }, [text, del, idx])
-
   return (
     <span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}>
       <span style={{ color: acc, fontFamily: "var(--font-mono)", fontWeight: 400, fontSize: "0.9em" }}>_</span>
       {text}
-      <span style={{
-        display: "inline-block", width: 2, height: "0.9em", background: acc,
-        verticalAlign: "middle", animation: "heroBlinkCursor 1s step-end infinite",
-      }} />
+      <span style={{ display: "inline-block", width: 2, height: "0.9em", background: acc, verticalAlign: "middle", animation: "heroBlink 1s step-end infinite" }} />
     </span>
   )
 }
 
-// ─── CANVAS BACKGROUND ───────────────────────────────────────────────────────
-// Kept separate so it doesn't re-mount on every mouse move
-function HeroCanvas({ acc, isDark }: { acc: string; isDark: boolean }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  // Mouse stored in ref — no re-render needed
-  const mouseRef = useRef({ x: 0.5, y: 0.5 })
+// ─── DOT GRID CANVAS ─────────────────────────────────────────────────────────
+// Draws a reactive dot field — dots near the mouse brighten and grow.
+// A slow sine wave washes colour across columns. Pure 2D canvas, zero deps.
+function DotGridCanvas({ acc, isDark }: { acc: string; isDark: boolean }) {
+  const ref    = useRef<HTMLCanvasElement>(null)
+  const mouse  = useRef({ x: -9999, y: -9999 })
+  const animId = useRef(0)
 
+  // Track mouse globally
   useEffect(() => {
-    const onMove = (e: MouseEvent) => {
-      mouseRef.current = { x: e.clientX / window.innerWidth, y: e.clientY / window.innerHeight }
-    }
+    const onMove = (e: MouseEvent) => { mouse.current = { x: e.clientX, y: e.clientY } }
+    const onLeave = () => { mouse.current = { x: -9999, y: -9999 } }
     window.addEventListener("mousemove", onMove, { passive: true })
-    return () => window.removeEventListener("mousemove", onMove)
+    window.addEventListener("mouseleave", onLeave)
+    return () => {
+      window.removeEventListener("mousemove", onMove)
+      window.removeEventListener("mouseleave", onLeave)
+    }
   }, [])
 
   useEffect(() => {
-    const canvas = canvasRef.current; if (!canvas) return
+    const canvas = ref.current; if (!canvas) return
     const ctx = canvas.getContext("2d"); if (!ctx) return
-    let animId: number
-    let t = 0
 
-    const rv = parseInt(acc.slice(1, 3), 16)
-    const gv = parseInt(acc.slice(3, 5), 16)
-    const bv = parseInt(acc.slice(5, 7), 16)
-    const dim = isDark ? 1 : 0.45
+    // Parse accent colour
+    const h = acc.replace("#", "")
+    const cr = parseInt(h.slice(0, 2), 16)
+    const cg = parseInt(h.slice(2, 4), 16)
+    const cb = parseInt(h.slice(4, 6), 16)
+
+    const SPACING = 36   // px between dots
+    const BASE_R  = 1.5  // base dot radius
+    const MAX_R   = 6    // max radius when mouse is directly over
+    const REACH   = 160  // px radius of mouse influence
+
+    let W = 0, H = 0, cols = 0, rows = 0
+    // Each dot gets a persistent phase offset for the wave
+    let phases: number[][] = []
 
     const resize = () => {
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
+      W = window.innerWidth
+      H = window.innerHeight
+      canvas.width  = W
+      canvas.height = H
+      cols = Math.ceil(W / SPACING) + 2
+      rows = Math.ceil(H / SPACING) + 2
+      phases = Array.from({ length: rows }, (_, r) =>
+        Array.from({ length: cols }, (_, c) => (r * cols + c) * 0.18)
+      )
     }
     resize()
-    window.addEventListener("resize", resize)
+    window.addEventListener("resize", resize, { passive: true })
 
+    let t = 0
     const draw = () => {
-      t += 0.006
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      const W = canvas.width, H = canvas.height
-      const mx = mouseRef.current.x
-      const my = mouseRef.current.y
+      t += 0.012
+      ctx.clearRect(0, 0, W, H)
 
-      // Subtle perspective grid from vanishing point
-      const vx = W * (0.2 + mx * 0.6)
-      const vy = H * (0.2 + my * 0.5)
+      const mx = mouse.current.x
+      const my = mouse.current.y
 
-      // Radial lines from vanishing point
-      for (let i = 0; i < 24; i++) {
-        const angle = (i / 24) * Math.PI * 2
-        const ex = vx + Math.cos(angle) * W * 2.5
-        const ey = vy + Math.sin(angle) * H * 2.5
-        ctx.beginPath()
-        ctx.moveTo(vx, vy)
-        ctx.lineTo(ex, ey)
-        ctx.strokeStyle = `rgba(${rv},${gv},${bv},${0.032 * dim})`
-        ctx.lineWidth = 0.6
-        ctx.stroke()
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const x = c * SPACING - SPACING / 2
+          const y = r * SPACING - SPACING / 2
+
+          const dx   = x - mx
+          const dy   = y - my
+          const dist = Math.sqrt(dx * dx + dy * dy)
+
+          // Mouse proximity [0‥1]
+          const prox = Math.max(0, 1 - dist / REACH)
+
+          // Slow wave across the grid
+          const wave = (Math.sin(t + phases[r][c]) * 0.5 + 0.5)
+
+          const radius  = BASE_R + prox * (MAX_R - BASE_R)
+          // Base alpha: very dim; wave + proximity lifts it
+          const alpha   = isDark
+            ? 0.06 + wave * 0.08 + prox * 0.75
+            : 0.10 + wave * 0.10 + prox * 0.65
+
+          ctx.beginPath()
+          ctx.arc(x, y, radius, 0, Math.PI * 2)
+
+          if (prox > 0.01) {
+            // Near mouse: full accent colour
+            ctx.fillStyle = `rgba(${cr},${cg},${cb},${Math.min(alpha, 1)})`
+          } else {
+            // Far: desaturated accent / neutral
+            const mix = isDark ? 80 : 160
+            const rr  = Math.round(cr * wave * 0.4 + mix * (1 - wave * 0.4))
+            const gg  = Math.round(cg * wave * 0.4 + mix * (1 - wave * 0.4))
+            const bb  = Math.round(cb * wave * 0.4 + mix * (1 - wave * 0.4))
+            ctx.fillStyle = `rgba(${rr},${gg},${bb},${Math.min(alpha, 1)})`
+          }
+          ctx.fill()
+
+          // Glow ring for very close dots
+          if (prox > 0.6) {
+            ctx.beginPath()
+            ctx.arc(x, y, radius * 2.5, 0, Math.PI * 2)
+            ctx.fillStyle = `rgba(${cr},${cg},${cb},${prox * 0.08})`
+            ctx.fill()
+          }
+        }
       }
 
-      // Horizontal scan lines — subtle
-      const lineCount = 12
-      for (let i = 0; i < lineCount; i++) {
-        const y = (i / (lineCount - 1)) * H
-        const dist = Math.abs(i / (lineCount - 1) - my)
-        const alpha = (0.05 - dist * 0.04) * dim
-        if (alpha <= 0) continue
-        ctx.beginPath()
-        ctx.moveTo(0, y)
-        ctx.lineTo(W, y)
-        ctx.strokeStyle = `rgba(${rv},${gv},${bv},${alpha})`
-        ctx.lineWidth = 0.4
-        ctx.stroke()
-      }
-
-      // Drifting particles
-      for (let i = 0; i < 30; i++) {
-        const px = (Math.sin(t * 0.25 + i * 0.85) * 0.5 + 0.5) * W
-        const py = ((t * 0.04 + i * 0.033) % 1) * H
-        const alpha = (0.08 + 0.06 * Math.sin(t + i * 0.7)) * dim
-        const radius = 0.8 + Math.sin(i * 1.3) * 0.5
-        ctx.beginPath()
-        ctx.arc(px, py, radius, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(${rv},${gv},${bv},${alpha})`
-        ctx.fill()
-      }
-
-      animId = requestAnimationFrame(draw)
+      animId.current = requestAnimationFrame(draw)
     }
-    draw()
+    animId.current = requestAnimationFrame(draw)
     return () => {
-      cancelAnimationFrame(animId)
+      cancelAnimationFrame(animId.current)
       window.removeEventListener("resize", resize)
     }
   }, [acc, isDark])
 
   return (
     <canvas
-      ref={canvasRef}
-      style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 1 }}
+      ref={ref}
+      style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 0 }}
     />
   )
 }
 
 // ─── HERO ─────────────────────────────────────────────────────────────────────
 export function PortfolioHero() {
-  const { theme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-  const [scrollY, setScrollY] = useState(0)
-  const [mouseGlow, setMouseGlow] = useState({ x: 50, y: 50 })
-  const acc = theme.colors.accent
+  const { theme }  = useTheme()
+  const [mounted, setMounted]   = useState(false)
+  const [scrollY, setScrollY]   = useState(0)
+
+  const acc    = theme.colors.accent
   const isDark = theme.mode === "dark"
 
-  useEffect(() => { setMounted(true) }, [])
+  useEffect(() => { const t = setTimeout(() => setMounted(true), 80); return () => clearTimeout(t) }, [])
 
   useEffect(() => {
     const fn = () => setScrollY(window.scrollY)
@@ -197,23 +215,14 @@ export function PortfolioHero() {
     return () => window.removeEventListener("scroll", fn)
   }, [])
 
-  // Mouse glow — throttled via RAF
-  useEffect(() => {
-    let id: number
-    const onMove = (e: MouseEvent) => {
-      cancelAnimationFrame(id)
-      id = requestAnimationFrame(() => {
-        setMouseGlow({
-          x: (e.clientX / window.innerWidth) * 100,
-          y: (e.clientY / window.innerHeight) * 100,
-        })
-      })
-    }
-    window.addEventListener("mousemove", onMove, { passive: true })
-    return () => { window.removeEventListener("mousemove", onMove); cancelAnimationFrame(id) }
-  }, [])
+  const contentFade = 1 - Math.min(scrollY / 500, 1) * 0.85
+  const E = "cubic-bezier(0.16,1,0.3,1)"
 
-  const fade = 1 - Math.min(scrollY / 600, 1) * 0.85
+  const reveal = (delay = 0): React.CSSProperties => ({
+    opacity:    mounted ? 1 : 0,
+    transform:  mounted ? "translateY(0)" : "translateY(28px)",
+    transition: `opacity .8s ${E} ${delay}s, transform .9s ${E} ${delay}s`,
+  })
 
   return (
     <section style={{
@@ -224,14 +233,32 @@ export function PortfolioHero() {
       overflow: "hidden",
       background: "var(--color-bg)",
     }}>
-      {/* Canvas — isolated, won't re-mount on mouse move */}
-      <HeroCanvas acc={acc} isDark={isDark} />
 
-      {/* Mouse-reactive radial glow */}
+      {/* ── DOT GRID ── */}
+      <DotGridCanvas acc={acc} isDark={isDark} />
+
+      {/* Vignette — fades dot grid toward centre so text reads cleanly */}
       <div style={{
+        position: "absolute", inset: 0, zIndex: 1, pointerEvents: "none",
+        background: isDark
+          ? `radial-gradient(ellipse 70% 80% at 50% 50%, ${isDark ? "#07070F" : "#F6F6FC"}cc 0%, transparent 75%)`
+          : `radial-gradient(ellipse 70% 80% at 50% 50%, #F6F6FCcc 0%, transparent 75%)`,
+      }} />
+
+      {/* Bottom gradient so content text stays crisp */}
+      <div style={{
+        position: "absolute", bottom: 0, left: 0, right: 0, height: "55%",
+        zIndex: 1, pointerEvents: "none",
+        background: `linear-gradient(to top, var(--color-bg) 0%, transparent 100%)`,
+      }} />
+
+      {/* Noise overlay */}
+      <div aria-hidden style={{
         position: "absolute", inset: 0, pointerEvents: "none", zIndex: 2,
-        background: `radial-gradient(ellipse 55% 55% at ${mouseGlow.x}% ${mouseGlow.y}%, ${acc}12 0%, transparent 65%)`,
-        opacity: fade,
+        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")`,
+        backgroundSize: "256px",
+        mixBlendMode: isDark ? "overlay" : "multiply",
+        opacity: 0.5,
       }} />
 
       {/* ── HUD TOP BAR ── */}
@@ -243,13 +270,11 @@ export function PortfolioHero() {
         opacity: mounted ? 1 : 0,
         transition: "opacity 0.7s ease 0.2s",
       }}>
-        {/* Left */}
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
           <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.52rem", letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--color-text-muted)" }}>Portfolio</span>
           <span style={{ width: 1, height: 10, background: "var(--color-surface-border)", display: "inline-block" }} />
           <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.52rem", letterSpacing: "0.1em", color: acc }}>2025</span>
         </div>
-        {/* Right */}
         <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
           <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.5rem", letterSpacing: "0.1em", color: "var(--color-text-muted)" }}>
             EAT <LiveClock />
@@ -259,7 +284,7 @@ export function PortfolioHero() {
               width: 5, height: 5, borderRadius: "50%", flexShrink: 0,
               background: "var(--color-success)", display: "inline-block",
               boxShadow: `0 0 6px var(--color-success)`,
-              animation: "heroPulseGreen 2s ease-in-out infinite",
+              animation: "heroPulse 2s ease-in-out infinite",
             }} />
             <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.5rem", letterSpacing: "0.1em", color: "var(--color-success)" }}>AVAILABLE</span>
           </div>
@@ -277,42 +302,28 @@ export function PortfolioHero() {
         margin: "0 auto",
         width: "100%",
         padding: "clamp(6rem,10vw,8rem) clamp(1.25rem,4vw,3rem) clamp(2rem,4vw,3rem)",
-        opacity: fade,
+        opacity: contentFade,
       }}>
 
-        {/* ── HEADLINE BLOCK ── */}
+        {/* Eyebrow */}
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "clamp(1rem,2vw,1.5rem)", ...reveal(0.1) }}>
+          <span style={{ width: 20, height: 1, background: acc, display: "inline-block" }} />
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.58rem", letterSpacing: "0.14em", textTransform: "uppercase", color: acc }}>
+            Brian Chege · Eldoret, Kenya
+          </span>
+        </div>
+
+        {/* Headline */}
         <div style={{ marginBottom: "clamp(2rem,4vw,3.5rem)" }}>
-
-          {/* Eyebrow */}
-          <div style={{
-            display: "flex", alignItems: "center", gap: "0.75rem",
-            marginBottom: "clamp(1rem,2vw,1.5rem)",
-            opacity: mounted ? 1 : 0,
-            transform: mounted ? "none" : "translateY(10px)",
-            transition: "opacity 0.6s ease 0.1s, transform 0.6s ease 0.1s",
-          }}>
-            <span style={{ width: 20, height: 1, background: acc, display: "inline-block" }} />
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.58rem", letterSpacing: "0.14em", textTransform: "uppercase", color: acc }}>
-              Brian Chege · Eldoret, Kenya
-            </span>
-          </div>
-
-          {/* Line 1 — solid */}
           <div style={{ overflow: "hidden" }}>
             <h1 style={{
               fontFamily: "var(--font-display)",
               fontSize: "clamp(3.2rem,7vw,6.5rem)",
               fontWeight: 800, lineHeight: 1, letterSpacing: "-0.04em",
-              color: "var(--color-text-primary)",
-              margin: 0,
-              opacity: mounted ? 1 : 0,
-              animation: mounted ? "heroSlideUp 0.85s cubic-bezier(.16,1,.3,1) 0.15s both" : "none",
-            }}>
-              The Work
-            </h1>
+              color: "var(--color-text-primary)", margin: 0,
+              ...reveal(0.18),
+            }}>The Work</h1>
           </div>
-
-          {/* Line 2 — outline accent */}
           <div style={{ overflow: "hidden" }}>
             <h1 style={{
               fontFamily: "var(--font-display)",
@@ -321,15 +332,14 @@ export function PortfolioHero() {
               color: "transparent",
               WebkitTextStroke: `clamp(1.5px,0.15vw,2px) ${acc}`,
               margin: 0,
-              opacity: mounted ? 1 : 0,
-              animation: mounted ? "heroSlideUp 0.85s cubic-bezier(.16,1,.3,1) 0.27s both" : "none",
+              ...reveal(0.3),
             }}>
               Speaks<span style={{ color: acc, WebkitTextStroke: "0px" }}>.</span>
             </h1>
           </div>
         </div>
 
-        {/* ── BOTTOM ROW ── */}
+        {/* Bottom row */}
         <div style={{
           display: "flex",
           flexWrap: "wrap",
@@ -338,35 +348,27 @@ export function PortfolioHero() {
           gap: "2rem",
           paddingTop: "clamp(1.5rem,3vw,2rem)",
           borderTop: "1px solid var(--color-surface-border)",
-          opacity: mounted ? 1 : 0,
-          transition: "opacity 0.8s ease 0.65s",
+          ...reveal(0.5),
         }}>
-
-          {/* Left — role + bio + CTAs */}
+          {/* Left */}
           <div style={{ flex: "1 1 320px", maxWidth: 480 }}>
             <div style={{
               fontFamily: "var(--font-display)",
               fontSize: "clamp(0.95rem,1.6vw,1.25rem)",
               fontWeight: 600, letterSpacing: "-0.02em",
               color: "var(--color-text-secondary)",
-              marginBottom: "0.75rem",
-              minHeight: "1.5em",
+              marginBottom: "0.75rem", minHeight: "1.5em",
             }}>
               <Typewriter acc={acc} />
             </div>
-
             <p style={{
               fontFamily: "var(--font-body)",
               fontSize: "clamp(0.78rem,1vw,0.88rem)",
-              lineHeight: 1.75,
-              color: "var(--color-text-muted)",
-              marginBottom: "1.5rem",
-              maxWidth: 380,
+              lineHeight: 1.75, color: "var(--color-text-muted)",
+              marginBottom: "1.5rem", maxWidth: 380,
             }}>
-              3+ years shipping real products to real users.
-              From Eldoret, Kenya — working globally.
+              3+ years shipping real products to real users. From Eldoret, Kenya — working globally.
             </p>
-
             <div style={{ display: "flex", flexWrap: "wrap", gap: "0.65rem" }}>
               <a href="#projects" style={{
                 fontFamily: "var(--font-body)", fontSize: "0.825rem", fontWeight: 600, letterSpacing: "0.04em",
@@ -376,8 +378,8 @@ export function PortfolioHero() {
                 boxShadow: `0 0 28px ${acc}40`,
                 transition: "transform 0.2s ease, box-shadow 0.2s ease",
               }}
-                onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.transform = "translateY(-2px)"; el.style.boxShadow = `0 0 45px ${acc}60` }}
-                onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.transform = ""; el.style.boxShadow = `0 0 28px ${acc}40` }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.cssText += ";transform:translateY(-2px);box-shadow:0 0 45px " + acc + "60" }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ""; (e.currentTarget as HTMLElement).style.boxShadow = `0 0 28px ${acc}40` }}
               >
                 See Projects
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
@@ -398,13 +400,8 @@ export function PortfolioHero() {
             </div>
           </div>
 
-          {/* Right — stats */}
-          <div style={{
-            display: "flex",
-            gap: "clamp(1.5rem,3vw,2.5rem)",
-            flexWrap: "wrap",
-            alignItems: "flex-start",
-          }}>
+          {/* Stats */}
+          <div style={{ display: "flex", gap: "clamp(1.5rem,3vw,2.5rem)", flexWrap: "wrap", alignItems: "flex-start" }}>
             {[
               { to: 9,  suffix: "",  label: "Projects"   },
               { to: 30, suffix: "+", label: "Challenges" },
@@ -435,20 +432,18 @@ export function PortfolioHero() {
       <div style={{
         position: "relative", zIndex: 10,
         borderTop: "1px solid var(--color-surface-border)",
-        overflow: "hidden", padding: "0.55rem 0",
-        flexShrink: 0,
-        opacity: fade,
+        overflow: "hidden", padding: "0.55rem 0", flexShrink: 0,
+        opacity: contentFade,
       }}>
         <div style={{ display: "flex", width: "max-content", animation: "heroTicker 32s linear infinite" }}>
           {[...Array(3)].flatMap((_, ri) =>
-            ["Next.js", "React", "TypeScript", "Node.js", "Python", "Flutter", "Docker", "PostgreSQL", "MongoDB", "AWS", "React Native", "TailwindCSS", "Vue.js", "Figma", "Linux"].map((item, i) => (
+            ["Next.js","React","TypeScript","Node.js","Python","Flutter","Docker","PostgreSQL","MongoDB","AWS","React Native","TailwindCSS","Vue.js","Figma","Linux"].map((item, i) => (
               <span key={`${ri}-${i}`} style={{
                 fontFamily: "var(--font-mono)", fontSize: "0.55rem",
                 letterSpacing: "0.12em", textTransform: "uppercase",
                 color: "var(--color-text-muted)",
                 padding: "0 clamp(1rem,2vw,1.75rem)",
-                display: "inline-flex", alignItems: "center", gap: "0.75rem",
-                whiteSpace: "nowrap",
+                display: "inline-flex", alignItems: "center", gap: "0.75rem", whiteSpace: "nowrap",
               }}>
                 {item}
                 <span style={{ width: 2, height: 2, borderRadius: "50%", background: acc, opacity: 0.5, display: "inline-block", flexShrink: 0 }} />
@@ -464,7 +459,7 @@ export function PortfolioHero() {
         bottom: "clamp(2.5rem,4vw,3.5rem)",
         right: "clamp(1.25rem,4vw,3rem)",
         display: "flex", flexDirection: "column", alignItems: "center", gap: "0.4rem",
-        opacity: mounted && scrollY < 60 ? 0.3 : 0,
+        opacity: mounted && scrollY < 60 ? 0.35 : 0,
         transition: "opacity 0.4s ease",
         zIndex: 10,
       }}>
@@ -473,11 +468,10 @@ export function PortfolioHero() {
       </div>
 
       <style jsx global>{`
-        @keyframes heroSlideUp      { from { opacity: 0; transform: translateY(60px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes heroBlinkCursor  { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-        @keyframes heroPulseGreen   { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.7); opacity: 0.3; } }
-        @keyframes heroTicker       { from { transform: translateX(0); } to { transform: translateX(-33.333%); } }
-        @keyframes heroScrollPulse  { 0%, 100% { opacity: 0.5; transform: scaleY(1); } 50% { opacity: 0.15; transform: scaleY(0.6); } }
+        @keyframes heroBlink       { 0%,100%{opacity:1} 50%{opacity:0} }
+        @keyframes heroPulse       { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.7);opacity:0.3} }
+        @keyframes heroTicker      { from{transform:translateX(0)} to{transform:translateX(-33.333%)} }
+        @keyframes heroScrollPulse { 0%,100%{opacity:0.5;transform:scaleY(1)} 50%{opacity:0.15;transform:scaleY(0.6)} }
       `}</style>
     </section>
   )
