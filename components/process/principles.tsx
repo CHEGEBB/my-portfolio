@@ -53,11 +53,50 @@ export function ProcessPrinciples() {
   return (
     <section style={{ position: "relative", background: "var(--color-bg)", overflow: "hidden" }}>
 
+      {/* All responsive styles in ONE place — never inside a loop or child component */}
+      <style jsx global>{`
+        .pp-header {
+          grid-template-columns: 1fr;
+        }
+        .pp-row {
+          grid-template-columns: 1fr;
+        }
+        .pp-top {
+          display: flex;
+        }
+        .pp-body {
+          border-top: 1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"};
+        }
+        .pp-stat {
+          flex: 1;
+          border-left: 1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"};
+          border-top: none;
+        }
+        @media (min-width: 768px) {
+          .pp-header {
+            grid-template-columns: 1fr 1fr;
+          }
+          .pp-row {
+            grid-template-columns: clamp(100px,18vw,220px) 1fr clamp(80px,14vw,180px);
+            min-height: clamp(180px,22vw,280px);
+          }
+          .pp-top {
+            display: contents;
+          }
+          .pp-body {
+            border-top: none;
+          }
+          .pp-stat {
+            flex: unset;
+            border-left: 1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"};
+          }
+        }
+      `}</style>
+
       {/* ── Header ── */}
-      <div ref={headerRef} style={{
+      <div ref={headerRef} className="pp-header" style={{
         padding: "clamp(5rem,10vw,8rem) clamp(1.5rem,6vw,5rem) clamp(3rem,5vw,4rem)",
         display: "grid",
-        gridTemplateColumns: "1fr",  /* single col base, media query handles desktop */
         gap: "clamp(2rem,5vw,5rem)",
         alignItems: "flex-end",
         borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
@@ -106,18 +145,10 @@ export function ProcessPrinciples() {
         </motion.div>
       </div>
 
-      {/* ── Principles rows ── */}
+      {/* ── Principle rows ── */}
       {PRINCIPLES.map((p, i) => (
         <PrincipleRow key={p.num} p={p} i={i} isDark={isDark} />
       ))}
-
-      <style jsx global>{`
-        @media (min-width: 768px) {
-          .pp-header {
-            grid-template-columns: 1fr 1fr !important;
-          }
-        }
-      `}</style>
     </section>
   )
 }
@@ -138,8 +169,6 @@ function PrincipleRow({ p, i, isDark }: { p: typeof PRINCIPLES[0]; i: number; is
       className="pp-row"
       style={{
         display: "grid",
-        /* Mobile: stack vertically. Desktop: 3-col via media query below */
-        gridTemplateColumns: "1fr",
         borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
         cursor: "default",
         transition: "background .3s ease",
@@ -148,9 +177,9 @@ function PrincipleRow({ p, i, isDark }: { p: typeof PRINCIPLES[0]; i: number; is
         overflow: "hidden",
       }}
     >
-      {/* Top row on mobile: number + stat side by side */}
-      <div className="pp-top" style={{ display: "flex" }}>
-        {/* Left — accent column with number + symbol */}
+      {/* Mobile: number + stat side by side. Desktop: display:contents splits them into grid cols */}
+      <div className="pp-top">
+        {/* Left accent column */}
         <motion.div
           initial={{ scaleY: 0 }}
           animate={inView ? { scaleY: 1 } : {}}
@@ -173,31 +202,27 @@ function PrincipleRow({ p, i, isDark }: { p: typeof PRINCIPLES[0]; i: number; is
             fontSize: "clamp(1.5rem,4vw,3.5rem)",
             fontWeight: 900, letterSpacing: "-.04em",
             color: hovered ? (isDark ? "#000" : "#fff") : p.color,
-            lineHeight: 1,
-            transition: "color .3s ease",
+            lineHeight: 1, transition: "color .3s ease",
           }}>{p.num}</span>
           <span style={{
             fontFamily: "var(--font-display)",
             fontSize: "clamp(1.25rem,3vw,2.5rem)",
             color: hovered ? (isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)") : `${p.color}55`,
-            lineHeight: 1,
-            transition: "color .3s ease",
+            lineHeight: 1, transition: "color .3s ease",
           }}>{p.symbol}</span>
         </motion.div>
 
-        {/* Right stat — shown next to number on mobile */}
+        {/* Stat panel */}
         <motion.div
-          className="pp-stat-mobile"
+          className="pp-stat"
           initial={{ opacity: 0 }}
           animate={inView ? { opacity: 1 } : {}}
           transition={{ duration: .6, delay: i * 0.05 + 0.25 }}
           style={{
-            flex: 1,
             display: "flex", flexDirection: "column",
             justifyContent: "center", alignItems: "center",
             padding: "clamp(1.25rem,3vw,2rem) clamp(1rem,2vw,1.5rem)",
             textAlign: "center", gap: ".4rem",
-            borderLeft: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
           }}
         >
           <div style={{
@@ -210,73 +235,46 @@ function PrincipleRow({ p, i, isDark }: { p: typeof PRINCIPLES[0]; i: number; is
             fontFamily: "var(--font-mono)",
             fontSize: "clamp(.38rem,.6vw,.52rem)",
             letterSpacing: ".1em", textTransform: "uppercase",
-            color: "var(--color-text-muted)", opacity: .55,
-            lineHeight: 1.5,
+            color: "var(--color-text-muted)", opacity: .55, lineHeight: 1.5,
           }}>{p.statLabel}</div>
         </motion.div>
       </div>
 
-      {/* Centre — title + body, full width on mobile */}
+      {/* Body — full width on mobile, middle col on desktop */}
       <motion.div
+        className="pp-body"
         initial={{ opacity: 0, x: 24 }}
         animate={inView ? { opacity: 1, x: 0 } : {}}
         transition={{ duration: .75, ease: [.16,1,.3,1], delay: i * 0.05 + 0.12 }}
         style={{
           padding: "clamp(1.5rem,3.5vw,2.75rem) clamp(1.25rem,3vw,2.5rem)",
           display: "flex", flexDirection: "column", justifyContent: "center",
-          borderTop: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
         }}
       >
-        {/* Hover accent bar */}
         <div style={{
-          width: hovered ? "100%" : "0%",
-          height: 2,
+          width: hovered ? "100%" : "0%", height: 2,
           background: `linear-gradient(90deg, ${p.color}, transparent)`,
           marginBottom: "1.25rem",
           transition: "width .5s cubic-bezier(.16,1,.3,1)",
         }}/>
-
         <h3 style={{
           fontFamily: "var(--font-display)",
           fontSize: "clamp(1.25rem,2.8vw,2.5rem)",
           fontWeight: 800, letterSpacing: "-.04em", lineHeight: .97,
-          color: "var(--color-text-primary)",
-          margin: "0 0 .6rem",
+          color: "var(--color-text-primary)", margin: "0 0 .6rem",
           whiteSpace: "pre-line",
         }}>{p.title}</h3>
-
         <p style={{
-          fontFamily: "var(--font-body)",
-          fontSize: "clamp(.7rem,.9vw,.8rem)",
-          color: p.color, lineHeight: 1.5,
-          margin: "0 0 1rem", fontStyle: "italic", opacity: .8,
+          fontFamily: "var(--font-body)", fontSize: "clamp(.7rem,.9vw,.8rem)",
+          color: p.color, lineHeight: 1.5, margin: "0 0 1rem",
+          fontStyle: "italic", opacity: .8,
         }}>{p.sub}</p>
-
         <p style={{
-          fontFamily: "var(--font-body)",
-          fontSize: "clamp(.82rem,1.1vw,.94rem)",
+          fontFamily: "var(--font-body)", fontSize: "clamp(.82rem,1.1vw,.94rem)",
           color: "var(--color-text-muted)", lineHeight: 1.76,
           margin: 0, maxWidth: 540,
         }}>{p.body}</p>
       </motion.div>
-
-      {/* ── Desktop: restore 3-col layout via CSS ── */}
-      <style jsx>{`
-        @media (min-width: 768px) {
-          .pp-row {
-            grid-template-columns: clamp(100px,18vw,220px) 1fr clamp(80px,14vw,180px) !important;
-            min-height: clamp(180px,22vw,280px);
-          }
-          .pp-top {
-            display: contents !important;
-          }
-          .pp-stat-mobile {
-            border-left: 1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"} !important;
-            border-top: none !important;
-            flex: unset !important;
-          }
-        }
-      `}</style>
     </motion.div>
   )
 }
