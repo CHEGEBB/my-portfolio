@@ -5,16 +5,16 @@ import Link from "next/link"
 import { useTheme } from "@/context/theme-context"
 import { ArrowUpRight } from "lucide-react"
 
-// ─── DATA ────────────────────────────────────────────────────────────────────
+// ─── DATA ─────────────────────────────────────────────────────────────────────
 const PROJECTS = [
-  { id:"01", title:"IntelliMark",     category:"AI · EdTech",        type:"CLIENT",  year:"2024", image:"/projects/intellimark.png",   href:"/portfolio"   },
-  { id:"02", title:"TabooTalks",      category:"Social · Web App",   type:"CLIENT",  year:"2024", image:"/projects/tabootalks.png",    href:"/portfolio"    },
-  { id:"03", title:"H-mex Health",    category:"HealthTech · AI",    type:"CLIENT",  year:"2024", image:"/projects/hmex.png",          href:"/portfolio"  },
-  { id:"04", title:"WerEntOnline",    category:"PropTech · Web",     type:"CLIENT",  year:"2024", image:"/projects/werentonline.png",  href:"/portfolio"  },
-  { id:"05", title:"FarmSense",       category:"AgriTech · Web",     type:"CLIENT",  year:"2024", image:"/projects/farmsense.png",     href:"/portfolio"     },
-  { id:"06", title:"DjAfro StreamBox",category:"Mobile · Streaming", type:"CLIENT",  year:"2024", image:"/projects/djafro.png",        href:"/portfolio"        },
-  { id:"07", title:"Softrinx",        category:"SaaS · Enterprise",  type:"STARTUP", year:"2025", image:"/projects/softrinx.png",      href:"/portfolio"      },
-  { id:"08", title:"Teach2Give",      category:"EdTech · Web",       type:"CLIENT",  year:"2025", image:"/projects/teach2give.png",    href:"/portfolio"    },
+  { id:"01", title:"IntelliMark",      category:"AI · EdTech",        type:"CLIENT",  year:"2024", image:"/projects/intellimark.png",   href:"/portfolio" },
+  { id:"02", title:"TabooTalks",       category:"Social · Web App",   type:"CLIENT",  year:"2024", image:"/projects/tabootalks.png",    href:"/portfolio" },
+  { id:"03", title:"H-mex Health",     category:"HealthTech · AI",    type:"CLIENT",  year:"2024", image:"/projects/hmex.png",          href:"/portfolio" },
+  { id:"04", title:"WerEntOnline",     category:"PropTech · Web",     type:"CLIENT",  year:"2024", image:"/projects/werentonline.png",  href:"/portfolio" },
+  { id:"05", title:"FarmSense",        category:"AgriTech · Web",     type:"CLIENT",  year:"2024", image:"/projects/farmsense.png",     href:"/portfolio" },
+  { id:"06", title:"DjAfro StreamBox", category:"Mobile · Streaming", type:"CLIENT",  year:"2024", image:"/projects/djafro.png",        href:"/portfolio" },
+  { id:"07", title:"Softrinx",         category:"SaaS · Enterprise",  type:"STARTUP", year:"2025", image:"/projects/softrinx.png",      href:"/portfolio" },
+  { id:"08", title:"Teach2Give",       category:"EdTech · Web",       type:"CLIENT",  year:"2025", image:"/projects/teach2give.png",    href:"/portfolio" },
 ]
 
 const FALLBACKS = [
@@ -28,229 +28,37 @@ const FALLBACKS = [
   "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=900&q=80",
 ]
 
-// ─── FILM SPROCKET HOLES ─────────────────────────────────────────────────────
-function Sprockets({ side }: { side: "top" | "bottom" }) {
-  const holes = Array.from({ length: 40 })
+// ─── CURSOR TOOLTIP ───────────────────────────────────────────────────────────
+function CursorTooltip({ visible, x, y, accent }) {
   return (
     <div style={{
-      position: "absolute",
-      [side]: 0,
-      left: 0, right: 0,
-      height: 18,
-      background: "#000",
-      display: "flex",
-      alignItems: "center",
-      gap: 6,
-      padding: "0 6px",
-      zIndex: 10,
-      overflow: "hidden",
+      position: "fixed",
+      left: x, top: y,
+      transform: "translate(-50%, -50%)",
+      pointerEvents: "none",
+      zIndex: 9999,
+      opacity: visible ? 1 : 0,
+      scale: visible ? "1" : "0.5",
+      transition: "opacity 0.2s ease, scale 0.3s cubic-bezier(0.34,1.56,0.64,1)",
     }}>
-      {holes.map((_, i) => (
-        <div key={i} style={{
-          width: 10, height: 8, flexShrink: 0,
-          borderRadius: 2,
-          background: "rgba(255,255,255,0.08)",
-          border: "1px solid rgba(255,255,255,0.12)",
-        }} />
-      ))}
+      <div style={{
+        background: accent, color: "#000",
+        fontFamily: "var(--font-mono)", fontSize: "0.55rem",
+        fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase",
+        padding: "0.55rem 1rem", borderRadius: "9999px",
+        whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: "0.4rem",
+        boxShadow: `0 0 24px ${accent}66`,
+      }}>
+        View Project <ArrowUpRight size={10} strokeWidth={3} />
+      </div>
     </div>
   )
 }
 
-// ─── SINGLE CARD ─────────────────────────────────────────────────────────────
-function FilmCard({ project, idx, trackPaused, onEnter, onLeave }: {
-  project: typeof PROJECTS[0]
-  idx: number
-  trackPaused: boolean
-  onEnter: () => void
-  onLeave: () => void
-}) {
-  const { theme } = useTheme()
-  const [hovered, setHovered] = useState(false)
-  const [src, setSrc] = useState(project.image)
-  const acc = theme.colors.accent
-
-  const enter = () => { setHovered(true);  onEnter() }
-  const leave = () => { setHovered(false); onLeave() }
-
-  return (
-    <Link
-      href={project.href}
-      onMouseEnter={enter}
-      onMouseLeave={leave}
-      style={{
-        display: "block",
-        textDecoration: "none",
-        position: "relative",
-        width: "clamp(260px, 28vw, 420px)",
-        height: "clamp(180px, 19vw, 280px)",
-        flexShrink: 0,
-        overflow: "hidden",
-        cursor: "none",
-        outline: "none",
-      }}
-    >
-      {/* ── Image with zoom ── */}
-      <img
-        src={src}
-        alt={project.title}
-        onError={() => setSrc(FALLBACKS[idx % FALLBACKS.length])}
-        style={{
-          position: "absolute", inset: 0,
-          width: "100%", height: "100%",
-          objectFit: "cover",
-          // Infinite slow zoom in/out while on screen
-          animation: "filmZoom 8s ease-in-out infinite alternate",
-          filter: hovered ? "brightness(0.82)" : "brightness(0.92)",
-          transition: "filter 0.5s ease",
-          willChange: "transform, filter",
-          animationPlayState: trackPaused ? "paused" : "running",
-        }}
-      />
-
-      {/* Dark vignette */}
-      <div style={{
-        position: "absolute", inset: 0,
-        background: "linear-gradient(150deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.1) 45%, rgba(0,0,0,0.75) 100%)",
-        zIndex: 1,
-        transition: "opacity 0.4s ease",
-        opacity: hovered ? 0.7 : 1,
-      }} />
-
-
-
-      {/* Content */}
-      <div style={{
-        position: "absolute", inset: 0, zIndex: 3,
-        display: "flex", flexDirection: "column",
-        justifyContent: "space-between",
-        padding: "clamp(0.75rem,1.2vw,1rem)",
-      }}>
-        {/* Top row */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-          <span style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "0.48rem", letterSpacing: "0.14em", textTransform: "uppercase",
-            color: acc, background: `${acc}1a`,
-            border: `1px solid ${acc}44`,
-            padding: "0.18rem 0.48rem",
-            backdropFilter: "blur(6px)",
-          }}>{project.type}</span>
-          <span style={{
-            fontFamily: "var(--font-mono)", fontSize: "0.48rem",
-            color: "rgba(255,255,255,0.28)", letterSpacing: "0.1em",
-          }}>{project.year}</span>
-        </div>
-
-        {/* Bottom */}
-        <div>
-          <p style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "0.46rem", letterSpacing: "0.1em", textTransform: "uppercase",
-            color: "rgba(255,255,255,0.35)", margin: "0 0 0.2rem",
-          }}>{project.category}</p>
-
-          {/* Title — outline → solid on hover */}
-          <h3 style={{
-            fontFamily: "var(--font-display)",
-            fontSize: "clamp(1rem,2vw,1.55rem)",
-            fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 1,
-            margin: "0 0 0.5rem",
-            color: hovered ? "#fff" : "transparent",
-            WebkitTextStroke: hovered ? "0px" : "1.5px rgba(255,255,255,0.7)",
-            transition: "color 0.35s ease, -webkit-text-stroke 0.35s ease",
-          }}>{project.title}</h3>
-
-          {/* Arrow circle */}
-          <div style={{
-            width: 26, height: 26, borderRadius: "50%",
-            border: `1.5px solid ${acc}`,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            color: acc,
-            opacity: hovered ? 1 : 0,
-            transform: hovered ? "scale(1) rotate(0deg)" : "scale(0.4) rotate(-90deg)",
-            transition: "all 0.4s cubic-bezier(0.34,1.56,0.64,1)",
-          }}>
-            <ArrowUpRight size={12} strokeWidth={2.5} />
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom accent bar draws in */}
-      <div style={{
-        position: "absolute", bottom: 0, left: 0, right: 0, height: 2,
-        background: `linear-gradient(90deg, transparent, ${acc}, transparent)`,
-        zIndex: 4,
-        transform: hovered ? "scaleX(1)" : "scaleX(0)",
-        transformOrigin: "center",
-        transition: "transform 0.5s cubic-bezier(0.16,1,0.3,1)",
-        boxShadow: `0 0 10px ${acc}`,
-      }} />
-    </Link>
-  )
-}
-
-// ─── FILM STRIP TRACK ────────────────────────────────────────────────────────
-function FilmStrip({ projects, direction, speed, inView }: {
-  projects: typeof PROJECTS
-  direction: "left" | "right"
-  speed: number
-  inView: boolean
-}) {
-  const [paused, setPaused] = useState(false)
-  const items = [...projects, ...projects, ...projects] // triple for seamless
-
-  return (
-    <div
-      style={{
-        position: "relative",
-        background: "#000",
-        marginBottom: "1px",
-        // Edge fade
-        WebkitMaskImage: "linear-gradient(90deg, transparent 0%, black 6%, black 94%, transparent 100%)",
-        maskImage: "linear-gradient(90deg, transparent 0%, black 6%, black 94%, transparent 100%)",
-        opacity: inView ? 1 : 0,
-        transform: inView
-          ? "translateY(0) skewX(0deg)"
-          : direction === "right" ? "translateY(30px) skewX(1deg)" : "translateY(30px) skewX(-1deg)",
-        transition: `opacity 0.9s cubic-bezier(0.16,1,0.3,1) ${direction === "right" ? "0.3s" : "0.5s"}, transform 0.9s cubic-bezier(0.16,1,0.3,1) ${direction === "right" ? "0.3s" : "0.5s"}`,
-      }}
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-    >
-      <Sprockets side="top" />
-
-      <div style={{
-        display: "flex",
-        gap: "clamp(0.75rem,1.5vw,1.25rem)",
-        width: "max-content",
-        padding: "18px 0",
-        animation: `strip-${direction} ${speed}s linear infinite`,
-        animationPlayState: paused ? "paused" : "running",
-        willChange: "transform",
-      }}>
-        {items.map((p, i) => (
-          <FilmCard
-            key={`${p.id}-${i}`}
-            project={p}
-            idx={i}
-            trackPaused={paused}
-            onEnter={() => setPaused(true)}
-            onLeave={() => setPaused(false)}
-          />
-        ))}
-      </div>
-
-      <Sprockets side="bottom" />
-    </div>
-  )
-}
-
-// ─── COUNTER — animated number ────────────────────────────────────────────────
-function Counter({ to, label }: { to: number; label: string }) {
+// ─── COUNTER ─────────────────────────────────────────────────────────────────
+function Counter({ to, label }) {
   const [val, setVal] = useState(0)
-  const { theme } = useTheme()
-  const ref = useRef<HTMLDivElement>(null)
+  const ref = useRef(null)
   const started = useRef(false)
 
   useEffect(() => {
@@ -258,11 +66,11 @@ function Counter({ to, label }: { to: number; label: string }) {
     const obs = new IntersectionObserver(([e]) => {
       if (e.isIntersecting && !started.current) {
         started.current = true
-        let start = 0
+        let n = 0
         const step = () => {
-          start += Math.ceil((to - start) / 8)
-          setVal(Math.min(start, to))
-          if (start < to) requestAnimationFrame(step)
+          n += Math.ceil((to - n) / 8)
+          setVal(Math.min(n, to))
+          if (n < to) requestAnimationFrame(step)
         }
         requestAnimationFrame(step)
         obs.disconnect()
@@ -275,206 +83,451 @@ function Counter({ to, label }: { to: number; label: string }) {
   return (
     <div ref={ref} style={{ textAlign: "center" }}>
       <div style={{
-        fontFamily: "var(--font-display)",
-        fontSize: "clamp(2rem,5vw,4rem)",
-        fontWeight: 800, letterSpacing: "-0.05em",
-        color: "var(--color-accent)",
-        lineHeight: 1,
+        fontFamily: "var(--font-display)", fontSize: "clamp(1.8rem,4vw,3rem)",
+        fontWeight: 800, letterSpacing: "-0.05em", color: "var(--color-accent)", lineHeight: 1,
       }}>{val}+</div>
       <div style={{
-        fontFamily: "var(--font-mono)",
-        fontSize: "0.55rem", letterSpacing: "0.14em", textTransform: "uppercase",
-        color: "var(--color-text-muted)",
-        marginTop: "0.4rem",
+        fontFamily: "var(--font-mono)", fontSize: "0.5rem",
+        letterSpacing: "0.14em", textTransform: "uppercase",
+        color: "var(--color-text-muted)", marginTop: "0.35rem",
       }}>{label}</div>
     </div>
   )
 }
 
-// ─── MAIN EXPORT ─────────────────────────────────────────────────────────────
+// ─── MAIN ─────────────────────────────────────────────────────────────────────
 export function FeaturedWork() {
   const { theme } = useTheme()
-  const sectionRef = useRef<HTMLDivElement>(null)
-  const [inView, setInView] = useState(false)
-  const [mouse, setMouse] = useState({ x: 0.5, y: 0.5 })
   const acc = theme.colors.accent
 
+  const sectionRef  = useRef(null)
+  const [inView, setInView]       = useState(false)
+  const [activeIdx, setActiveIdx] = useState(0)
+  const [imgSrcs, setImgSrcs]     = useState(PROJECTS.map(p => p.image))
+  const [tooltip, setTooltip]     = useState({ visible: false, x: 0, y: 0 })
+
+  // scroll-jack state
+  const locked      = useRef(false)   // true while we own the scroll
+  const wheelAccum  = useRef(0)
+  const touchStartY = useRef(null)
+  const activeRef   = useRef(0)       // mirror of activeIdx for use inside event handlers
+  const advancing   = useRef(false)   // debounce
+
+  // keep activeRef in sync
+  useEffect(() => { activeRef.current = activeIdx }, [activeIdx])
+
+  // ── Intersection: engage/disengage lock ─────────────────────────────────
   useEffect(() => {
-    const el = sectionRef.current; if (!el) return
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setInView(true); obs.disconnect() } },
-      { threshold: 0.04 }
-    )
-    obs.observe(el)
+    const obs = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) {
+        setInView(true)
+        locked.current = true
+      } else {
+        locked.current = false
+      }
+    }, { threshold: 0.5 })
+    if (sectionRef.current) obs.observe(sectionRef.current)
     return () => obs.disconnect()
   }, [])
 
-  const onMouseMove = useCallback((e: MouseEvent) => {
-    const el = sectionRef.current; if (!el) return
-    const r = el.getBoundingClientRect()
-    setMouse({
-      x: Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)),
-      y: Math.max(0, Math.min(1, (e.clientY - r.top) / r.height)),
-    })
+  // ── Advance helper ───────────────────────────────────────────────────────
+  const advance = useCallback((dir) => {
+    if (advancing.current) return
+    advancing.current = true
+    setTimeout(() => { advancing.current = false }, 600)
+
+    const cur = activeRef.current
+    const next = cur + dir
+
+    if (next < 0) {
+      // Already at first — release upward
+      locked.current = false
+      window.scrollBy({ top: -120, behavior: "smooth" })
+      return
+    }
+    if (next >= PROJECTS.length) {
+      // Past last — release downward
+      locked.current = false
+      window.scrollBy({ top: 160, behavior: "smooth" })
+      return
+    }
+
+    setActiveIdx(next)
   }, [])
 
+  // ── Wheel ────────────────────────────────────────────────────────────────
   useEffect(() => {
-    const el = sectionRef.current; if (!el) return
-    el.addEventListener("mousemove", onMouseMove, { passive: true })
-    return () => el.removeEventListener("mousemove", onMouseMove)
-  }, [onMouseMove])
+    const THRESH = 60
+    const onWheel = (e) => {
+      if (!locked.current) return
+      e.preventDefault()
+      wheelAccum.current += e.deltaY
+      if (Math.abs(wheelAccum.current) >= THRESH) {
+        advance(wheelAccum.current > 0 ? 1 : -1)
+        wheelAccum.current = 0
+      }
+    }
+    window.addEventListener("wheel", onWheel, { passive: false })
+    return () => window.removeEventListener("wheel", onWheel)
+  }, [advance])
 
-  const trackA = PROJECTS.slice(0, 4)
-  const trackB = PROJECTS.slice(4)
+  // ── Touch ────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    const onStart = (e) => { touchStartY.current = e.touches[0].clientY }
+    const onEnd   = (e) => {
+      if (!locked.current || touchStartY.current === null) return
+      const diff = touchStartY.current - e.changedTouches[0].clientY
+      if (Math.abs(diff) > 40) advance(diff > 0 ? 1 : -1)
+      touchStartY.current = null
+    }
+    window.addEventListener("touchstart", onStart, { passive: true })
+    window.addEventListener("touchend",   onEnd,   { passive: true })
+    return () => {
+      window.removeEventListener("touchstart", onStart)
+      window.removeEventListener("touchend",   onEnd)
+    }
+  }, [advance])
+
+  // ── Re-lock on scroll back into section ────────────────────────────────
+  useEffect(() => {
+    const onScroll = () => {
+      if (!sectionRef.current) return
+      const r = sectionRef.current.getBoundingClientRect()
+      const centred = r.top <= window.innerHeight * 0.5 && r.bottom >= window.innerHeight * 0.5
+      if (centred) locked.current = true
+    }
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => window.removeEventListener("scroll", onScroll)
+  }, [])
+
+  const onMouseMove = useCallback((e) => {
+    setTooltip(t => ({ ...t, x: e.clientX, y: e.clientY }))
+  }, [])
+
+  const setFallback = (i) =>
+    setImgSrcs(prev => { const n=[...prev]; n[i]=FALLBACKS[i%FALLBACKS.length]; return n })
+
+  const active = PROJECTS[activeIdx]
 
   return (
-    <section
-      ref={sectionRef}
-      style={{ position: "relative", background: "var(--color-bg)", overflow: "hidden" }}
-    >
-      {/* Ambient glow */}
-      <div style={{
-        position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0,
-        background: `radial-gradient(ellipse 55% 50% at ${(mouse.x * 100).toFixed(1)}% ${(mouse.y * 100).toFixed(1)}%, var(--color-accent-muted) 0%, transparent 65%)`,
-        transition: "background 0.12s ease",
-      }} />
+    <>
+      <CursorTooltip visible={tooltip.visible} x={tooltip.x} y={tooltip.y} accent={acc} />
 
-      <div style={{ position: "relative", zIndex: 2 }}>
+      <section ref={sectionRef} style={{ position:"relative", background:"var(--color-bg)", overflow:"hidden" }}>
 
-        {/* ── SECTION HEADER ── */}
+        {/* Ambient glow */}
         <div style={{
-          display: "grid",
-          gridTemplateColumns: "1fr auto",
-          alignItems: "end",
-          gap: "2rem",
-          padding: "clamp(5rem,10vw,8rem) clamp(1.5rem,5vw,4rem) clamp(2.5rem,5vw,4rem)",
-          flexWrap: "wrap",
-        }}>
-          {/* Left */}
-          <div>
-            <div style={{
-              display: "flex", alignItems: "center", gap: "0.75rem",
-              marginBottom: "1.25rem",
-              opacity: inView ? 1 : 0,
-              transform: inView ? "none" : "translateY(16px)",
-              transition: "all 0.6s ease 0.1s",
-            }}>
-              <div style={{ width: 28, height: "1px", background: acc }} />
-              <span style={{
-                fontFamily: "var(--font-mono)", fontSize: "0.6rem",
-                letterSpacing: "0.15em", textTransform: "uppercase", color: acc,
-              }}>Selected Work</span>
+          position:"absolute", inset:0, pointerEvents:"none", zIndex:0,
+          background:`radial-gradient(ellipse 60% 55% at 65% 55%, var(--color-accent-muted) 0%, transparent 70%)`,
+        }} />
+
+        <div style={{ position:"relative", zIndex:2 }}>
+
+          {/* ── HEADER ─────────────────────────────────────────────────── */}
+          <div style={{
+            padding:"clamp(4rem,8vw,7rem) clamp(1.25rem,5vw,4rem) clamp(1.5rem,3vw,2.5rem)",
+            display:"grid",
+            gridTemplateColumns:"1fr auto",
+            alignItems:"end",
+            gap:"1.5rem",
+          }}>
+            <div>
               <div style={{
-                fontFamily: "var(--font-mono)", fontSize: "0.55rem",
-                color: "var(--color-text-muted)", letterSpacing: "0.08em",
-                border: "1px solid var(--color-surface-border)",
-                padding: "0.15rem 0.5rem",
-              }}>{PROJECTS.length} Projects</div>
+                display:"flex", alignItems:"center", gap:"0.75rem", marginBottom:"1.25rem",
+                opacity: inView?1:0, transform: inView?"none":"translateY(16px)",
+                transition:"all 0.6s ease 0.1s",
+              }}>
+                <div style={{ width:28, height:"1px", background:acc }} />
+                <span style={{
+                  fontFamily:"var(--font-mono)", fontSize:"0.6rem",
+                  letterSpacing:"0.15em", textTransform:"uppercase", color:acc,
+                }}>Selected Work</span>
+                <div style={{
+                  fontFamily:"var(--font-mono)", fontSize:"0.55rem",
+                  color:"var(--color-text-muted)", letterSpacing:"0.08em",
+                  border:"1px solid var(--color-surface-border)", padding:"0.15rem 0.5rem",
+                }}>{PROJECTS.length} Projects</div>
+              </div>
+
+              <h2 style={{
+                fontFamily:"var(--font-display)",
+                fontSize:"clamp(2.8rem,8vw,7.5rem)",
+                fontWeight:800, letterSpacing:"-0.05em", lineHeight:0.88, margin:0,
+                opacity: inView?1:0, transform: inView?"none":"translateY(24px)",
+                transition:"all 0.8s cubic-bezier(0.16,1,0.3,1) 0.18s",
+              }}>
+                <span style={{ display:"block", color:"var(--color-text-primary)" }}>Featured</span>
+                <span style={{
+                  display:"block", color:"transparent",
+                  WebkitTextStroke:`2px ${acc}`, textShadow:`0 0 60px ${acc}33`,
+                }}>Work</span>
+              </h2>
             </div>
 
-            <h2 style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "clamp(3rem,9vw,8rem)",
-              fontWeight: 800, letterSpacing: "-0.05em", lineHeight: 0.88,
-              margin: 0,
-              opacity: inView ? 1 : 0,
-              transform: inView ? "none" : "translateY(24px)",
-              transition: "all 0.8s cubic-bezier(0.16,1,0.3,1) 0.18s",
+            <div style={{
+              display:"flex", flexDirection:"column", alignItems:"flex-end", gap:"2rem",
+              opacity: inView?1:0, transform: inView?"none":"translateY(20px)",
+              transition:"all 0.8s ease 0.35s",
             }}>
-              <span style={{ display: "block", color: "var(--color-text-primary)" }}>Things</span>
-              <span style={{
-                display: "block",
-                color: "transparent",
-                WebkitTextStroke: `2px ${acc}`,
-                textShadow: `0 0 60px ${acc}33`,
-              }}>I&apos;ve Built</span>
-            </h2>
+              <div style={{ display:"flex", gap:"2rem" }}>
+                <Counter to={20} label="Projects" />
+                <Counter to={7}  label="Companies" />
+                <Counter to={3}  label="Years" />
+              </div>
+              <Link href="/portfolio" style={{
+                display:"inline-flex", alignItems:"center", gap:"0.6rem",
+                fontFamily:"var(--font-body)", fontSize:"0.875rem",
+                fontWeight:600, letterSpacing:"0.04em",
+                color:"var(--color-accent-fg)", background:acc,
+                padding:"0.65rem 1.5rem", borderRadius:"9999px",
+                textDecoration:"none", boxShadow:`0 0 28px ${acc}44`,
+                transition:"transform 0.25s ease, box-shadow 0.25s ease",
+              }}
+              onMouseEnter={e=>{e.currentTarget.style.transform="scale(1.05)";e.currentTarget.style.boxShadow=`0 0 40px ${acc}66`}}
+              onMouseLeave={e=>{e.currentTarget.style.transform="scale(1)";e.currentTarget.style.boxShadow=`0 0 28px ${acc}44`}}
+              >View all work <ArrowUpRight size={14} strokeWidth={2.5} /></Link>
+            </div>
           </div>
 
-          {/* Right: stats + CTA */}
+          {/* ── SHOWCASE ───────────────────────────────────────────────── */}
           <div style={{
-            display: "flex", flexDirection: "column",
-            alignItems: "flex-end", gap: "2rem",
-            opacity: inView ? 1 : 0,
-            transform: inView ? "none" : "translateY(20px)",
-            transition: "all 0.8s ease 0.35s",
+            display:"grid",
+            gridTemplateColumns:"clamp(80px,9vw,115px) 1fr",
+            gap:"clamp(0.75rem,1.5vw,1.5rem)",
+            padding:"0 clamp(1.25rem,5vw,4rem) clamp(2.5rem,5vw,4rem)",
+            alignItems:"stretch",
+            opacity: inView?1:0, transform: inView?"none":"translateY(30px)",
+            transition:"opacity 0.9s ease 0.4s, transform 0.9s cubic-bezier(0.16,1,0.3,1) 0.4s",
           }}>
-            {/* Stats row */}
-            <div style={{ display: "flex", gap: "2.5rem" }}>
-              <Counter to={20} label="Projects" />
-              <Counter to={7}  label="Companies" />
-              <Counter to={3}  label="Years" />
+
+            {/* LEFT thumbnails */}
+            <div style={{
+              display:"flex", flexDirection:"column", gap:"clamp(0.35rem,0.7vw,0.55rem)",
+              WebkitMaskImage:"linear-gradient(180deg,transparent 0%,black 5%,black 95%,transparent 100%)",
+              maskImage:"linear-gradient(180deg,transparent 0%,black 5%,black 95%,transparent 100%)",
+            }}>
+              {PROJECTS.map((p, i) => (
+                <button key={p.id}
+                  onClick={() => { setActiveIdx(i); locked.current = true }}
+                  style={{
+                    all:"unset", cursor:"none", display:"block",
+                    position:"relative", overflow:"hidden",
+                    aspectRatio:"16/10", flexShrink:0,
+                    outline: i===activeIdx ? `2px solid ${acc}` : "2px solid transparent",
+                    outlineOffset:"-2px",
+                    transition:"outline-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease",
+                    transform: i===activeIdx ? "scale(1.03)" : "scale(1)",
+                    boxShadow: i===activeIdx ? `0 0 14px ${acc}55` : "none",
+                  }}
+                >
+                  <img src={imgSrcs[i]} alt={p.title}
+                    onError={() => setFallback(i)}
+                    style={{
+                      width:"100%", height:"100%", objectFit:"cover", display:"block",
+                      filter: i===activeIdx ? "brightness(1)" : "brightness(0.35) saturate(0.3)",
+                      transition:"filter 0.4s ease",
+                    }}
+                  />
+                  {i === activeIdx && (
+                    <div style={{
+                      position:"absolute", top:"50%", right:-11,
+                      transform:"translateY(-50%)",
+                      width:5, height:5, borderRadius:"50%",
+                      background:acc, boxShadow:`0 0 8px ${acc}`,
+                    }} />
+                  )}
+                </button>
+              ))}
+
+              <Link href="/portfolio" style={{
+                display:"flex", alignItems:"center", justifyContent:"center",
+                gap:"0.3rem", marginTop:"0.4rem", padding:"0.5rem",
+                border:"1px solid var(--color-surface-border)",
+                fontFamily:"var(--font-mono)", fontSize:"0.42rem",
+                letterSpacing:"0.1em", textTransform:"uppercase",
+                color:"var(--color-text-muted)", textDecoration:"none",
+                transition:"color 0.2s, border-color 0.2s",
+              }}
+              onMouseEnter={e=>{e.currentTarget.style.color=acc;e.currentTarget.style.borderColor=acc}}
+              onMouseLeave={e=>{e.currentTarget.style.color="var(--color-text-muted)";e.currentTarget.style.borderColor="var(--color-surface-border)"}}
+              >ALL <ArrowUpRight size={7} /></Link>
             </div>
 
-            <Link href="/portfolio" style={{
-              display: "inline-flex", alignItems: "center", gap: "0.6rem",
-              fontFamily: "var(--font-body)", fontSize: "0.875rem",
-              fontWeight: 600, letterSpacing: "0.04em",
-              color: "var(--color-accent-fg)",
-              background: acc,
-              padding: "0.65rem 1.5rem",
-              borderRadius: "9999px",
-              textDecoration: "none",
-              boxShadow: `0 0 28px ${acc}44`,
-              transition: "transform 0.25s ease, box-shadow 0.25s ease",
+            {/* RIGHT large preview */}
+            <Link href={active.href} style={{
+              display:"block", position:"relative", overflow:"hidden",
+              cursor:"none", textDecoration:"none", aspectRatio:"16/9",
             }}
-            onMouseEnter={e=>{const el=e.currentTarget as HTMLElement;el.style.transform="scale(1.05)";el.style.boxShadow=`0 0 40px ${acc}66`}}
-            onMouseLeave={e=>{const el=e.currentTarget as HTMLElement;el.style.transform="scale(1)";el.style.boxShadow=`0 0 28px ${acc}44`}}
+            onMouseEnter={() => setTooltip(t=>({...t,visible:true}))}
+            onMouseLeave={() => setTooltip(t=>({...t,visible:false}))}
+            onMouseMove={onMouseMove}
             >
-              View all work <ArrowUpRight size={14} strokeWidth={2.5} />
+              {/* Crossfade images */}
+              {PROJECTS.map((p, i) => (
+                <img key={p.id} src={imgSrcs[i]} alt={p.title}
+                  onError={() => setFallback(i)}
+                  style={{
+                    position:"absolute", inset:0, width:"100%", height:"100%",
+                    objectFit:"cover", display:"block",
+                    opacity: i===activeIdx ? 1 : 0,
+                    transition:"opacity 0.7s cubic-bezier(0.16,1,0.3,1)",
+                    animation: i===activeIdx ? "featuredZoom 10s ease-in-out infinite alternate" : "none",
+                    willChange:"transform,opacity",
+                  }}
+                />
+              ))}
+
+              {/* Gradient */}
+              <div style={{
+                position:"absolute", inset:0,
+                background:"linear-gradient(135deg,rgba(0,0,0,0.65) 0%,rgba(0,0,0,0.04) 50%,rgba(0,0,0,0.72) 100%)",
+                zIndex:1,
+              }} />
+
+              {/* Info overlay */}
+              <div style={{
+                position:"absolute", inset:0, zIndex:2,
+                display:"flex", flexDirection:"column", justifyContent:"space-between",
+                padding:"clamp(1rem,2.5vw,2rem)",
+              }}>
+                {/* Top row */}
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+                  <span style={{
+                    fontFamily:"var(--font-mono)", fontSize:"0.55rem",
+                    letterSpacing:"0.14em", textTransform:"uppercase",
+                    color:acc, background:`${acc}1a`,
+                    border:`1px solid ${acc}44`, padding:"0.2rem 0.55rem",
+                    backdropFilter:"blur(6px)",
+                  }}>{active.type}</span>
+                  <div style={{
+                    fontFamily:"var(--font-mono)", fontSize:"0.55rem",
+                    color:"rgba(255,255,255,0.35)", letterSpacing:"0.1em",
+                    display:"flex", alignItems:"center", gap:"0.4rem",
+                  }}>
+                    <span style={{ color:acc }}>{String(activeIdx+1).padStart(2,"0")}</span>
+                    <span>/</span>
+                    <span>{String(PROJECTS.length).padStart(2,"0")}</span>
+                  </div>
+                </div>
+
+                {/* Bottom */}
+                <div>
+                  <p style={{
+                    fontFamily:"var(--font-mono)", fontSize:"0.5rem",
+                    letterSpacing:"0.1em", textTransform:"uppercase",
+                    color:"rgba(255,255,255,0.4)", margin:"0 0 0.4rem",
+                  }}>{active.category} · {active.year}</p>
+
+                  <h3 style={{
+                    fontFamily:"var(--font-display)",
+                    fontSize:"clamp(1.8rem,5vw,4.5rem)",
+                    fontWeight:800, letterSpacing:"-0.04em", lineHeight:0.9,
+                    margin:"0 0 0.75rem", color:"transparent",
+                    WebkitTextStroke:"2px rgba(255,255,255,0.85)",
+                    textShadow:`0 0 60px ${acc}44`,
+                  }}>{active.title}</h3>
+
+                  <div style={{
+                    display:"flex", alignItems:"center", gap:"0.5rem",
+                    fontFamily:"var(--font-mono)", fontSize:"0.43rem",
+                    letterSpacing:"0.12em", textTransform:"uppercase",
+                    color:"rgba(255,255,255,0.22)",
+                  }}>
+                    <div style={{ width:14, height:1, background:acc }} />
+                    {activeIdx < PROJECTS.length-1 ? "Scroll to advance" : "Scroll to continue"}
+                  </div>
+                </div>
+              </div>
+
+              {/* Progress dots */}
+              <div style={{
+                position:"absolute",
+                bottom:"clamp(0.75rem,1.5vw,1.25rem)",
+                right:"clamp(0.75rem,1.5vw,1.25rem)",
+                display:"flex", gap:5, zIndex:3,
+              }}>
+                {PROJECTS.map((_,i) => (
+                  <div key={i} style={{
+                    width: i===activeIdx ? 18 : 5, height:5,
+                    background: i===activeIdx ? acc : "rgba(255,255,255,0.18)",
+                    transition:"width 0.4s cubic-bezier(0.34,1.56,0.64,1), background 0.3s ease",
+                    boxShadow: i===activeIdx ? `0 0 8px ${acc}` : "none",
+                  }} />
+                ))}
+              </div>
+
+              {/* Bottom accent line */}
+              <div style={{
+                position:"absolute", bottom:0, left:0, right:0, height:3, zIndex:4,
+                background:`linear-gradient(90deg,transparent,${acc},transparent)`,
+                opacity: tooltip.visible ? 1 : 0.45,
+                transition:"opacity 0.3s ease",
+                boxShadow:`0 0 10px ${acc}`,
+              }} />
             </Link>
           </div>
+
+          {/* ── BOTTOM CTA ─────────────────────────────────────────────── */}
+          <div style={{
+            display:"flex", alignItems:"center", justifyContent:"center", gap:"2rem",
+            padding:"0 clamp(1.25rem,5vw,4rem) clamp(3rem,6vw,5rem)",
+            opacity: inView?1:0, transition:"opacity 0.8s ease 0.7s",
+          }}>
+            <div style={{ flex:1, height:"1px", background:`linear-gradient(90deg,transparent,var(--color-surface-border))` }} />
+            <Link href="/portfolio" style={{
+              fontFamily:"var(--font-display)", fontSize:"clamp(1rem,2.5vw,1.5rem)",
+              fontWeight:700, letterSpacing:"-0.02em",
+              color:"var(--color-text-primary)", textDecoration:"none",
+              display:"inline-flex", alignItems:"center", gap:"0.75rem",
+              transition:"gap 0.3s ease, color 0.2s ease", cursor:"none",
+            }}
+            onMouseEnter={e=>{e.currentTarget.style.gap="1.5rem";e.currentTarget.style.color=acc}}
+            onMouseLeave={e=>{e.currentTarget.style.gap="0.75rem";e.currentTarget.style.color="var(--color-text-primary)"}}
+            >See everything I&apos;ve built <ArrowUpRight size={18} strokeWidth={2} /></Link>
+            <div style={{ flex:1, height:"1px", background:`linear-gradient(90deg,var(--color-surface-border),transparent)` }} />
+          </div>
+
+          {/* Mobile tap nav */}
+          <div style={{
+            display:"none", justifyContent:"center", gap:"1rem",
+            padding:"0 clamp(1.25rem,5vw,4rem) 2rem",
+          }} className="fw-mobile-nav">
+            <button onClick={() => advance(-1)} disabled={activeIdx===0} style={{
+              all:"unset", cursor:"pointer",
+              width:44, height:44,
+              border:`1px solid ${activeIdx===0 ? "rgba(255,255,255,0.1)" : acc}`,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              color: activeIdx===0 ? "rgba(255,255,255,0.15)" : acc,
+              fontFamily:"var(--font-display)", fontSize:"1.1rem",
+              transition:"all 0.2s ease",
+            }}>←</button>
+            <button onClick={() => advance(1)} style={{
+              all:"unset", cursor:"pointer",
+              width:44, height:44,
+              border:`1px solid ${acc}`,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              color:acc, fontFamily:"var(--font-display)", fontSize:"1.1rem",
+              boxShadow:`0 0 12px ${acc}44`,
+            }}>→</button>
+          </div>
         </div>
 
-        {/* ── FILM STRIPS ── */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-          {/* Track A → scrolls right */}
-          <FilmStrip projects={trackA} direction="right" speed={38} inView={inView} />
-          {/* Track B → scrolls left */}
-          <FilmStrip projects={trackB} direction="left"  speed={42} inView={inView} />
-        </div>
-
-        {/* ── BOTTOM CTA ── */}
-        <div style={{
-          display: "flex", alignItems: "center", justifyContent: "center",
-          gap: "2rem",
-          padding: "clamp(3rem,6vw,5rem) clamp(1.5rem,5vw,4rem)",
-          opacity: inView ? 1 : 0,
-          transition: "opacity 0.8s ease 0.7s",
-        }}>
-          <div style={{ flex: 1, height: "1px", background: `linear-gradient(90deg, transparent, var(--color-surface-border))` }} />
-          <Link href="https://www.brianchege.me/portfolio" style={{
-            fontFamily: "var(--font-display)",
-            fontSize: "clamp(1rem,2.5vw,1.5rem)",
-            fontWeight: 700, letterSpacing: "-0.02em",
-            color: "var(--color-text-primary)",
-            textDecoration: "none",
-            display: "inline-flex", alignItems: "center", gap: "0.75rem",
-            transition: "gap 0.3s ease, color 0.2s ease",
-          }}
-          onMouseEnter={e=>{const el=e.currentTarget as HTMLElement;el.style.gap="1.5rem";el.style.color=acc}}
-          onMouseLeave={e=>{const el=e.currentTarget as HTMLElement;el.style.gap="0.75rem";el.style.color="var(--color-text-primary)"}}
-          >
-            See everything I&apos;ve built <ArrowUpRight size={18} strokeWidth={2} />
-          </Link>
-          <div style={{ flex: 1, height: "1px", background: `linear-gradient(90deg, var(--color-surface-border), transparent)` }} />
-        </div>
-      </div>
-
-      <style jsx global>{`
-        @keyframes strip-right {
-          from { transform: translateX(0); }
-          to   { transform: translateX(-33.333%); }
-        }
-        @keyframes strip-left {
-          from { transform: translateX(-33.333%); }
-          to   { transform: translateX(0); }
-        }
-        @keyframes filmZoom {
-          from { transform: scale(1);    }
-          to   { transform: scale(1.08); }
-        }
-      `}</style>
-    </section>
+        <style jsx global>{`
+          @keyframes featuredZoom {
+            from { transform: scale(1); }
+            to   { transform: scale(1.06); }
+          }
+          @media (max-width: 640px) {
+            .fw-mobile-nav { display: flex !important; }
+          }
+          @media (max-width: 500px) {
+            /* On very small screens, collapse header to single column */
+            section > div > div:first-of-type {
+              grid-template-columns: 1fr !important;
+            }
+          }
+        `}</style>
+      </section>
+    </>
   )
 }
