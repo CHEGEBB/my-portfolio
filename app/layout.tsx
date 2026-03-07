@@ -7,6 +7,7 @@ import { Snow } from "@/components/snow"
 import { SmoothScroll } from "@/components/smooth-scroll"
 import { Cursor } from "@/components/cursor"
 import { FloatingActions } from "@/components/FloatingActions"
+import { LoaderWrapper } from "@/components/loader-wrapper"
 
 const syne = Syne({
   subsets: ["latin"],
@@ -74,12 +75,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <body className="antialiased overflow-x-hidden">
         <ThemeProvider>
-        <SmoothScroll>
-        <Cursor />
-        <Snow/>
-        <FloatingActions />
-    
-          {children}
+          <SmoothScroll>
+            <Cursor />
+            <Snow />
+            <FloatingActions />
+            <LoaderWrapper>
+              {children}
+            </LoaderWrapper>
           </SmoothScroll>
         </ThemeProvider>
       </body>
