@@ -120,22 +120,130 @@ function ContactRow({ label, value, href, delay, acc, border, prim, revealed }: 
   )
 }
 
+// ── Success overlay ──────────────────────────────────────────────────────────
+function SuccessState({ acc, muted, prim, border, isDark, onReset }: {
+  acc: string; muted: string; prim: string; border: string; isDark: boolean
+  onReset: () => void
+}) {
+  const [show, setShow] = useState(false)
+  useEffect(() => { const t = setTimeout(() => setShow(true), 60); return () => clearTimeout(t) }, [])
+
+  return (
+    <div style={{
+      opacity: show ? 1 : 0,
+      transform: show ? "translateY(0)" : "translateY(24px)",
+      transition: "opacity .65s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1)",
+    }}>
+      {/* Big tick */}
+      <div style={{
+        width: 72, height: 72, borderRadius: "50%",
+        border: `2px solid ${acc}`,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        marginBottom: "2rem",
+        boxShadow: `0 0 40px ${acc}33`,
+        animation: "tickPop .6s cubic-bezier(.34,1.56,.64,1) .15s both",
+      }}>
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={acc} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+          style={{ animation: "drawCheck .5s ease .35s both", strokeDasharray: 30, strokeDashoffset: 30 }}>
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+
+      {/* Heading */}
+      <div style={{
+        fontFamily: "var(--font-display)",
+        fontSize: "clamp(2.8rem,7vw,5.5rem)",
+        fontWeight: 800, letterSpacing: "-.045em", lineHeight: .88,
+        marginBottom: "1.25rem",
+        animation: "slideUp .7s cubic-bezier(.16,1,.3,1) .1s both",
+      }}>
+        <span style={{ display: "block", color: prim }}>Message</span>
+        <span style={{ display: "block", color: "transparent", WebkitTextStroke: `2px ${acc}`, textShadow: `0 0 60px ${acc}44` }}>received. ⚡</span>
+      </div>
+
+      {/* Sub */}
+      <p style={{
+        fontFamily: "var(--font-body)", fontSize: "clamp(.875rem,1.4vw,1rem)",
+        color: muted, lineHeight: 1.72, marginBottom: "2rem",
+        animation: "slideUp .7s cubic-bezier(.16,1,.3,1) .2s both",
+        maxWidth: 380,
+      }}>
+        Thanks for reaching out! I&apos;ll personally get back to you within 24 hours.
+        Looking forward to chatting.
+      </p>
+
+      {/* Animated accent bar */}
+      <div style={{
+        height: 2, marginBottom: "2.5rem",
+        background: `linear-gradient(to right, ${acc}, ${acc}44, transparent)`,
+        animation: "drawLine 1s cubic-bezier(.16,1,.3,1) .4s both",
+      }}/>
+
+      {/* What happens next */}
+      <div style={{
+        display: "flex", flexDirection: "column", gap: ".75rem",
+        marginBottom: "2.5rem",
+        animation: "slideUp .6s cubic-bezier(.16,1,.3,1) .35s both",
+      }}>
+        {[
+          { num: "01", text: "You'll receive a confirmation email shortly" },
+          { num: "02", text: "I'll review your message and prepare a thoughtful reply" },
+          { num: "03", text: "Expect a response within 24 hours, usually much sooner" },
+        ].map(step => (
+          <div key={step.num} style={{ display: "flex", alignItems: "flex-start", gap: "1rem" }}>
+            <span style={{
+              fontFamily: "var(--font-mono)", fontSize: ".6rem",
+              letterSpacing: ".1em", color: acc, flexShrink: 0, marginTop: ".15rem",
+            }}>{step.num}</span>
+            <span style={{ fontFamily: "var(--font-body)", fontSize: "clamp(.82rem,1.2vw,.9rem)", color: muted, lineHeight: 1.6 }}>
+              {step.text}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {/* Send another button */}
+      <button
+        onClick={onReset}
+        style={{
+          fontFamily: "var(--font-mono)", fontSize: "clamp(.6rem,.85vw,.7rem)",
+          letterSpacing: ".1em", textTransform: "uppercase",
+          color: muted, background: "transparent",
+          border: `1px solid ${border}`, padding: ".5rem 1.25rem",
+          borderRadius: 9999, cursor: "pointer",
+          transition: "color .2s ease, border-color .2s ease",
+          animation: "slideUp .6s cubic-bezier(.16,1,.3,1) .45s both",
+        }}
+        onMouseEnter={e => {
+          const el = e.currentTarget as HTMLElement
+          el.style.color = acc; el.style.borderColor = acc
+        }}
+        onMouseLeave={e => {
+          const el = e.currentTarget as HTMLElement
+          el.style.color = muted; el.style.borderColor = border
+        }}
+      >
+        ← Send another message
+      </button>
+    </div>
+  )
+}
+
 // ── Main page ────────────────────────────────────────────────────────────────
 export default function ContactPage() {
   const { theme } = useTheme()
   const isDark    = theme.mode === "dark"
 
-  const [painted,  setPainted]  = useState(false)
-  const [revealed, setRevealed] = useState(false)
-  const [confetti, setConfetti] = useState(false)
-  // winSize only set client-side to avoid hydration mismatch
-  const [winSize,  setWinSize]  = useState({ width: 0, height: 0 })
-  const [formDone, setFormDone] = useState(false)
-  const [sending,  setSending]  = useState(false)
+  const [painted,   setPainted]   = useState(false)
+  const [revealed,  setRevealed]  = useState(false)
+  const [confetti,  setConfetti]  = useState(false)
+  const [winSize,   setWinSize]   = useState({ width: 0, height: 0 })
+  const [formDone,  setFormDone]  = useState(false)
+  const [sending,   setSending]   = useState(false)
+  const [confettiDone, setConfettiDone] = useState(false)
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" })
 
   useEffect(() => {
-    // All window access safely inside useEffect
     setWinSize({ width: window.innerWidth, height: window.innerHeight })
     const onResize = () => setWinSize({ width: window.innerWidth, height: window.innerHeight })
     window.addEventListener("resize", onResize, { passive: true })
@@ -147,8 +255,22 @@ export default function ContactPage() {
     }
   }, [])
 
+  // Stop confetti after 6s but keep success state until user resets
+  useEffect(() => {
+    if (!confetti) return
+    const t = setTimeout(() => setConfettiDone(true), 6000)
+    return () => clearTimeout(t)
+  }, [confetti])
+
   const onChange = (e: React.ChangeEvent<any>) =>
     setForm(p => ({ ...p, [e.target.name]: e.target.value }))
+
+  const onReset = () => {
+    setFormDone(false)
+    setConfetti(false)
+    setConfettiDone(false)
+    setForm({ name: "", email: "", subject: "", message: "" })
+  }
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -163,13 +285,8 @@ export default function ContactPage() {
       toast.dismiss(tid)
       if (res.ok) {
         setFormDone(true)
-        setForm({ name: "", email: "", subject: "", message: "" })
         setConfetti(true)
-        toast.success("Message sent! I'll reply within 24h ⚡", {
-          duration: 5000,
-          style: { ...toastStyle(theme), border: `1px solid ${theme.colors.accent}`, color: theme.colors.accent },
-        })
-        setTimeout(() => { setFormDone(false); setConfetti(false) }, 7500)
+        setConfettiDone(false)
       } else {
         toast.error("Failed to send. Try again.", {
           style: { ...toastStyle(theme), border: "1px solid #f87171", color: "#f87171" },
@@ -188,7 +305,6 @@ export default function ContactPage() {
   const prim   = theme.colors.textPrimary
   const border = theme.colors.surfaceBorder
   const bg     = theme.colors.bg
-  const surf   = theme.colors.surface
 
   const paintColor = isDark
     ? `color-mix(in srgb, ${acc} 14%, #08080F)`
@@ -212,11 +328,14 @@ export default function ContactPage() {
     <div style={{ minHeight: "100svh", background: bg, color: prim }}>
       <Toaster position="top-right"/>
 
-      {confetti && winSize.width > 0 && (
+      {/* Confetti — only while active and window measured */}
+      {confetti && !confettiDone && winSize.width > 0 && (
         <ReactConfetti
           width={winSize.width} height={winSize.height}
-          colors={[acc, "#fff", "#a5b4fc", "#fcd34d", "#6ee7b7"]}
-          numberOfPieces={360} recycle={false}
+          colors={[acc, "#fff", "#a5b4fc", "#fcd34d", "#6ee7b7", "#f9a8d4"]}
+          numberOfPieces={420}
+          recycle={false}
+          gravity={0.18}
           style={{ position: "fixed", zIndex: 9999, pointerEvents: "none" }}
         />
       )}
@@ -237,7 +356,7 @@ export default function ContactPage() {
         opacity: revealed ? 1 : 0, transition: "opacity .45s ease",
       }}>
 
-        {/* ── HERO ─────────────────────────────────────────────────────────── */}
+        {/* ── HERO ── */}
         <div style={{ marginBottom: "clamp(4rem,9vw,7rem)" }}>
           <p style={{
             ...s(0),
@@ -258,11 +377,7 @@ export default function ContactPage() {
             margin: "0 0 clamp(1.5rem,3vw,2.5rem)",
           }}>
             <span style={{ display: "block", color: prim }}>Let&apos;s build</span>
-            <span style={{
-              display: "block", color: "transparent",
-              WebkitTextStroke: `2px ${acc}`,
-              textShadow: `0 0 80px ${acc}44`,
-            }}>
+            <span style={{ display: "block", color: "transparent", WebkitTextStroke: `2px ${acc}`, textShadow: `0 0 80px ${acc}44` }}>
               <TypeAnimation
                 sequence={["something.", 2200, "the future.", 2200, "together.", 2200, "amazing.", 2200]}
                 wrapper="span" repeat={Infinity} cursor
@@ -273,8 +388,7 @@ export default function ContactPage() {
           <p style={{
             ...s(2),
             fontFamily: "var(--font-body)", fontSize: "clamp(.875rem,1.4vw,1rem)",
-            color: muted, lineHeight: 1.75,
-            maxWidth: "min(520px,100%)", margin: "0 0 1.5rem",
+            color: muted, lineHeight: 1.75, maxWidth: "min(520px,100%)", margin: "0 0 1.5rem",
           }}>
             Open to freelance projects, full-time roles, and interesting collaborations.
             I reply within 24 hours — usually much faster.
@@ -292,7 +406,7 @@ export default function ContactPage() {
           </div>
         </div>
 
-        {/* ── DIVIDER ──────────────────────────────────────────────────────── */}
+        {/* ── DIVIDER ── */}
         <div style={{
           ...s(3),
           height: 1,
@@ -300,7 +414,7 @@ export default function ContactPage() {
           marginBottom: "clamp(4rem,8vw,6rem)",
         }}/>
 
-        {/* ── FORM + CONTACT INFO ──────────────────────────────────────────── */}
+        {/* ── FORM + CONTACT INFO ── */}
         <div className="c-grid" style={{
           display: "grid",
           gap: "clamp(3.5rem,8vw,8rem)",
@@ -308,7 +422,7 @@ export default function ContactPage() {
           alignItems: "start",
         }}>
 
-          {/* Left: Form */}
+          {/* Left: Form OR Success */}
           <div style={s(3)}>
             <p style={{
               fontFamily: "var(--font-mono)", fontSize: "clamp(.55rem,.8vw,.65rem)",
@@ -316,29 +430,14 @@ export default function ContactPage() {
               marginBottom: "1.75rem", display: "flex", alignItems: "center", gap: ".5rem",
             }}>
               <span style={{ width: 14, height: 1, background: acc, display: "inline-block" }}/>
-              Send a message
+              {formDone ? "All done" : "Send a message"}
             </p>
 
             {formDone ? (
-              <div style={{ animation: "fadeIn .5s ease" }}>
-                <div style={{
-                  fontFamily: "var(--font-display)",
-                  fontSize: "clamp(2.5rem,7vw,5rem)",
-                  fontWeight: 800, letterSpacing: "-.04em", lineHeight: .9,
-                  color: acc, marginBottom: "1.25rem",
-                  animation: "slideUp .75s cubic-bezier(.16,1,.3,1)",
-                }}>
-                  Message<br/>received. ⚡
-                </div>
-                <p style={{ fontFamily: "var(--font-body)", fontSize: "clamp(.875rem,1.4vw,1rem)", color: muted, lineHeight: 1.7 }}>
-                  I&apos;ll get back to you within 24 hours.
-                </p>
-                <div style={{
-                  height: 2, marginTop: "2rem",
-                  background: `linear-gradient(to right, ${acc}, transparent)`,
-                  animation: "drawLine 1s cubic-bezier(.16,1,.3,1) .3s both",
-                }}/>
-              </div>
+              <SuccessState
+                acc={acc} muted={muted} prim={prim} border={border}
+                isDark={isDark} onReset={onReset}
+              />
             ) : (
               <form onSubmit={onSubmit} style={{ display: "flex", flexDirection: "column", gap: "clamp(1rem,2vw,1.75rem)" }}>
                 <div className="c-row" style={{ display: "grid", gap: "clamp(1rem,2vw,2rem)" }}>
@@ -366,7 +465,6 @@ export default function ContactPage() {
                     onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "" }}
                   >
                     {sending ? (
-                      /* spinner — span not div to avoid any nesting issues */
                       <span style={{
                         display: "inline-block", width: 16, height: 16,
                         borderRadius: "50%",
@@ -413,14 +511,13 @@ export default function ContactPage() {
               />
             ))}
 
-            {/* Decorative stat blocks */}
             <div style={{ display: "flex", gap: "2.5rem", marginTop: "clamp(2rem,4vw,3rem)" }}>
               {[
-                { v: "24h", l: "Response time" },
+                { v: "24h",  l: "Response time" },
                 { v: "100%", l: "Projects delivered" },
-                { v: "3+", l: "Years building" },
-              ].map(st => (
-                <div key={st.l} style={{ ...s(5) }}>
+                { v: "3+",   l: "Years building" },
+              ].map((st, i) => (
+                <div key={st.l} style={{ ...s(5 + i) }}>
                   <div style={{
                     fontFamily: "var(--font-display)",
                     fontSize: "clamp(1.8rem,4vw,3rem)",
@@ -438,7 +535,7 @@ export default function ContactPage() {
           </div>
         </div>
 
-        {/* ── BOTTOM STRIP — availability + socials ────────────────────────── */}
+        {/* ── BOTTOM STRIP ── */}
         <div style={{
           ...s(6),
           borderTop: `1px solid ${border}`,
@@ -448,7 +545,7 @@ export default function ContactPage() {
           gap: "2rem",
         }}>
           <div>
-            <p style={{ fontFamily: "var(--font-mono)", fontSize: "clamp(.55rem,.8vw,.65rem)", letterSpacing: ".14em", textTransform: "uppercase", color: acc, marginBottom: ".75rem", margin: "0 0 .75rem" }}>
+            <p style={{ fontFamily: "var(--font-mono)", fontSize: "clamp(.55rem,.8vw,.65rem)", letterSpacing: ".14em", textTransform: "uppercase", color: acc, margin: "0 0 .75rem" }}>
               Current status
             </p>
             <div style={{ display: "flex", alignItems: "center", gap: ".75rem" }}>
@@ -465,8 +562,8 @@ export default function ContactPage() {
               { label: "LinkedIn", href: "https://linkedin.com/in/chegebb" },
               { label: "Twitter",  href: "https://twitter.com/chegebb" },
               { label: "Email",    href: "mailto:chegephil24@gmail.com" },
-            ].map(s => (
-              <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" style={{
+            ].map(lnk => (
+              <a key={lnk.label} href={lnk.href} target="_blank" rel="noopener noreferrer" style={{
                 fontFamily: "var(--font-mono)", fontSize: "clamp(.6rem,.85vw,.7rem)",
                 letterSpacing: ".08em", textTransform: "uppercase",
                 color: muted, border: `1px solid ${border}`,
@@ -474,17 +571,9 @@ export default function ContactPage() {
                 textDecoration: "none",
                 transition: "color .2s ease, border-color .2s ease",
               }}
-              onMouseEnter={e => {
-                const el = e.currentTarget as HTMLElement
-                el.style.color = acc
-                el.style.borderColor = acc
-              }}
-              onMouseLeave={e => {
-                const el = e.currentTarget as HTMLElement
-                el.style.color = muted
-                el.style.borderColor = border
-              }}
-              >{s.label}</a>
+              onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.color = acc; el.style.borderColor = acc }}
+              onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.color = muted; el.style.borderColor = border }}
+              >{lnk.label}</a>
             ))}
           </div>
         </div>
@@ -501,11 +590,13 @@ export default function ContactPage() {
           .c-row  { grid-template-columns: 1fr 1fr; }
         }
 
-        @keyframes spin     { to { transform: rotate(360deg); } }
-        @keyframes fadeIn   { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideUp  { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes drawLine { from { width: 0; } to { width: 100%; } }
-        @keyframes aPulse   { 0%, 100% { box-shadow: 0 0 0 0 #22c55e55; } 70% { box-shadow: 0 0 0 8px transparent; } }
+        @keyframes spin      { to { transform: rotate(360deg); } }
+        @keyframes fadeIn    { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp   { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes drawLine  { from { width: 0; } to { width: 100%; } }
+        @keyframes aPulse    { 0%, 100% { box-shadow: 0 0 0 0 #22c55e55; } 70% { box-shadow: 0 0 0 8px transparent; } }
+        @keyframes tickPop   { from { opacity: 0; transform: scale(.4); } to { opacity: 1; transform: scale(1); } }
+        @keyframes drawCheck { to { stroke-dashoffset: 0; } }
       `}</style>
     </div>
   )
