@@ -80,7 +80,7 @@ export function ProcessPhases() {
             ease: "power3.out",
             scrollTrigger: {
               trigger: ch,
-              // containerAnimation: mainST,
+            //   containerAnimation: mainST,
               start: "left 80%",
               toggleActions: "play none none reverse",
             },
@@ -117,37 +117,56 @@ export function ProcessPhases() {
           display: "flex", flexDirection: "column", justifyContent: "flex-end",
           padding: "clamp(5rem,10vw,8rem) clamp(1.5rem,6vw,5rem)",
           borderRight: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.07)"}`,
-          position: "relative",
+          position: "relative", overflow: "hidden",
         }}>
-          <h2 style={{
-            fontFamily: "var(--font-display)",
-            fontSize: "clamp(3.5rem,9vw,9rem)",
-            fontWeight: 800, letterSpacing: "-0.055em", lineHeight: 0.87,
-            margin: "0 0 clamp(1.5rem,3vw,2.5rem)",
-            color: "var(--color-text-primary)",
-          }}>
-            How the<br />
-            <span style={{ color: "transparent", WebkitTextStroke: `2px ${acc}`, textShadow: `0 0 60px ${acc}44` }}>
-              work runs.
-            </span>
-          </h2>
+          {/* Unsplash bg — dark moody workspace */}
+          <div style={{
+            position: "absolute", inset: 0, zIndex: 0,
+            backgroundImage: `url("https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1600&auto=format&fit=crop&q=80")`,
+            backgroundSize: "cover", backgroundPosition: "center",
+            filter: isDark ? "brightness(0.18) saturate(0.6)" : "brightness(0.55) saturate(0.5)",
+            transform: "scale(1.04)",
+          }}/>
+          {/* Gradient overlay so text pops */}
+          <div style={{
+            position: "absolute", inset: 0, zIndex: 1,
+            background: isDark
+              ? `linear-gradient(135deg, ${acc}08 0%, transparent 50%), linear-gradient(to top, #07070f 40%, transparent 80%)`
+              : `linear-gradient(135deg, ${acc}0a 0%, transparent 50%), linear-gradient(to top, #f0f0f8 35%, transparent 75%)`,
+          }}/>
+          {/* Text above image layers */}
+          <div style={{ position: "relative", zIndex: 2 }}>
+            <h2 style={{
+              fontFamily: "var(--font-display)",
+              fontSize: "clamp(3.5rem,9vw,9rem)",
+              fontWeight: 800, letterSpacing: "-0.055em", lineHeight: 0.87,
+              margin: "0 0 clamp(1.5rem,3vw,2.5rem)",
+              color: "#ffffff",
+              textShadow: "0 2px 40px rgba(0,0,0,0.5)",
+            }}>
+              How the<br />
+              <span style={{ color: "transparent", WebkitTextStroke: `2px ${acc}`, textShadow: `0 0 60px ${acc}66` }}>
+                work runs.
+              </span>
+            </h2>
 
-          <p style={{
-            fontFamily: "var(--font-body)",
-            fontSize: "clamp(0.85rem,1.2vw,1rem)",
-            color: "var(--color-text-muted)", lineHeight: 1.72,
-            maxWidth: 480, margin: "0 0 clamp(2rem,4vw,3rem)",
-          }}>
-            Every project I take runs the same disciplined system. Not because I'm rigid — because consistency is what separates great software from scrambled software.
-          </p>
+            <p style={{
+              fontFamily: "var(--font-body)",
+              fontSize: "clamp(0.85rem,1.2vw,1rem)",
+              color: "rgba(255,255,255,0.65)", lineHeight: 1.72,
+              maxWidth: 480, margin: "0 0 clamp(2rem,4vw,3rem)",
+            }}>
+              Every project I take runs the same disciplined system. Not because I'm rigid — because consistency is what separates great software from scrambled software.
+            </p>
 
-          <div style={{ display: "flex", gap: "clamp(1rem,2.5vw,2rem)", flexWrap: "wrap" }}>
-            {PHASES.map((ph) => (
-              <div key={ph.num} style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                <div style={{ width: 6, height: 6, background: ph.accent, borderRadius: "50%" }} />
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.5rem", letterSpacing: "0.12em", textTransform: "uppercase", color: ph.accent }}>{ph.label}</span>
-              </div>
-            ))}
+            <div style={{ display: "flex", gap: "clamp(1rem,2.5vw,2rem)", flexWrap: "wrap" }}>
+              {PHASES.map((ph) => (
+                <div key={ph.num} style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <div style={{ width: 6, height: 6, background: ph.accent, borderRadius: "50%", boxShadow: `0 0 6px ${ph.accent}` }} />
+                  <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.5rem", letterSpacing: "0.12em", textTransform: "uppercase", color: ph.accent }}>{ph.label}</span>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div style={{
@@ -155,7 +174,7 @@ export function ProcessPhases() {
             display: "flex", alignItems: "center", gap: "0.5rem",
             fontFamily: "var(--font-mono)", fontSize: "0.48rem",
             letterSpacing: "0.12em", textTransform: "uppercase",
-            color: "var(--color-text-muted)", opacity: 0.5,
+            color: "rgba(255,255,255,0.45)", zIndex: 2,
           }}>
             <span>Scroll</span>
             <svg width="24" height="10" viewBox="0 0 24 10" fill="none">

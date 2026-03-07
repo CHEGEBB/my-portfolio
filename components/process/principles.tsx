@@ -1,183 +1,248 @@
 "use client"
 
-import { useRef } from "react"
+import { useRef, useState } from "react"
 import { useTheme } from "@/context/theme-context"
 import { motion, useInView } from "framer-motion"
 
 const PRINCIPLES = [
   {
     num: "01",
-    text: "Clarity over\ncleverness.",
-    sub: "The smartest solution is the one the next developer can read at 2am without documentation. I write code that explains itself.",
+    title: "Ship working software,\nnot demos.",
+    sub: "A perfect prototype no one uses is worthless.",
+    body: "Every engagement I take ends with deployed, production-ready software — not Figma screens, not slide decks, not 'almost ready' staging environments. I optimise for delivered, not polished. Polish comes through iteration once real users are touching the product.",
     color: "#5567F7",
+    stat: "100%", statLabel: "Deployments reach production",
+    symbol: "↗",
   },
   {
     num: "02",
-    text: "Boring is\nbeautiful.",
-    sub: "I reach for proven tools before shiny ones. Your project is not a playground for frameworks. Postgres, Docker, and Node have earned their place.",
+    title: "Architecture decisions\nare irreversible.",
+    sub: "The choices you make in week one you live with for years.",
+    body: "Before writing any code I document the decisions that are hard to reverse: database choice, service boundaries, auth strategy, API contracts. These get reviewed, challenged, and agreed on. Everything else is reversible — we move fast on those.",
     color: "#45D2B0",
+    stat: "0", statLabel: "Rewrites from poor architecture",
+    symbol: "◈",
   },
   {
     num: "03",
-    text: "Deadlines are\nnon-negotiable.",
-    sub: "I've never slipped a launch. When scope threatens timelines, I communicate early and cut features — never quality, never the launch date.",
+    title: "Code is written for\nthe next developer.",
+    sub: "Including future me at 3am during an incident.",
+    body: "I write code assuming the next person to read it knows nothing about what I was thinking. Clear naming, meaningful comments on the 'why' not the 'what', documented decisions, typed interfaces. Code that communicates is the only code worth shipping.",
     color: "#FF6B9D",
+    stat: "<1hr", statLabel: "Avg onboarding for new contributors",
+    symbol: "⬡",
   },
   {
     num: "04",
-    text: "Tests are\nnot optional.",
-    sub: "Every function I ship has coverage. Not because a process demands it — because untested code is a liability I refuse to hand to a client.",
+    title: "You can't improve what\nyou don't measure.",
+    sub: "Monitoring before launch, always.",
+    body: "Every system I ship has observability built in before users touch it — error tracking, performance baselines, usage analytics, uptime alerts. You should know your system is broken before your users do. Shipping blind is not shipping — it's gambling.",
     color: "#AAFF00",
-  },
-  {
-    num: "05",
-    text: "The user is\nalways right.",
-    sub: "Your users don't care about your architecture. They care that it works, fast, on their phone, first try. That's what I build toward.",
-    color: "#F5A623",
+    stat: "<5min", statLabel: "Mean time to detect production incidents",
+    symbol: "⌬",
   },
 ]
 
-function PrincipleRow({ p, index }: { p: typeof PRINCIPLES[0]; index: number }) {
-  const ref    = useRef<HTMLDivElement>(null)
-  const inView = useInView(ref, { once: true, margin: "-15%" })
+export function ProcessPrinciples() {
   const { theme } = useTheme()
   const isDark = theme.mode === "dark"
+  const acc = theme.colors.accent
+  const headerRef = useRef<HTMLDivElement>(null)
+  const inView = useInView(headerRef, { once: true, margin: "-10%" })
+
+  return (
+    <section style={{ position: "relative", background: "var(--color-bg)", overflow: "hidden" }}>
+
+      {/* ── Header ── */}
+      <div ref={headerRef} style={{
+        padding: "clamp(5rem,10vw,8rem) clamp(1.5rem,6vw,5rem) clamp(3rem,5vw,4rem)",
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: "clamp(2rem,5vw,5rem)",
+        alignItems: "flex-end",
+        borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
+      }}>
+        <motion.div
+          initial={{ opacity: 0, y: 32 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: .85, ease: [.16,1,.3,1] }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: ".6rem", marginBottom: "1.25rem" }}>
+            <div style={{ width: 20, height: 1, background: acc }}/>
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: ".56rem", letterSpacing: ".18em", textTransform: "uppercase", color: acc }}>Non-Negotiables</span>
+          </div>
+          <h2 style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "clamp(3rem,8vw,7rem)",
+            fontWeight: 800, letterSpacing: "-.055em", lineHeight: .88, margin: 0,
+          }}>
+            <span style={{ display: "block", color: "var(--color-text-primary)" }}>The</span>
+            <span style={{ display: "block", color: "transparent", WebkitTextStroke: `2px ${acc}`, textShadow: `0 0 60px ${acc}44` }}>Principles.</span>
+          </h2>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={inView ? { opacity: 1 } : {}}
+          transition={{ duration: .7, delay: .35 }}
+          style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}
+        >
+          <p style={{ fontFamily: "var(--font-body)", fontSize: "clamp(.85rem,1.2vw,1rem)", color: "var(--color-text-muted)", lineHeight: 1.72, margin: 0 }}>
+            Four things I refuse to compromise on regardless of timeline, budget, or client pressure.
+          </p>
+          {/* Principle index pills */}
+          <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap" }}>
+            {PRINCIPLES.map((p) => (
+              <div key={p.num} style={{
+                display: "flex", alignItems: "center", gap: ".4rem",
+                padding: ".3rem .75rem",
+                border: `1px solid ${p.color}33`,
+                borderRadius: 2,
+              }}>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: ".46rem", letterSpacing: ".12em", color: p.color }}>{p.num}</span>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: ".44rem", letterSpacing: ".1em", textTransform: "uppercase", color: "var(--color-text-muted)", opacity: .6 }}>{p.title.split("\n")[0].split(" ").slice(0, 2).join(" ")}</span>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      </div>
+
+      {/* ── Principles — full-bleed rows ── */}
+      {PRINCIPLES.map((p, i) => (
+        <PrincipleRow key={p.num} p={p} i={i} isDark={isDark} />
+      ))}
+    </section>
+  )
+}
+
+function PrincipleRow({ p, i, isDark }: { p: typeof PRINCIPLES[0]; i: number; isDark: boolean }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const inView = useInView(ref, { once: true, margin: "-12%" })
+  const [hovered, setHovered] = useState(false)
 
   return (
     <motion.div
       ref={ref}
       initial={{ opacity: 0 }}
       animate={inView ? { opacity: 1 } : {}}
-      transition={{ duration: 0.5, delay: 0.05 }}
+      transition={{ duration: .6, delay: i * 0.05 }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       style={{
-        position: "relative",
-        padding: "clamp(2.5rem,6vw,5rem) clamp(1.5rem,6vw,5rem)",
-        borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.07)"}`,
-        overflow: "hidden",
         display: "grid",
-        gridTemplateColumns: "clamp(2rem,4vw,3.5rem) 1fr clamp(200px,28vw,380px)",
-        gap: "clamp(1rem,3vw,3rem)",
-        alignItems: "start",
+        gridTemplateColumns: "clamp(100px,18vw,220px) 1fr clamp(80px,14vw,180px)",
+        minHeight: "clamp(180px,22vw,280px)",
+        borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
         cursor: "default",
+        transition: "background .3s ease",
+        background: hovered ? (isDark ? `${p.color}07` : `${p.color}05`) : "transparent",
+        position: "relative",
+        overflow: "hidden",
       }}
     >
-      {/* Hover sweep fill */}
+      {/* Left — accent column with number + symbol */}
       <motion.div
-        initial={{ scaleX: 0 }}
-        whileHover={{ scaleX: 1 }}
-        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        initial={{ scaleY: 0 }}
+        animate={inView ? { scaleY: 1 } : {}}
+        transition={{ duration: .7, ease: [.16,1,.3,1], delay: i * 0.05 }}
         style={{
-          position: "absolute", inset: 0,
-          background: isDark ? `${p.color}09` : `${p.color}06`,
-          transformOrigin: "left",
-          pointerEvents: "none",
+          background: hovered ? p.color : `${p.color}${isDark ? "16" : "0f"}`,
+          display: "flex", flexDirection: "column",
+          justifyContent: "space-between",
+          padding: "clamp(1.5rem,3vw,2.5rem) clamp(1rem,2vw,1.75rem)",
+          transformOrigin: "top",
+          transition: "background .35s ease",
+          borderRight: `1px solid ${isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)"}`,
         }}
-      />
-
-      {/* Number */}
-      <div style={{
-        fontFamily: "var(--font-mono)", fontSize: "0.52rem",
-        letterSpacing: "0.14em", color: p.color, opacity: 0.65,
-        paddingTop: "0.7rem",
-      }}>{p.num}</div>
-
-      {/* Main text */}
-      <div style={{ position: "relative", zIndex: 1 }}>
-        <motion.h3
-          initial={{ y: 60, opacity: 0 }}
-          animate={inView ? { y: 0, opacity: 1 } : {}}
-          transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: index * 0.07 + 0.1 }}
-          style={{
-            fontFamily: "var(--font-display)",
-            fontSize: "clamp(2.2rem,6vw,5.5rem)",
-            fontWeight: 800, letterSpacing: "-0.05em", lineHeight: 0.92,
-            margin: 0,
-            color: "var(--color-text-primary)",
-            whiteSpace: "pre-line",
-          }}
-        >{p.text}</motion.h3>
-      </div>
-
-      {/* Sub text */}
-      <motion.div
-        initial={{ opacity: 0, x: 20 }}
-        animate={inView ? { opacity: 1, x: 0 } : {}}
-        transition={{ duration: 0.7, ease: "easeOut", delay: index * 0.07 + 0.32 }}
-        style={{ paddingTop: "0.75rem", position: "relative", zIndex: 1 }}
       >
-        <div style={{ width: 24, height: 2, background: p.color, marginBottom: "0.75rem" }} />
+        <span style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: "clamp(1.8rem,4vw,3.5rem)",
+          fontWeight: 900, letterSpacing: "-.04em",
+          color: hovered ? (isDark ? "#000" : "#fff") : p.color,
+          lineHeight: 1,
+          transition: "color .3s ease",
+        }}>{p.num}</span>
+        <span style={{
+          fontFamily: "var(--font-display)",
+          fontSize: "clamp(1.5rem,3vw,2.5rem)",
+          color: hovered ? (isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)") : `${p.color}55`,
+          lineHeight: 1,
+          transition: "color .3s ease",
+        }}>{p.symbol}</span>
+      </motion.div>
+
+      {/* Centre — title + body */}
+      <motion.div
+        initial={{ opacity: 0, x: 24 }}
+        animate={inView ? { opacity: 1, x: 0 } : {}}
+        transition={{ duration: .75, ease: [.16,1,.3,1], delay: i * 0.05 + 0.12 }}
+        style={{
+          padding: "clamp(1.75rem,3.5vw,2.75rem) clamp(1.5rem,3vw,2.5rem)",
+          display: "flex", flexDirection: "column", justifyContent: "center",
+        }}
+      >
+        {/* Top accent bar */}
+        <div style={{
+          width: hovered ? "100%" : "0%",
+          height: 2,
+          background: `linear-gradient(90deg, ${p.color}, transparent)`,
+          marginBottom: "1.25rem",
+          transition: "width .5s cubic-bezier(.16,1,.3,1)",
+          position: "absolute", top: 0, left: "clamp(100px,18vw,220px)", right: 0,
+        }}/>
+
+        <h3 style={{
+          fontFamily: "var(--font-display)",
+          fontSize: "clamp(1.4rem,2.8vw,2.5rem)",
+          fontWeight: 800, letterSpacing: "-.04em", lineHeight: .97,
+          color: "var(--color-text-primary)",
+          margin: "0 0 .6rem",
+          whiteSpace: "pre-line",
+        }}>{p.title}</h3>
+
         <p style={{
           fontFamily: "var(--font-body)",
-          fontSize: "clamp(0.82rem,1.1vw,0.95rem)",
-          color: "var(--color-text-muted)", lineHeight: 1.72,
-          margin: 0,
+          fontSize: "clamp(.7rem,.9vw,.8rem)",
+          color: p.color, lineHeight: 1.5,
+          margin: "0 0 1rem", fontStyle: "italic", opacity: .8,
         }}>{p.sub}</p>
+
+        <p style={{
+          fontFamily: "var(--font-body)",
+          fontSize: "clamp(.82rem,1.1vw,.94rem)",
+          color: "var(--color-text-muted)", lineHeight: 1.76,
+          margin: 0, maxWidth: 540,
+        }}>{p.body}</p>
       </motion.div>
-    </motion.div>
-  )
-}
 
-export function ProcessPrinciples() {
-  const { theme } = useTheme()
-  const ref    = useRef<HTMLDivElement>(null)
-  const inView = useInView(ref, { once: true, margin: "-10%" })
-  const acc    = theme.colors.accent
-  const isDark = theme.mode === "dark"
-
-  return (
-    <section style={{ position: "relative", background: "var(--color-bg)", overflow: "hidden" }}>
-
-      {/* Header row */}
-      <div
-        ref={ref}
+      {/* Right — stat panel */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={inView ? { opacity: 1 } : {}}
+        transition={{ duration: .6, delay: i * 0.05 + 0.25 }}
         style={{
-          padding: "clamp(5rem,10vw,8rem) clamp(1.5rem,6vw,5rem) clamp(2rem,4vw,3rem)",
-          borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.07)"}`,
-          display: "flex", alignItems: "flex-end", justifyContent: "space-between",
-          flexWrap: "wrap", gap: "2rem",
+          borderLeft: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
+          display: "flex", flexDirection: "column",
+          justifyContent: "center", alignItems: "center",
+          padding: "clamp(1.5rem,3vw,2rem) clamp(1rem,2vw,1.5rem)",
+          textAlign: "center", gap: ".4rem",
         }}
       >
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "1rem" }}>
-            <div style={{ width: 20, height: "1px", background: acc }} />
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.58rem", letterSpacing: "0.16em", textTransform: "uppercase", color: acc }}>
-              How I Work
-            </span>
-          </div>
-          <h2 style={{
-            fontFamily: "var(--font-display)",
-            fontSize: "clamp(2.5rem,7vw,6rem)",
-            fontWeight: 800, letterSpacing: "-0.05em", lineHeight: 0.9,
-            margin: 0, color: "var(--color-text-primary)",
-          }}>
-            The principles<br />
-            <span style={{ color: "transparent", WebkitTextStroke: `2px ${acc}` }}>I don't break.</span>
-          </h2>
-        </motion.div>
-
-        <motion.p
-          initial={{ opacity: 0, y: 16 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.7, ease: "easeOut", delay: 0.2 }}
-          style={{
-            fontFamily: "var(--font-body)",
-            fontSize: "clamp(0.82rem,1.1vw,0.95rem)",
-            color: "var(--color-text-muted)", lineHeight: 1.7,
-            maxWidth: 340, margin: 0,
-          }}
-        >
-          These aren't aspirational. They're the non-negotiables that show up in every line I write, every commit I push, every decision I make.
-        </motion.p>
-      </div>
-
-      {/* Principle rows */}
-      {PRINCIPLES.map((p, i) => (
-        <PrincipleRow key={p.num} p={p} index={i} />
-      ))}
-    </section>
+        <div style={{
+          fontFamily: "var(--font-display)",
+          fontSize: "clamp(1.8rem,4vw,3.2rem)",
+          fontWeight: 900, letterSpacing: "-.05em", lineHeight: 1,
+          color: p.color,
+        }}>{p.stat}</div>
+        <div style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: "clamp(.38rem,.6vw,.48rem)",
+          letterSpacing: ".1em", textTransform: "uppercase",
+          color: "var(--color-text-muted)", opacity: .55,
+          lineHeight: 1.5,
+        }}>{p.statLabel}</div>
+      </motion.div>
+    </motion.div>
   )
 }
