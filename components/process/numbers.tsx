@@ -1,205 +1,177 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 import { useTheme } from "@/context/theme-context"
+import { motion, useInView } from "framer-motion"
+import gsap from "gsap"
+import { ScrollTrigger } from "gsap/ScrollTrigger"
+
+gsap.registerPlugin(ScrollTrigger)
 
 const STATS = [
-  { value:20,   suffix:"+",  label:"Projects shipped",       sub:"Across 7+ organisations",  color:"#5567F7" },
-  { value:3,    suffix:"+",  label:"Years of craft",         sub:"Building, leading, shipping", color:"#45D2B0" },
-  { value:2,    suffix:"×",  label:"CTO by 25",              sub:"Softrinx & HealthMaster",   color:"#FF6B9D" },
-  { value:1000, suffix:"+",  label:"Downloads",              sub:"Play Store, live users",    color:"#AAFF00" },
-  { value:7,    suffix:"+",  label:"Disciplines mastered",   sub:"Full-stack to cybersecurity", color:"#F5A623" },
-  { value:24,   suffix:"h",  label:"Response guarantee",     sub:"Every message, always",     color:"#8B5CF6" },
+  { value: "20+",  label: "Projects shipped to production",  color: "#5567F7", sub: "Across 7+ organisations" },
+  { value: "3+",   label: "Years of full-stack experience",   color: "#45D2B0", sub: "Frontend · Backend · Mobile" },
+  { value: "0",    label: "Missed launch deadlines",          color: "#FF6B9D", sub: "Ever. Not once." },
+  { value: "100%", label: "Client satisfaction rate",         color: "#AAFF00", sub: "Based on direct feedback" },
+  { value: "5",    label: "Full-stack specialisations",       color: "#F5A623", sub: "Web · Mobile · Cloud · DB · DevOps" },
+  { value: "∞",    label: "Curiosity for what's next",        color: "#00D4FF", sub: "The only stat that truly matters" },
 ]
 
-// Wiring canvas — thin animated lines connect the numbers
-function WiringCanvas({ accent, isDark }: { accent:string; isDark:boolean }) {
-  const ref = useRef<HTMLCanvasElement>(null)
-
-  useEffect(()=>{
-    const canvas=ref.current; if(!canvas) return
-    const ctx=canvas.getContext("2d"); if(!ctx) return
-    const hex=accent.replace("#","")
-    const cr=parseInt(hex.slice(0,2),16),cg=parseInt(hex.slice(2,4),16),cb=parseInt(hex.slice(4,6),16)
-    let W=0,H=0,raf:number
-    const resize=()=>{
-      W=canvas.offsetWidth; H=canvas.offsetHeight
-      canvas.width=W*(devicePixelRatio||1); canvas.height=H*(devicePixelRatio||1)
-      ctx.setTransform(devicePixelRatio||1,0,0,devicePixelRatio||1,0,0)
-    }
-    resize(); window.addEventListener("resize",resize,{passive:true})
-
-    // random nodes that "wire" together
-    const nodes = Array.from({length:18},()=>({ x:Math.random(), y:Math.random(), vx:(Math.random()-.5)*0.0003, vy:(Math.random()-.5)*0.0003 }))
-
-    const draw=(ts:number)=>{
-      const t=ts*0.0004
-      ctx.clearRect(0,0,W,H)
-      nodes.forEach(n=>{ n.x+=n.vx; n.y+=n.vy; if(n.x<0||n.x>1)n.vx*=-1; if(n.y<0||n.y>1)n.vy*=-1 })
-
-      for(let i=0;i<nodes.length;i++) for(let j=i+1;j<nodes.length;j++){
-        const a=nodes[i],b=nodes[j]
-        const d=Math.hypot(a.x-b.x,a.y-b.y)
-        if(d>.38) continue
-        ctx.beginPath()
-        ctx.moveTo(a.x*W,a.y*H); ctx.lineTo(b.x*W,b.y*H)
-        ctx.strokeStyle=`rgba(${cr},${cg},${cb},${(1-d/.38)*(isDark?.07:.04)})`
-        ctx.lineWidth=.5; ctx.stroke()
-      }
-
-      nodes.forEach(n=>{
-        ctx.beginPath(); ctx.arc(n.x*W,n.y*H,1.5,0,Math.PI*2)
-        ctx.fillStyle=`rgba(${cr},${cg},${cb},${isDark?.18:.1})`; ctx.fill()
-      })
-
-      raf=requestAnimationFrame(draw)
-    }
-    raf=requestAnimationFrame(draw)
-    return ()=>{ cancelAnimationFrame(raf); window.removeEventListener("resize",resize) }
-  },[accent,isDark])
-
-  return <canvas ref={ref} style={{ position:"absolute", inset:0, width:"100%", height:"100%", pointerEvents:"none" }}/>
-}
-
-function Counter({ value, suffix, color, delay, trigger }: {
-  value:number; suffix:string; color:string; delay:number; trigger:boolean
-}) {
-  const [count, setCount] = useState(0)
-
-  useEffect(()=>{
-    if(!trigger) return
-    const start = performance.now()
-    const dur = 1600 + delay*200
-    const isLarge = value >= 100
-
-    const tick=(now:number)=>{
-      const p = Math.min((now-start)/dur,1)
-      const eased = 1-Math.pow(1-p,3)
-      const v = isLarge
-        ? Math.round(value*eased/10)*10
-        : value%1 !== 0 ? Math.round(value*eased*10)/10 : Math.round(value*eased)
-      setCount(v)
-      if(p<1) requestAnimationFrame(tick)
-      else setCount(value)
-    }
-    const id = setTimeout(()=>requestAnimationFrame(tick), delay*120)
-    return ()=>clearTimeout(id)
-  },[trigger,value,delay])
-
-  return (
-    <span style={{ color, fontVariantNumeric:"tabular-nums" }}>
-      {count}{suffix}
-    </span>
-  )
-}
-
-function StatRow({ s, i, vis }: { s:typeof STATS[0]; i:number; vis:boolean }) {
+function StatBand({ stat, i }: { stat: typeof STATS[0]; i: number }) {
+  const ref    = useRef<HTMLDivElement>(null)
+  const inView = useInView(ref, { once: true, margin: "-12%" })
   const { theme } = useTheme()
   const isDark = theme.mode === "dark"
-  const E = "cubic-bezier(0.16,1,0.3,1)"
-  const fade = (d=0): React.CSSProperties => ({
-    opacity:vis?1:0, transform:vis?"translateX(0)":"translateX(-20px)",
-    transition:`opacity .75s ${E} ${d}s, transform .75s ${E} ${d}s`,
-  })
 
   return (
-    <div style={{
-      display:"grid",
-      gridTemplateColumns:"1fr auto",
-      alignItems:"baseline",
-      padding:"clamp(1.25rem,2.5vw,2.25rem) 0",
-      borderTop:`1px solid ${isDark?"rgba(255,255,255,.05)":"rgba(0,0,0,.05)"}`,
-      gap:"2rem",
-    }}>
-      <div>
-        <div style={{
-          fontFamily:"var(--font-mono)", fontSize:"clamp(.46rem,.75vw,.56rem)",
-          letterSpacing:".16em", textTransform:"uppercase",
-          color:s.color, marginBottom:".35rem", ...fade(i*.06),
-        }}>{s.sub}</div>
-        <div style={{
-          fontFamily:"var(--font-display)", fontSize:"clamp(1.1rem,2vw,1.6rem)",
-          fontWeight:700, letterSpacing:"-.03em",
-          color: isDark?"rgba(255,255,255,.85)":"rgba(0,0,0,.8)",
-          ...fade(i*.06+.06),
-        }}>{s.label}</div>
+    <div
+      ref={ref}
+      style={{
+        position: "relative",
+        display: "grid",
+        gridTemplateColumns: "clamp(3rem,5vw,5rem) 1fr clamp(120px,20vw,280px) clamp(80px,12vw,160px)",
+        alignItems: "center",
+        gap: "clamp(1rem,2.5vw,2.5rem)",
+        padding: "clamp(1.75rem,3.5vw,3rem) clamp(1.5rem,6vw,5rem)",
+        borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.07)"}`,
+        overflow: "hidden",
+      }}
+    >
+      {/* Sweep fill on entry */}
+      <motion.div
+        initial={{ scaleX: 0 }}
+        animate={inView ? { scaleX: 1 } : {}}
+        transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1], delay: i * 0.05 + 0.1 }}
+        style={{
+          position: "absolute", inset: 0,
+          background: isDark ? `${stat.color}09` : `${stat.color}06`,
+          transformOrigin: "left",
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* Ghost index */}
+      <div style={{
+        fontFamily: "var(--font-mono)", fontSize: "0.48rem",
+        letterSpacing: "0.12em", color: stat.color, opacity: 0.5,
+        position: "relative", zIndex: 1,
+      }}>
+        {String(i + 1).padStart(2, "0")}
       </div>
 
-      <div style={{
-        fontFamily:"var(--font-display)",
-        fontSize:"clamp(3rem,7vw,6.5rem)",
-        fontWeight:800, letterSpacing:"-.05em", lineHeight:1,
-        ...fade(i*.06+.02),
-      }}>
-        <Counter value={s.value} suffix={s.suffix} color={s.color} delay={i} trigger={vis}/>
-      </div>
+      {/* Big value */}
+      <motion.div
+        initial={{ opacity: 0, x: -32 }}
+        animate={inView ? { opacity: 1, x: 0 } : {}}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: i * 0.06 + 0.12 }}
+        style={{ position: "relative", zIndex: 1 }}
+      >
+        <span style={{
+          fontFamily: "var(--font-display)",
+          fontSize: "clamp(3rem,7vw,6.5rem)",
+          fontWeight: 800, letterSpacing: "-0.055em", lineHeight: 0.9,
+          color: stat.color,
+          display: "block",
+        }}>{stat.value}</span>
+      </motion.div>
+
+      {/* Label */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={inView ? { opacity: 1, y: 0 } : {}}
+        transition={{ duration: 0.7, ease: "easeOut", delay: i * 0.06 + 0.22 }}
+        style={{ position: "relative", zIndex: 1 }}
+      >
+        <p style={{
+          fontFamily: "var(--font-display)",
+          fontSize: "clamp(0.9rem,1.5vw,1.3rem)",
+          fontWeight: 700, letterSpacing: "-0.02em", lineHeight: 1.2,
+          margin: "0 0 0.35rem", color: "var(--color-text-primary)",
+        }}>{stat.label}</p>
+        <p style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: "0.5rem", letterSpacing: "0.1em", textTransform: "uppercase",
+          color: "var(--color-text-muted)", margin: 0, opacity: 0.55,
+        }}>{stat.sub}</p>
+      </motion.div>
+
+      {/* Right accent bar */}
+      <motion.div
+        initial={{ scaleX: 0 }}
+        animate={inView ? { scaleX: 1 } : {}}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: i * 0.06 + 0.35 }}
+        style={{
+          height: 2,
+          background: `linear-gradient(90deg, ${stat.color}, transparent)`,
+          transformOrigin: "left",
+          position: "relative", zIndex: 1,
+        }}
+      />
     </div>
   )
 }
 
 export function ProcessNumbers() {
   const { theme } = useTheme()
-  const ref       = useRef<HTMLDivElement>(null)
-  const [vis, setVis] = useState(false)
-  const isDark = theme.mode === "dark"
+  const ref    = useRef<HTMLDivElement>(null)
+  const inView = useInView(ref, { once: true, margin: "-10%" })
   const acc    = theme.colors.accent
-  const E      = "cubic-bezier(0.16,1,0.3,1)"
-
-  useEffect(()=>{
-    if(!ref.current) return
-    const obs=new IntersectionObserver(([e])=>{ if(e.isIntersecting) setVis(true) },{threshold:.08})
-    obs.observe(ref.current)
-    return ()=>obs.disconnect()
-  },[])
-
-  const fade=(d=0):React.CSSProperties=>({
-    opacity:vis?1:0, transform:vis?"translateY(0)":"translateY(28px)",
-    transition:`opacity .8s ${E} ${d}s, transform .8s ${E} ${d}s`,
-  })
+  const isDark = theme.mode === "dark"
 
   return (
-    <section ref={ref} style={{
-      position:"relative", overflow:"hidden",
-      background: isDark?"#07070F":"#F0F0FA",
-      borderTop:`1px solid ${isDark?"rgba(255,255,255,.05)":"rgba(0,0,0,.05)"}`,
-    }}>
-      <WiringCanvas accent={acc} isDark={isDark}/>
+    <section style={{ position: "relative", background: "var(--color-bg)", overflow: "hidden" }}>
 
-      <div aria-hidden style={{
-        position:"absolute", inset:0, pointerEvents:"none",
-        backgroundImage:`url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")`,
-        backgroundSize:"256px", mixBlendMode:isDark?"overlay":"multiply", opacity:.5,
-      }}/>
-
-      <div style={{ position:"relative", zIndex:2, padding:"clamp(5rem,10vw,9rem) clamp(1.5rem,6vw,5rem)" }}>
-        {/* Section header */}
-        <div style={{ display:"grid", gridTemplateColumns:"1fr auto", alignItems:"end", marginBottom:"clamp(3rem,6vw,5rem)", gap:"3rem", flexWrap:"wrap" }}>
-          <div>
-            <div style={{ display:"flex", alignItems:"center", gap:".75rem", marginBottom:"clamp(1rem,2.5vw,2rem)", ...fade(0) }}>
-              <div style={{ width:28, height:1, background:acc }}/>
-              <span style={{ fontFamily:"var(--font-mono)", fontSize:"clamp(.52rem,1vw,.64rem)", letterSpacing:".18em", textTransform:"uppercase", color:acc }}>By the numbers</span>
-            </div>
-            <div style={{ overflow:"hidden", marginBottom:".04em" }}>
-              <h2 style={{ fontFamily:"var(--font-display)", fontSize:"clamp(3rem,11vw,10.5rem)", fontWeight:800, letterSpacing:"-.05em", lineHeight:.9, margin:0, color:isDark?"#fff":"#0a0a14", ...fade(0.1) }}>What I've</h2>
-            </div>
-            <div style={{ overflow:"hidden" }}>
-              <h2 style={{ fontFamily:"var(--font-display)", fontSize:"clamp(3rem,11vw,10.5rem)", fontWeight:800, letterSpacing:"-.05em", lineHeight:.9, margin:0, color:"transparent", WebkitTextStroke:`2px ${acc}`, textShadow:`0 0 80px ${acc}55`, ...fade(0.18) }}>built.</h2>
-            </div>
+      {/* Header */}
+      <div
+        ref={ref}
+        style={{
+          padding: "clamp(5rem,10vw,8rem) clamp(1.5rem,6vw,5rem) clamp(2rem,4vw,3rem)",
+          borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.07)"}`,
+          display: "flex", alignItems: "flex-end", justifyContent: "space-between",
+          flexWrap: "wrap", gap: "2rem",
+        }}
+      >
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "1rem" }}>
+            <div style={{ width: 20, height: "1px", background: acc }} />
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.58rem", letterSpacing: "0.16em", textTransform: "uppercase", color: acc }}>
+              By the numbers
+            </span>
           </div>
+          <h2 style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "clamp(2.5rem,7vw,6rem)",
+            fontWeight: 800, letterSpacing: "-0.05em", lineHeight: 0.9,
+            margin: 0, color: "var(--color-text-primary)",
+          }}>
+            The track record<br />
+            <span style={{ color: "transparent", WebkitTextStroke: `2px ${acc}` }}>speaks for itself.</span>
+          </h2>
+        </motion.div>
 
-          {/* Large accent glyph */}
-          <div aria-hidden style={{
-            fontFamily:"var(--font-display)", fontSize:"clamp(5rem,12vw,10rem)",
-            fontWeight:800, letterSpacing:"-.05em", lineHeight:1,
-            color:"transparent", WebkitTextStroke:`1px ${acc}22`,
-            userSelect:"none",
-            ...fade(0.05),
-          }}>∑</div>
-        </div>
-
-        {/* Stat rows */}
-        {STATS.map((s,i) => <StatRow key={s.label} s={s} i={i} vis={vis}/>)}
+        <motion.p
+          initial={{ opacity: 0, y: 16 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.7, ease: "easeOut", delay: 0.2 }}
+          style={{
+            fontFamily: "var(--font-body)",
+            fontSize: "clamp(0.82rem,1.1vw,0.95rem)",
+            color: "var(--color-text-muted)", lineHeight: 1.7,
+            maxWidth: 320, margin: 0,
+          }}
+        >
+          Numbers don't tell the whole story. But they do confirm it.
+        </motion.p>
       </div>
+
+      {/* Stat bands */}
+      {STATS.map((stat, i) => (
+        <StatBand key={stat.label} stat={stat} i={i} />
+      ))}
     </section>
   )
 }

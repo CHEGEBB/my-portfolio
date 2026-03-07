@@ -1,221 +1,241 @@
 "use client"
 
-import { useEffect, useRef, useState, useCallback } from "react"
+import { useEffect, useRef, useState, useCallback, Suspense } from "react"
 import { useTheme } from "@/context/theme-context"
+import { Canvas, useFrame, useThree } from "@react-three/fiber"
+import { MeshDistortMaterial, Icosahedron } from "@react-three/drei"
+import * as THREE from "three"
+import gsap from "gsap"
+import SplitType from "split-type"
 
-// ─── Particle flow field — pure 2D canvas ─────────────────────────────────────
-function FlowCanvas({ accent, isDark, mouse }: {
-  accent: string
-  isDark: boolean
-  mouse: React.MutableRefObject<{ x: number; y: number }>
-}) {
-  const ref = useRef<HTMLCanvasElement>(null)
-
-  useEffect(() => {
-    const canvas = ref.current; if (!canvas) return
-    const ctx = canvas.getContext("2d"); if (!ctx) return
-    const hex = accent.replace("#", "")
-    const cr = parseInt(hex.slice(0,2),16), cg = parseInt(hex.slice(2,4),16), cb = parseInt(hex.slice(4,6),16)
-
-    let W = 0, H = 0, raf: number
-    const resize = () => {
-      W = canvas.offsetWidth; H = canvas.offsetHeight
-      canvas.width  = W * (devicePixelRatio||1)
-      canvas.height = H * (devicePixelRatio||1)
-      ctx.setTransform(devicePixelRatio||1,0,0,devicePixelRatio||1,0,0)
-    }
-    resize()
-    window.addEventListener("resize", resize, { passive:true })
-
-    // Curl noise field particles
-    const P = Array.from({ length: 90 }, () => ({
-      x: Math.random(), y: Math.random(),
-      vx: 0, vy: 0,
-      life: Math.random(),
-      speed: 0.0004 + Math.random() * 0.0006,
-      size: 1 + Math.random() * 1.4,
-    }))
-
-    const field = (x: number, y: number, t: number) => {
-      // Two-octave curl
-      const a1 = Math.sin(x * 3.1 + t) * Math.cos(y * 2.7 - t * 0.7)
-      const a2 = Math.cos(x * 1.9 - t * 0.5) * Math.sin(y * 3.3 + t * 0.9)
-      return (a1 + a2) * Math.PI
-    }
-
-    const draw = (ts: number) => {
-      const t = ts * 0.0004
-      ctx.clearRect(0,0,W,H)
-
-      const mx = mouse.current.x, my = mouse.current.y
-
-      P.forEach(p => {
-        const angle = field(p.x * 2, p.y * 2, t) + mx * 0.5
-        const speed = p.speed * (1 + Math.abs(mx) * 0.3)
-        p.vx = p.vx * 0.88 + Math.cos(angle) * speed
-        p.vy = p.vy * 0.88 + Math.sin(angle) * speed + my * 0.0001
-        p.x += p.vx; p.y += p.vy
-        p.life += 0.004
-        if (p.x < 0 || p.x > 1 || p.y < 0 || p.y > 1 || p.life > 1) {
-          p.x = Math.random(); p.y = Math.random(); p.vx = 0; p.vy = 0; p.life = 0
-        }
-        const fade = Math.sin(p.life * Math.PI)
-        ctx.beginPath()
-        ctx.arc(p.x * W, p.y * H, p.size, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(${cr},${cg},${cb},${fade * (isDark ? 0.55 : 0.38)})`
-        ctx.fill()
-      })
-
-      // Faint flow lines — sparse grid of angle indicators
-      for (let c = 0; c < 18; c++) {
-        for (let r = 0; r < 11; r++) {
-          const x = (c / 17), y = (r / 10)
-          const angle = field(x * 2, y * 2, t)
-          const len = 22, px = x * W, py = y * H
-          ctx.beginPath()
-          ctx.moveTo(px - Math.cos(angle) * len * 0.3, py - Math.sin(angle) * len * 0.3)
-          ctx.lineTo(px + Math.cos(angle) * len * 0.7, py + Math.sin(angle) * len * 0.7)
-          ctx.strokeStyle = `rgba(${cr},${cg},${cb},${isDark ? 0.05 : 0.035})`
-          ctx.lineWidth = 0.6
-          ctx.stroke()
-        }
-      }
-
-      // Soft centre glow that breathes
-      const pulse = 0.55 + Math.sin(t * 2.5) * 0.08
-      const gx = W * (0.58 + mx * 0.05), gy = H * (0.42 - my * 0.04)
-      const g = ctx.createRadialGradient(gx, gy, 0, gx, gy, W * pulse * 0.55)
-      g.addColorStop(0, `rgba(${cr},${cg},${cb},${isDark ? 0.1 : 0.06})`)
-      g.addColorStop(1, `rgba(${cr},${cg},${cb},0)`)
-      ctx.beginPath(); ctx.arc(gx, gy, W * pulse * 0.55, 0, Math.PI*2)
-      ctx.fillStyle = g; ctx.fill()
-
-      raf = requestAnimationFrame(draw)
-    }
-    raf = requestAnimationFrame(draw)
-    return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", resize) }
-  }, [accent, isDark])
-
-  return <canvas ref={ref} style={{ position:"absolute", inset:0, width:"100%", height:"100%", pointerEvents:"none" }} />
-}
-
-// ─── Scroll cue — zero keyframes ──────────────────────────────────────────────
-function ScrollCue({ accent, vis }: { accent: string; vis: boolean }) {
-  const [bright, setBright] = useState(false)
-  useEffect(() => {
-    if (!vis) return
-    const id = setInterval(() => setBright(b => !b), 1000)
-    return () => clearInterval(id)
-  }, [vis])
+function FloatingMesh({ color, mouse }: { color: string; mouse: React.MutableRefObject<{ x: number; y: number }> }) {
+  const meshRef = useRef<THREE.Mesh>(null)
+  const { viewport } = useThree()
+  useFrame((state) => {
+    if (!meshRef.current) return
+    const t = state.clock.elapsedTime
+    meshRef.current.rotation.x = t * 0.10
+    meshRef.current.rotation.y = t * 0.07
+    meshRef.current.rotation.z = t * 0.04
+    meshRef.current.position.x = THREE.MathUtils.lerp(meshRef.current.position.x, mouse.current.x * viewport.width * 0.10, 0.04)
+    meshRef.current.position.y = THREE.MathUtils.lerp(meshRef.current.position.y, mouse.current.y * viewport.height * 0.07, 0.04)
+    meshRef.current.scale.setScalar(1 + Math.sin(t * 0.55) * 0.04)
+  })
   return (
-    <div style={{
-      position:"absolute", bottom:"clamp(1.5rem,3vw,2.5rem)", left:"50%",
-      transform:"translateX(-50%)", zIndex:5,
-      opacity: vis ? 1 : 0, transition:"opacity .6s ease .9s",
-    }}>
-      <div style={{
-        width:1, height:44,
-        background:`linear-gradient(to bottom,${accent},transparent)`,
-        opacity: bright ? 1 : 0.22,
-        transform: bright ? "scaleY(1.2)" : "scaleY(1)",
-        transition:"opacity 1s ease, transform 1s ease", transformOrigin:"top",
-      }}/>
-    </div>
+    <Icosahedron ref={meshRef} args={[1.7, 3]}>
+      <MeshDistortMaterial color={new THREE.Color(color)} distort={0.32} speed={1.6} roughness={0.1} metalness={0.6} transparent opacity={0.20} />
+    </Icosahedron>
   )
 }
 
-// ─── Hero ─────────────────────────────────────────────────────────────────────
+function WireframeMesh({ color, mouse }: { color: string; mouse: React.MutableRefObject<{ x: number; y: number }> }) {
+  const meshRef = useRef<THREE.Mesh>(null)
+  const { viewport } = useThree()
+  useFrame((state) => {
+    if (!meshRef.current) return
+    const t = state.clock.elapsedTime
+    meshRef.current.rotation.x = -t * 0.06
+    meshRef.current.rotation.y = t * 0.11
+    meshRef.current.position.x = THREE.MathUtils.lerp(meshRef.current.position.x, mouse.current.x * viewport.width * 0.07, 0.03)
+    meshRef.current.position.y = THREE.MathUtils.lerp(meshRef.current.position.y, mouse.current.y * viewport.height * 0.05, 0.03)
+  })
+  return (
+    <Icosahedron ref={meshRef} args={[2.2, 3]}>
+      <meshBasicMaterial color={new THREE.Color(color)} wireframe transparent opacity={0.065} />
+    </Icosahedron>
+  )
+}
+
 export function ProcessHero() {
   const { theme }  = useTheme()
   const sectionRef = useRef<HTMLDivElement>(null)
-  const mouseRef   = useRef({ x:0, y:0 })
-  const [vis, setVis] = useState(false)
-
+  const headingRef = useRef<HTMLHeadingElement>(null)
+  const subRef     = useRef<HTMLParagraphElement>(null)
+  const eyebrowRef = useRef<HTMLDivElement>(null)
+  const mouseRef   = useRef({ x: 0, y: 0 })
+  const scrollDot  = useRef<HTMLDivElement>(null)
+  const [mounted, setMounted] = useState(false)
   const isDark = theme.mode === "dark"
   const acc    = theme.colors.accent
-  const E = "cubic-bezier(0.16,1,0.3,1)"
 
-  useEffect(() => { const t = setTimeout(() => setVis(true), 80); return () => clearTimeout(t) }, [])
+  useEffect(() => { setMounted(true) }, [])
 
-  const onMM = useCallback((e: MouseEvent) => {
+  useEffect(() => {
+    if (!mounted || !headingRef.current || !subRef.current) return
+    const ctx = gsap.context(() => {
+      const splitHead = new SplitType(headingRef.current!, { types: "chars,words" })
+      const splitSub  = new SplitType(subRef.current!,     { types: "words" })
+      const tl = gsap.timeline({ delay: 0.3 })
+      tl.fromTo(eyebrowRef.current, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, 0)
+      tl.fromTo(splitHead.chars,
+        { opacity: 0, y: 80, rotateX: -90, transformOrigin: "50% 100%" },
+        { opacity: 1, y: 0, rotateX: 0, duration: 0.9, stagger: { amount: 0.7, from: "start" }, ease: "back.out(1.4)" },
+        0.2
+      )
+      tl.fromTo(splitSub.words,
+        { opacity: 0, y: 24 },
+        { opacity: 1, y: 0, duration: 0.6, stagger: 0.04, ease: "power3.out" },
+        0.9
+      )
+    }, sectionRef)
+    return () => ctx.revert()
+  }, [mounted])
+
+  const onMouseMove = useCallback((e: MouseEvent) => {
     const el = sectionRef.current; if (!el) return
     const r = el.getBoundingClientRect()
     mouseRef.current = {
       x:  ((e.clientX - r.left) / r.width  - 0.5) * 2,
-      y: -(((e.clientY - r.top)  / r.height) - 0.5) * 2,
+      y: -((e.clientY - r.top)  / r.height - 0.5) * 2,
     }
   }, [])
-  useEffect(() => {
-    window.addEventListener("mousemove", onMM, { passive:true })
-    return () => window.removeEventListener("mousemove", onMM)
-  }, [onMM])
 
-  const fade = (delay = 0): React.CSSProperties => ({
-    opacity:   vis ? 1 : 0,
-    transform: vis ? "translateY(0)" : "translateY(36px)",
-    transition: `opacity .85s ${E} ${delay}s, transform .85s ${E} ${delay}s`,
-  })
+  useEffect(() => {
+    window.addEventListener("mousemove", onMouseMove, { passive: true })
+    return () => window.removeEventListener("mousemove", onMouseMove)
+  }, [onMouseMove])
+
+  useEffect(() => {
+    const dot = scrollDot.current; if (!dot) return
+    const id = setInterval(() => {
+      dot.style.filter = "brightness(1.8)"
+      setTimeout(() => { dot.style.filter = "brightness(0.5)" }, 500)
+    }, 1100)
+    return () => clearInterval(id)
+  }, [])
 
   return (
-    <section ref={sectionRef} style={{
-      position:"relative", height:"100svh",
-      display:"flex", flexDirection:"column", justifyContent:"flex-end",
-      overflow:"hidden", background: isDark ? "#07070F" : "#F0F0FA",
-    }}>
-      <FlowCanvas accent={acc} isDark={isDark} mouse={mouseRef} />
+    <section
+      ref={sectionRef}
+      style={{
+        position: "relative",
+        height: "100svh",
+        overflow: "hidden",
+        background: "var(--color-bg)",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "flex-end",
+        padding: "clamp(2rem,5vw,4rem) clamp(1.5rem,6vw,5rem)",
+      }}
+    >
+      {/* ── R3F — centred, shifted down so it overlaps the text ── */}
+      <div style={{
+        position: "absolute",
+        top: "5%",           // shifted down vs before (-10%)
+        left: "50%",
+        transform: "translateX(-50%)",
+        width: "100%",
+        height: "90%",       // taller so bottom of mesh sits behind text
+        pointerEvents: "none",
+        zIndex: 0,           // sits behind text (zIndex 3)
+      }}>
+        <Canvas
+          camera={{ position: [0, 0, 4.5], fov: 45 }}
+          gl={{ antialias: true, alpha: true }}
+          style={{ width: "100%", height: "100%" }}
+        >
+          <ambientLight intensity={0.4} />
+          <directionalLight position={[3, 3, 3]} intensity={0.7} />
+          <Suspense fallback={null}>
+            <FloatingMesh color={acc} mouse={mouseRef} />
+            <WireframeMesh color={acc} mouse={mouseRef} />
+          </Suspense>
+        </Canvas>
+      </div>
 
       {/* Noise */}
       <div aria-hidden style={{
-        position:"absolute", inset:0, pointerEvents:"none", zIndex:1,
-        backgroundImage:`url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")`,
-        backgroundSize:"256px", mixBlendMode: isDark ? "overlay" : "multiply", opacity:.6,
+        position: "absolute", inset: 0, opacity: isDark ? 0.032 : 0.022,
+        pointerEvents: "none", zIndex: 1,
+        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+        backgroundSize: "160px",
       }}/>
 
-      {/* Bottom fade */}
+      {/* Ambient glow */}
       <div aria-hidden style={{
-        position:"absolute", inset:0, zIndex:2, pointerEvents:"none",
-        background: isDark
-          ? "linear-gradient(to top,#07070F 0%,#07070Fcc 35%,transparent 65%)"
-          : "linear-gradient(to top,#F0F0FA 0%,#F0F0FAcc 30%,transparent 60%)",
+        position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0,
+        background: `radial-gradient(ellipse 55% 55% at 50% 48%, ${acc}${isDark ? "16" : "0e"} 0%, transparent 65%)`,
       }}/>
 
-      {/* Text — anchored bottom */}
-      <div style={{ position:"relative", zIndex:5, padding:"0 clamp(1.5rem,6vw,5rem) clamp(3rem,6vw,5rem)" }}>
+      {/* Soft vignette at bottom — subtle, doesn't hide the mesh */}
+      <div aria-hidden style={{
+        position: "absolute",
+        bottom: 0, left: 0, right: 0,
+        height: "35%",
+        background: `linear-gradient(to top, var(--color-bg) 30%, transparent 100%)`,
+        pointerEvents: "none",
+        zIndex: 2,
+      }}/>
 
-        <div style={{ display:"flex", alignItems:"center", gap:".75rem", marginBottom:"clamp(1rem,2.5vw,2rem)", ...fade(0.12) }}>
-          <div style={{ width:28, height:1, background:acc }}/>
-          <span style={{ fontFamily:"var(--font-mono)", fontSize:"clamp(.52rem,1vw,.64rem)", letterSpacing:".18em", textTransform:"uppercase", color:acc }}>
-            How I work
-          </span>
-        </div>
-
-        <div style={{ overflow:"hidden", marginBottom:".05em" }}>
-          <h1 style={{
-            fontFamily:"var(--font-display)", fontSize:"clamp(3rem,11vw,10.5rem)",
-            fontWeight:800, letterSpacing:"-.05em", lineHeight:.9, margin:0,
-            color: isDark ? "#ffffff" : "#0a0a14", ...fade(0.22),
-          }}>Process.</h1>
-        </div>
-
-        <div style={{ overflow:"hidden", marginBottom:"clamp(1.5rem,3vw,2.5rem)" }}>
-          <h1 style={{
-            fontFamily:"var(--font-display)", fontSize:"clamp(3rem,11vw,10.5rem)",
-            fontWeight:800, letterSpacing:"-.05em", lineHeight:.9, margin:0,
-            color:"transparent", WebkitTextStroke:`2px ${acc}`,
-            textShadow:`0 0 80px ${acc}55`, ...fade(0.34),
-          }}>Not magic.</h1>
-        </div>
-
-        <p style={{
-          fontFamily:"var(--font-body)", fontSize:"clamp(.9rem,1.5vw,1.15rem)",
-          color:"var(--color-text-muted)", lineHeight:1.72, maxWidth:540, margin:0,
-          ...fade(0.46),
-        }}>
-          Five phases. Ruthless communication. Zero ambiguity. Every project I ship runs the same disciplined system — because consistency is what makes great software, not talent alone.
-        </p>
+      {/* ── Text — free, no container, mesh glows behind it ── */}
+      <div ref={eyebrowRef} style={{
+        display: "flex", alignItems: "center", gap: "0.6rem",
+        marginBottom: "clamp(1rem,2vw,1.75rem)",
+        opacity: 0,
+        position: "relative", zIndex: 3,
+      }}>
+        <div style={{ width: 20, height: 1, background: acc, flexShrink: 0 }}/>
+        <span style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: "clamp(0.48rem,0.85vw,0.62rem)",
+          letterSpacing: "0.18em", textTransform: "uppercase", color: acc,
+        }}>Systematic · Transparent · Delivered</span>
       </div>
 
-      <ScrollCue accent={acc} vis={vis} />
+      <h1
+        ref={headingRef}
+        style={{
+          fontFamily: "var(--font-display)",
+          fontSize: "clamp(3rem,10vw,9.5rem)",
+          fontWeight: 800, letterSpacing: "-0.055em", lineHeight: 0.88,
+          margin: "0 0 clamp(1.25rem,2.5vw,2rem)",
+          perspective: "800px",
+          position: "relative", zIndex: 3,
+        }}
+      >
+        <span style={{ display: "block", color: "var(--color-text-primary)" }}>Process.</span>
+        <span style={{
+          display: "block",
+          color: "transparent",
+          WebkitTextStroke: `2px ${acc}`,
+          textShadow: `0 0 70px ${acc}55`,
+        }}>Not magic.</span>
+      </h1>
+
+      <p
+        ref={subRef}
+        style={{
+          fontFamily: "var(--font-body)",
+          fontSize: "clamp(0.88rem,1.3vw,1.05rem)",
+          color: "var(--color-text-muted)",
+          lineHeight: 1.72,
+          maxWidth: "min(520px, 100%)",
+          margin: 0,
+          position: "relative", zIndex: 3,
+        }}
+      >
+        Great software isn't conjured — it's built step by step, with discipline,
+        communication, and zero tolerance for chaos. Here's how I do it.
+      </p>
+
+      {/* Scroll cue */}
+      <div style={{
+        position: "absolute",
+        bottom: "clamp(1.5rem,3vw,2.5rem)",
+        right: "clamp(1.5rem,3vw,2.5rem)",
+        display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem",
+        zIndex: 3,
+      }}>
+        <div style={{
+          width: 1, height: "clamp(40px,5vh,60px)",
+          background: `linear-gradient(to bottom, transparent, ${acc}88)`,
+        }}/>
+        <div ref={scrollDot} style={{
+          width: 6, height: 6, borderRadius: "50%",
+          background: acc, filter: "brightness(0.5)",
+          transition: "filter 0.4s ease",
+        }}/>
+      </div>
     </section>
   )
 }
