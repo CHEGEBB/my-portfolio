@@ -16,28 +16,54 @@ const NAV_LINKS = [
   { label: "Contact",   href: "/contact",   num: "05" },
 ]
 
-const HamburgerIcon = ({ open, color }: { open: boolean; color: string }) => (
-  <div style={{ width: 20, height: 14, position: "relative", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-    <span style={{
-      display: "block", height: "1.5px", background: color, borderRadius: 2,
-      width: "100%",
-      transformOrigin: "center",
-      transform: open ? "translateY(6px) rotate(45deg)" : "none",
-      transition: "transform 0.35s cubic-bezier(0.16,1,0.3,1), opacity 0.25s ease",
-    }}/>
-    <span style={{
-      display: "block", height: "1.5px", background: color, borderRadius: 2,
-      width: "100%",
-      opacity: open ? 0 : 1,
-      transition: "opacity 0.2s ease",
-    }}/>
-    <span style={{
-      display: "block", height: "1.5px", background: color, borderRadius: 2,
-      width: "100%",
-      transformOrigin: "center",
-      transform: open ? "translateY(-6px) rotate(-45deg)" : "none",
-      transition: "transform 0.35s cubic-bezier(0.16,1,0.3,1), opacity 0.25s ease",
-    }}/>
+// Original staircase hamburger — untouched
+const StaircaseMenu = ({ open, color }: { open: boolean; color: string }) => (
+  <div style={{
+    display: "flex", flexDirection: "column",
+    alignItems: "flex-start", justifyContent: "center",
+    gap: "4px", width: 20, height: 16,
+    position: "relative",
+  }}>
+    {open ? (
+      <>
+        <span style={{
+          display: "block", width: "18px", height: "1.5px",
+          background: color, borderRadius: "2px",
+          transform: "translateY(5.75px) rotate(45deg)",
+          transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
+        }}/>
+        <span style={{
+          display: "block", width: "18px", height: "1.5px",
+          background: color, borderRadius: "2px",
+          opacity: 0,
+          transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
+        }}/>
+        <span style={{
+          display: "block", width: "18px", height: "1.5px",
+          background: color, borderRadius: "2px",
+          transform: "translateY(-5.75px) rotate(-45deg)",
+          transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
+        }}/>
+      </>
+    ) : (
+      <>
+        <span style={{
+          display: "block", width: "18px", height: "1.5px",
+          background: color, borderRadius: "2px",
+          transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
+        }}/>
+        <span style={{
+          display: "block", width: "13px", height: "1.5px",
+          background: color, borderRadius: "2px",
+          transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
+        }}/>
+        <span style={{
+          display: "block", width: "8px", height: "1.5px",
+          background: color, borderRadius: "2px",
+          transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
+        }}/>
+      </>
+    )}
   </div>
 )
 
@@ -49,7 +75,6 @@ export function Navbar() {
   const [themeOpen, setThemeOpen] = useState(false)
   const [hovered,   setHovered]   = useState<string | null>(null)
   const isDark = theme.mode === "dark"
-  const acc    = theme.colors.accent
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60)
@@ -75,6 +100,10 @@ export function Navbar() {
 
   const toggle = () => { setMenuOpen(v => !v); setThemeOpen(false) }
 
+  const hamburgerColor = menuOpen
+    ? "var(--color-accent)"
+    : "var(--color-text-primary)"
+
   return (
     <>
       {/* ─── DESKTOP NAV ─── */}
@@ -87,10 +116,8 @@ export function Navbar() {
           right:     scrolled ? "auto" : "0",
           transform: scrolled ? "translateX(-50%)" : "none",
           width:     scrolled ? "auto" : "100%",
-          zIndex: 100,
-          opacity: menuOpen ? 0 : 1,
-          pointerEvents: menuOpen ? "none" : "all",
-          transition: "all 0.6s cubic-bezier(0.16,1,0.3,1), opacity 0.3s ease",
+          zIndex: 200,  /* above overlay so hamburger always clickable */
+          transition: "all 0.6s cubic-bezier(0.16,1,0.3,1)",
         }}
       >
         <div style={{
@@ -108,8 +135,12 @@ export function Navbar() {
           transition: "all 0.6s cubic-bezier(0.16,1,0.3,1)",
         }}>
 
-          {/* Logo */}
-          <Link href="/" style={{ display: "flex", alignItems: "center", textDecoration: "none", flexShrink: 0 }}>
+          {/* Logo — hide when menu open so overlay feels clean */}
+          <Link href="/" style={{
+            display: "flex", alignItems: "center", textDecoration: "none", flexShrink: 0,
+            opacity: menuOpen ? 0 : 1, pointerEvents: menuOpen ? "none" : "all",
+            transition: "opacity 0.3s ease",
+          }}>
             <Image
               src={isDark ? "/logo-dark.png" : "/logo-light.png"}
               alt="Brian Chege" width={110} height={32} priority
@@ -117,12 +148,13 @@ export function Navbar() {
             />
           </Link>
 
-          {/* Nav links */}
+          {/* Nav links — hide when menu open */}
           <ul style={{
             display: "flex", alignItems: "center", listStyle: "none",
             margin: "0 auto", padding: 0,
             gap: scrolled ? "0.125rem" : "clamp(1.25rem,2.5vw,2.5rem)",
-            transition: "gap 0.4s ease",
+            opacity: menuOpen ? 0 : 1, pointerEvents: menuOpen ? "none" : "all",
+            transition: "opacity 0.3s ease, gap 0.4s ease",
           }}>
             {NAV_LINKS.map(link => (
               <li key={link.href}>
@@ -168,8 +200,10 @@ export function Navbar() {
             ))}
           </ul>
 
-          {/* Right: theme + Hire Me + hamburger */}
+          {/* Right side */}
           <div style={{ display: "flex", alignItems: "center", gap: scrolled ? "0.375rem" : "0.625rem", flexShrink: 0 }}>
+
+            {/* Theme — hide when menu open */}
             <button
               onClick={() => { setThemeOpen(!themeOpen); setMenuOpen(false) }}
               aria-label="Customize theme"
@@ -182,6 +216,7 @@ export function Navbar() {
                 display: "flex", alignItems: "center", justifyContent: "center",
                 transition: "all 0.3s ease",
                 color: themeOpen ? "var(--color-accent)" : "var(--color-text-secondary)",
+                opacity: menuOpen ? 0 : 1, pointerEvents: menuOpen ? "none" : "all",
               }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -190,6 +225,7 @@ export function Navbar() {
               </svg>
             </button>
 
+            {/* Hire Me — hide when menu open */}
             <Link
               href="/contact"
               style={{
@@ -201,6 +237,7 @@ export function Navbar() {
                 borderRadius: "9999px", textDecoration: "none",
                 whiteSpace: "nowrap", boxShadow: "0 0 20px var(--color-accent-muted)",
                 transition: "all 0.3s ease",
+                opacity: menuOpen ? 0 : 1, pointerEvents: menuOpen ? "none" : "all",
               }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "scale(1.05)" }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "scale(1)" }}
@@ -208,6 +245,7 @@ export function Navbar() {
               Hire Me
             </Link>
 
+            {/* Staircase hamburger — always visible, always clickable, shows X when open */}
             <button
               onClick={toggle}
               aria-label={menuOpen ? "Close menu" : "Open menu"}
@@ -219,9 +257,10 @@ export function Navbar() {
                 backdropFilter: "blur(8px)", cursor: "pointer",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 transition: "all 0.3s ease", flexShrink: 0,
+                position: "relative", zIndex: 210,
               }}
             >
-              <HamburgerIcon open={menuOpen} color={menuOpen ? "var(--color-accent)" : "var(--color-text-primary)"} />
+              <StaircaseMenu open={menuOpen} color={hamburgerColor} />
             </button>
           </div>
         </div>
@@ -270,6 +309,7 @@ export function Navbar() {
             </svg>
           </button>
 
+          {/* Staircase hamburger → X on mobile too */}
           <button
             onClick={toggle}
             aria-label={menuOpen ? "Close menu" : "Open menu"}
@@ -279,10 +319,10 @@ export function Navbar() {
               background: menuOpen ? "var(--color-accent-muted)" : "var(--color-bg-glass)",
               backdropFilter: "blur(8px)", cursor: "pointer",
               display: "flex", alignItems: "center", justifyContent: "center",
-              transition: "all 0.3s ease",
+              transition: "all 0.3s ease", position: "relative", zIndex: 210,
             }}
           >
-            <HamburgerIcon open={menuOpen} color={menuOpen ? "var(--color-accent)" : "var(--color-text-primary)"} />
+            <StaircaseMenu open={menuOpen} color={menuOpen ? "var(--color-accent)" : "var(--color-text-primary)"} />
           </button>
         </div>
       </header>
@@ -291,20 +331,18 @@ export function Navbar() {
       <ThemeSwitcher isOpen={themeOpen} onClose={() => setThemeOpen(false)} />
 
       {/* ─── FULLSCREEN OVERLAY MENU ─── */}
-      <div
-        style={{
-          position: "fixed", inset: 0, zIndex: 150,
-          background: isDark ? "rgba(7,7,15,0.97)" : "rgba(246,246,252,0.97)",
-          backdropFilter: "blur(28px)", WebkitBackdropFilter: "blur(28px)",
-          display: "flex", flexDirection: "column",
-          justifyContent: "center", alignItems: "center",   // ← CENTERED
-          padding: "clamp(2rem,8vw,4rem)",
-          opacity: menuOpen ? 1 : 0,
-          pointerEvents: menuOpen ? "all" : "none",
-          transition: "opacity 0.4s cubic-bezier(0.16,1,0.3,1)",
-          overflow: "hidden",
-        }}
-      >
+      <div style={{
+        position: "fixed", inset: 0, zIndex: 150,
+        background: isDark ? "rgba(7,7,15,0.97)" : "rgba(246,246,252,0.97)",
+        backdropFilter: "blur(28px)", WebkitBackdropFilter: "blur(28px)",
+        display: "flex", flexDirection: "column",
+        justifyContent: "center", alignItems: "center",
+        padding: "clamp(2rem,8vw,4rem)",
+        opacity: menuOpen ? 1 : 0,
+        pointerEvents: menuOpen ? "all" : "none",
+        transition: "opacity 0.4s cubic-bezier(0.16,1,0.3,1)",
+        overflow: "hidden",
+      }}>
         {/* Ambient blob */}
         <div style={{
           position: "absolute", width: "80vw", height: "80vw", borderRadius: "50%",
@@ -316,11 +354,10 @@ export function Navbar() {
         <div style={{
           fontFamily: "var(--font-mono)", fontSize: "0.6875rem",
           color: "var(--color-accent)", letterSpacing: "0.12em", textTransform: "uppercase",
-          marginBottom: "clamp(1.5rem,5vw,2.5rem)",
+          marginBottom: "clamp(1.5rem,5vw,2.5rem)", textAlign: "center",
           opacity: menuOpen ? 1 : 0,
           transform: menuOpen ? "translateY(0)" : "translateY(20px)",
           transition: "all 0.5s cubic-bezier(0.16,1,0.3,1) 0.05s",
-          textAlign: "center",
         }}>
           Navigation
         </div>
