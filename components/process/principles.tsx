@@ -57,7 +57,7 @@ export function ProcessPrinciples() {
       <div ref={headerRef} style={{
         padding: "clamp(5rem,10vw,8rem) clamp(1.5rem,6vw,5rem) clamp(3rem,5vw,4rem)",
         display: "grid",
-        gridTemplateColumns: "1fr 1fr",
+        gridTemplateColumns: "1fr",  /* single col base, media query handles desktop */
         gap: "clamp(2rem,5vw,5rem)",
         alignItems: "flex-end",
         borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
@@ -73,7 +73,7 @@ export function ProcessPrinciples() {
           </div>
           <h2 style={{
             fontFamily: "var(--font-display)",
-            fontSize: "clamp(3rem,8vw,7rem)",
+            fontSize: "clamp(2.8rem,8vw,7rem)",
             fontWeight: 800, letterSpacing: "-.055em", lineHeight: .88, margin: 0,
           }}>
             <span style={{ display: "block", color: "var(--color-text-primary)" }}>The</span>
@@ -90,7 +90,6 @@ export function ProcessPrinciples() {
           <p style={{ fontFamily: "var(--font-body)", fontSize: "clamp(.85rem,1.2vw,1rem)", color: "var(--color-text-muted)", lineHeight: 1.72, margin: 0 }}>
             Four things I refuse to compromise on regardless of timeline, budget, or client pressure.
           </p>
-          {/* Principle index pills */}
           <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap" }}>
             {PRINCIPLES.map((p) => (
               <div key={p.num} style={{
@@ -107,10 +106,18 @@ export function ProcessPrinciples() {
         </motion.div>
       </div>
 
-      {/* ── Principles — full-bleed rows ── */}
+      {/* ── Principles rows ── */}
       {PRINCIPLES.map((p, i) => (
         <PrincipleRow key={p.num} p={p} i={i} isDark={isDark} />
       ))}
+
+      <style jsx global>{`
+        @media (min-width: 768px) {
+          .pp-header {
+            grid-template-columns: 1fr 1fr !important;
+          }
+        }
+      `}</style>
     </section>
   )
 }
@@ -128,10 +135,11 @@ function PrincipleRow({ p, i, isDark }: { p: typeof PRINCIPLES[0]; i: number; is
       transition={{ duration: .6, delay: i * 0.05 }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      className="pp-row"
       style={{
         display: "grid",
-        gridTemplateColumns: "clamp(100px,18vw,220px) 1fr clamp(80px,14vw,180px)",
-        minHeight: "clamp(180px,22vw,280px)",
+        /* Mobile: stack vertically. Desktop: 3-col via media query below */
+        gridTemplateColumns: "1fr",
         borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
         cursor: "default",
         transition: "background .3s ease",
@@ -140,61 +148,97 @@ function PrincipleRow({ p, i, isDark }: { p: typeof PRINCIPLES[0]; i: number; is
         overflow: "hidden",
       }}
     >
-      {/* Left — accent column with number + symbol */}
-      <motion.div
-        initial={{ scaleY: 0 }}
-        animate={inView ? { scaleY: 1 } : {}}
-        transition={{ duration: .7, ease: [.16,1,.3,1], delay: i * 0.05 }}
-        style={{
-          background: hovered ? p.color : `${p.color}${isDark ? "16" : "0f"}`,
-          display: "flex", flexDirection: "column",
-          justifyContent: "space-between",
-          padding: "clamp(1.5rem,3vw,2.5rem) clamp(1rem,2vw,1.75rem)",
-          transformOrigin: "top",
-          transition: "background .35s ease",
-          borderRight: `1px solid ${isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)"}`,
-        }}
-      >
-        <span style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "clamp(1.8rem,4vw,3.5rem)",
-          fontWeight: 900, letterSpacing: "-.04em",
-          color: hovered ? (isDark ? "#000" : "#fff") : p.color,
-          lineHeight: 1,
-          transition: "color .3s ease",
-        }}>{p.num}</span>
-        <span style={{
-          fontFamily: "var(--font-display)",
-          fontSize: "clamp(1.5rem,3vw,2.5rem)",
-          color: hovered ? (isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)") : `${p.color}55`,
-          lineHeight: 1,
-          transition: "color .3s ease",
-        }}>{p.symbol}</span>
-      </motion.div>
+      {/* Top row on mobile: number + stat side by side */}
+      <div className="pp-top" style={{ display: "flex" }}>
+        {/* Left — accent column with number + symbol */}
+        <motion.div
+          initial={{ scaleY: 0 }}
+          animate={inView ? { scaleY: 1 } : {}}
+          transition={{ duration: .7, ease: [.16,1,.3,1], delay: i * 0.05 }}
+          style={{
+            background: hovered ? p.color : `${p.color}${isDark ? "16" : "0f"}`,
+            display: "flex", flexDirection: "column",
+            justifyContent: "space-between",
+            padding: "clamp(1.25rem,3vw,2.5rem) clamp(1rem,2vw,1.75rem)",
+            transformOrigin: "top",
+            transition: "background .35s ease",
+            borderRight: `1px solid ${isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)"}`,
+            minWidth: "clamp(72px,18vw,220px)",
+            width: "clamp(72px,18vw,220px)",
+            flexShrink: 0,
+          }}
+        >
+          <span style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "clamp(1.5rem,4vw,3.5rem)",
+            fontWeight: 900, letterSpacing: "-.04em",
+            color: hovered ? (isDark ? "#000" : "#fff") : p.color,
+            lineHeight: 1,
+            transition: "color .3s ease",
+          }}>{p.num}</span>
+          <span style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "clamp(1.25rem,3vw,2.5rem)",
+            color: hovered ? (isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)") : `${p.color}55`,
+            lineHeight: 1,
+            transition: "color .3s ease",
+          }}>{p.symbol}</span>
+        </motion.div>
 
-      {/* Centre — title + body */}
+        {/* Right stat — shown next to number on mobile */}
+        <motion.div
+          className="pp-stat-mobile"
+          initial={{ opacity: 0 }}
+          animate={inView ? { opacity: 1 } : {}}
+          transition={{ duration: .6, delay: i * 0.05 + 0.25 }}
+          style={{
+            flex: 1,
+            display: "flex", flexDirection: "column",
+            justifyContent: "center", alignItems: "center",
+            padding: "clamp(1.25rem,3vw,2rem) clamp(1rem,2vw,1.5rem)",
+            textAlign: "center", gap: ".4rem",
+            borderLeft: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
+          }}
+        >
+          <div style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "clamp(1.6rem,6vw,3.2rem)",
+            fontWeight: 900, letterSpacing: "-.05em", lineHeight: 1,
+            color: p.color,
+          }}>{p.stat}</div>
+          <div style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "clamp(.38rem,.6vw,.52rem)",
+            letterSpacing: ".1em", textTransform: "uppercase",
+            color: "var(--color-text-muted)", opacity: .55,
+            lineHeight: 1.5,
+          }}>{p.statLabel}</div>
+        </motion.div>
+      </div>
+
+      {/* Centre — title + body, full width on mobile */}
       <motion.div
         initial={{ opacity: 0, x: 24 }}
         animate={inView ? { opacity: 1, x: 0 } : {}}
         transition={{ duration: .75, ease: [.16,1,.3,1], delay: i * 0.05 + 0.12 }}
         style={{
-          padding: "clamp(1.75rem,3.5vw,2.75rem) clamp(1.5rem,3vw,2.5rem)",
+          padding: "clamp(1.5rem,3.5vw,2.75rem) clamp(1.25rem,3vw,2.5rem)",
           display: "flex", flexDirection: "column", justifyContent: "center",
+          borderTop: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
         }}
       >
-        {/* Top accent bar */}
+        {/* Hover accent bar */}
         <div style={{
           width: hovered ? "100%" : "0%",
           height: 2,
           background: `linear-gradient(90deg, ${p.color}, transparent)`,
           marginBottom: "1.25rem",
           transition: "width .5s cubic-bezier(.16,1,.3,1)",
-          position: "absolute", top: 0, left: "clamp(100px,18vw,220px)", right: 0,
         }}/>
 
         <h3 style={{
           fontFamily: "var(--font-display)",
-          fontSize: "clamp(1.4rem,2.8vw,2.5rem)",
+          fontSize: "clamp(1.25rem,2.8vw,2.5rem)",
           fontWeight: 800, letterSpacing: "-.04em", lineHeight: .97,
           color: "var(--color-text-primary)",
           margin: "0 0 .6rem",
@@ -216,33 +260,23 @@ function PrincipleRow({ p, i, isDark }: { p: typeof PRINCIPLES[0]; i: number; is
         }}>{p.body}</p>
       </motion.div>
 
-      {/* Right — stat panel */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={inView ? { opacity: 1 } : {}}
-        transition={{ duration: .6, delay: i * 0.05 + 0.25 }}
-        style={{
-          borderLeft: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
-          display: "flex", flexDirection: "column",
-          justifyContent: "center", alignItems: "center",
-          padding: "clamp(1.5rem,3vw,2rem) clamp(1rem,2vw,1.5rem)",
-          textAlign: "center", gap: ".4rem",
-        }}
-      >
-        <div style={{
-          fontFamily: "var(--font-display)",
-          fontSize: "clamp(1.8rem,4vw,3.2rem)",
-          fontWeight: 900, letterSpacing: "-.05em", lineHeight: 1,
-          color: p.color,
-        }}>{p.stat}</div>
-        <div style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "clamp(.38rem,.6vw,.48rem)",
-          letterSpacing: ".1em", textTransform: "uppercase",
-          color: "var(--color-text-muted)", opacity: .55,
-          lineHeight: 1.5,
-        }}>{p.statLabel}</div>
-      </motion.div>
+      {/* ── Desktop: restore 3-col layout via CSS ── */}
+      <style jsx>{`
+        @media (min-width: 768px) {
+          .pp-row {
+            grid-template-columns: clamp(100px,18vw,220px) 1fr clamp(80px,14vw,180px) !important;
+            min-height: clamp(180px,22vw,280px);
+          }
+          .pp-top {
+            display: contents !important;
+          }
+          .pp-stat-mobile {
+            border-left: 1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"} !important;
+            border-top: none !important;
+            flex: unset !important;
+          }
+        }
+      `}</style>
     </motion.div>
   )
 }

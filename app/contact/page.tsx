@@ -8,8 +8,8 @@ import { TypeAnimation } from "react-type-animation"
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
 
-const API_URL        = "https://portfolio-api-2-c57s.onrender.com/api/contact"
-const GITHUB_USER    = "CHEGEBB"
+const API_URL     = "https://portfolio-api-2-c57s.onrender.com/api/contact"
+const GITHUB_USER = "CHEGEBB"
 
 interface GHUser  { followers: number; public_repos: number }
 interface GHRepo  { id: number; name: string; description: string; html_url: string; stargazers_count: number; language: string; pushed_at: string }
@@ -95,7 +95,6 @@ function PaintWipe({ gone, color }: { gone: boolean; color: string }) {
   )
 }
 
-// ── Toast style helper ─────────────────────────────────────
 const ts = (theme: any) => ({
   background: theme.colors.surface,
   border: `1px solid ${theme.colors.surfaceBorder}`,
@@ -115,6 +114,7 @@ export default function ContactPage() {
   const [formDone, setFormDone] = useState(false)
   const [sending,  setSending]  = useState(false)
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" })
+  const [isMobile, setIsMobile] = useState(false)
 
   const [ghUser,    setGhUser]    = useState<GHUser | null>(null)
   const [repos,     setRepos]     = useState<GHRepo[]>([])
@@ -122,10 +122,16 @@ export default function ContactPage() {
   const [ghLoading, setGhLoading] = useState(true)
 
   useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768)
+    checkMobile()
+    window.addEventListener("resize", checkMobile, { passive: true })
     setWinSize({ width: window.innerWidth, height: window.innerHeight })
     const t1 = setTimeout(() => setPainted(true),  80)
     const t2 = setTimeout(() => setRevealed(true), 980)
-    return () => { clearTimeout(t1); clearTimeout(t2) }
+    return () => {
+      clearTimeout(t1); clearTimeout(t2)
+      window.removeEventListener("resize", checkMobile)
+    }
   }, [])
 
   useEffect(() => {
@@ -197,6 +203,7 @@ export default function ContactPage() {
     ? `color-mix(in srgb, ${acc} 14%, #08080F)`
     : `color-mix(in srgb, ${acc} 11%, #EDEDF5)`
 
+  // Staggered reveal animation helper
   const s = (i: number): React.CSSProperties => ({
     opacity: revealed ? 1 : 0,
     transform: revealed ? "translateY(0)" : "translateY(28px)",
@@ -217,7 +224,6 @@ export default function ContactPage() {
       )}
 
       <PaintWipe gone={painted} color={paintColor}/>
-
       <Navbar/>
 
       {/* Ambient glow */}
@@ -226,22 +232,24 @@ export default function ContactPage() {
       <main style={{
         position: "relative", zIndex: 1,
         maxWidth: 1280, margin: "0 auto",
-        padding: "clamp(6rem,12vw,10rem) clamp(1rem,4vw,3rem) clamp(4rem,8vw,6rem)",
+        padding: "clamp(6rem,12vw,10rem) clamp(1.25rem,5vw,3rem) clamp(4rem,8vw,6rem)",
         opacity: revealed ? 1 : 0, transition: "opacity .45s ease",
       }}>
 
-        {/* ── HERO ─────────────────────────────────────────── */}
-        <div className="c-hero" style={{
-          display: "grid", gridTemplateColumns: "1fr 1fr",
-          gap: "clamp(3rem,6vw,8rem)", alignItems: "end",
-          marginBottom: "clamp(5rem,10vw,8rem)",
+        {/* ── HERO ── */}
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+          gap: isMobile ? "2rem" : "clamp(3rem,6vw,8rem)",
+          alignItems: "end",
+          marginBottom: isMobile ? "3.5rem" : "clamp(5rem,10vw,8rem)",
         }}>
           <div>
             <p style={{ ...s(0), fontFamily: "var(--font-mono)", fontSize: "clamp(.6rem,1vw,.72rem)", letterSpacing: ".14em", textTransform: "uppercase", color: acc, marginBottom: "clamp(1rem,2vw,1.75rem)", display: "flex", alignItems: "center", gap: ".5rem" }}>
-              <span style={{ width: 20, height: 1, background: acc, display: "inline-block" }}/>
+              <span style={{ width: 20, height: 1, background: acc, display: "inline-block", flexShrink: 0 }}/>
               Get In Touch
             </p>
-            <h1 style={{ ...s(1), fontFamily: "var(--font-display)", fontSize: "clamp(3rem,9vw,8rem)", fontWeight: 800, letterSpacing: "-.04em", lineHeight: .88, margin: 0 }}>
+            <h1 style={{ ...s(1), fontFamily: "var(--font-display)", fontSize: "clamp(2.6rem,9vw,8rem)", fontWeight: 800, letterSpacing: "-.04em", lineHeight: .88, margin: 0 }}>
               Let&apos;s build{" "}
               <span style={{ color: "transparent", WebkitTextStroke: `2px ${acc}`, display: "inline-block" }}>
                 <TypeAnimation
@@ -253,7 +261,7 @@ export default function ContactPage() {
           </div>
 
           <div style={s(2)}>
-            <p style={{ fontFamily: "var(--font-body)", fontSize: "clamp(.875rem,1.5vw,1.0625rem)", lineHeight: 1.75, color: muted, marginBottom: "2rem" }}>
+            <p style={{ fontFamily: "var(--font-body)", fontSize: "clamp(.875rem,1.5vw,1.0625rem)", lineHeight: 1.75, color: muted, marginBottom: "1.5rem" }}>
               Open to freelance projects, full-time roles, and interesting collaborations.
               I reply within 24 hours — usually much faster.
             </p>
@@ -264,19 +272,29 @@ export default function ContactPage() {
           </div>
         </div>
 
-        {/* ── FORM + CONTACT INFO ───────────────────────────── */}
-        <div className="c-main" style={{
-          display: "grid", gridTemplateColumns: "1fr 1fr",
-          gap: "clamp(4rem,8vw,10rem)",
-          marginBottom: "clamp(5rem,10vw,8rem)",
+        {/* ── DIVIDER ── */}
+        <div style={{ ...s(2), height: 1, background: `linear-gradient(to right, ${acc}44, transparent)`, marginBottom: isMobile ? "2.5rem" : "clamp(4rem,8vw,6rem)" }}/>
+
+        {/* ── FORM + CONTACT INFO ── */}
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+          gap: isMobile ? "3rem" : "clamp(4rem,8vw,10rem)",
+          marginBottom: isMobile ? "4rem" : "clamp(5rem,10vw,8rem)",
         }}>
           {/* Form */}
           <div style={{ ...s(3) }}>
+            {/* Section label */}
+            <p style={{ fontFamily: "var(--font-mono)", fontSize: "clamp(.55rem,.8vw,.65rem)", letterSpacing: ".14em", textTransform: "uppercase", color: acc, marginBottom: "1.75rem", display: "flex", alignItems: "center", gap: ".5rem" }}>
+              <span style={{ width: 14, height: 1, background: acc, display: "inline-block" }}/>
+              Send a message
+            </p>
+
             {formDone ? (
               <div style={{ animation: "fadeIn .5s ease" }}>
                 <div style={{
                   fontFamily: "var(--font-display)",
-                  fontSize: "clamp(3rem,7vw,5.5rem)",
+                  fontSize: "clamp(2.5rem,7vw,5.5rem)",
                   fontWeight: 800, letterSpacing: "-.04em", lineHeight: .9,
                   color: acc, marginBottom: "1.5rem",
                   animation: "slideUp .75s cubic-bezier(.16,1,.3,1)",
@@ -290,7 +308,12 @@ export default function ContactPage() {
               </div>
             ) : (
               <form onSubmit={onSubmit} style={{ display: "flex", flexDirection: "column", gap: "clamp(1rem,2vw,1.75rem)" }}>
-                <div className="c-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "clamp(1rem,2vw,2rem)" }}>
+                {/* Name + Email row — stacks on mobile */}
+                <div style={{
+                  display: "grid",
+                  gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+                  gap: isMobile ? "clamp(1rem,2vw,1.75rem)" : "clamp(1rem,2vw,2rem)",
+                }}>
                   <Field label="Name"  name="name"  value={form.name}  onChange={onChange}/>
                   <Field label="Email" name="email" type="email" value={form.email} onChange={onChange}/>
                 </div>
@@ -324,28 +347,37 @@ export default function ContactPage() {
 
           {/* Contact info */}
           <div style={s(4)}>
+            <p style={{ fontFamily: "var(--font-mono)", fontSize: "clamp(.55rem,.8vw,.65rem)", letterSpacing: ".14em", textTransform: "uppercase", color: acc, marginBottom: "1.75rem", display: "flex", alignItems: "center", gap: ".5rem" }}>
+              <span style={{ width: 14, height: 1, background: acc, display: "inline-block" }}/>
+              Contact details
+            </p>
+
             {[
               { label: "Email",    value: "chegephil24@gmail.com",  href: "mailto:chegephil24@gmail.com" },
               { label: "Location", value: "Eldoret, Kenya",          href: "#" },
               { label: "GitHub",   value: "github.com/CHEGEBB",      href: "https://github.com/CHEGEBB" },
               { label: "LinkedIn", value: "linkedin.com/in/chegebb", href: "https://linkedin.com/in/chegebb" },
               { label: "Twitter",  value: "twitter.com/chegebb",     href: "https://twitter.com/chegebb" },
-            ].map(item => (
+            ].map((item, idx) => (
               <a key={item.label} href={item.href}
                 target={item.href.startsWith("http") ? "_blank" : undefined}
                 rel={item.href.startsWith("http") ? "noopener noreferrer" : undefined}
                 style={{
-                  display: "grid", gridTemplateColumns: "5rem 1fr",
+                  display: "grid",
+                  gridTemplateColumns: isMobile ? "4.5rem 1fr" : "5rem 1fr",
                   alignItems: "center", gap: "1rem",
-                  padding: "clamp(.875rem,1.5vw,1.25rem) 0",
+                  padding: "clamp(.75rem,1.5vw,1.25rem) 0",
                   borderBottom: `1px solid ${border}`,
                   textDecoration: "none", transition: "opacity .2s ease",
+                  opacity: revealed ? 1 : 0,
+                  transform: revealed ? "translateX(0)" : "translateX(20px)",
+                  transitionDelay: `${.5 + idx * .07}s`,
                 }}
                 onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity = ".5"}
                 onMouseLeave={e => (e.currentTarget as HTMLElement).style.opacity = "1"}
               >
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: "clamp(.55rem,.75vw,.65rem)", letterSpacing: ".1em", textTransform: "uppercase", color: acc }}>{item.label}</span>
-                <span style={{ fontFamily: "var(--font-body)", fontSize: "clamp(.875rem,1.3vw,1rem)", color: prim }}>{item.value}</span>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: "clamp(.5rem,.75vw,.65rem)", letterSpacing: ".1em", textTransform: "uppercase", color: acc }}>{item.label}</span>
+                <span style={{ fontFamily: "var(--font-body)", fontSize: "clamp(.8rem,1.3vw,1rem)", color: prim, wordBreak: "break-all" }}>{item.value}</span>
               </a>
             ))}
 
@@ -353,14 +385,14 @@ export default function ContactPage() {
               {[{ v: ghUser?.followers ?? "—", l: "Followers" }, { v: ghUser?.public_repos ?? "—", l: "Repos" }].map(stat => (
                 <div key={stat.l}>
                   <div style={{ fontFamily: "var(--font-display)", fontSize: "clamp(2rem,4.5vw,3.5rem)", fontWeight: 800, letterSpacing: "-.04em", color: acc, lineHeight: 1 }}>{stat.v}</div>
-                  <div style={{ fontFamily: "var(--font-mono)", fontSize: "clamp(.55rem,.75vw,.65rem)", color: muted, marginTop: ".2rem", letterSpacing: ".06em" }}>{stat.l}</div>
+                  <div style={{ fontFamily: "var(--font-mono)", fontSize: "clamp(.5rem,.75vw,.65rem)", color: muted, marginTop: ".2rem", letterSpacing: ".06em" }}>{stat.l}</div>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* ── GITHUB ───────────────────────────────────────── */}
+        {/* ── GITHUB ── */}
         <div style={{ ...s(5), borderTop: `1px solid ${border}`, paddingTop: "clamp(3rem,6vw,5rem)" }}>
           <p style={{ fontFamily: "var(--font-mono)", fontSize: "clamp(.6rem,1vw,.72rem)", letterSpacing: ".14em", textTransform: "uppercase", color: acc, marginBottom: "clamp(2rem,4vw,3rem)", display: "flex", alignItems: "center", gap: ".5rem" }}>
             <span style={{ width: 20, height: 1, background: acc, display: "inline-block" }}/>
@@ -368,7 +400,11 @@ export default function ContactPage() {
             {ghLoading && <div style={{ width: 12, height: 12, border: `1.5px solid ${acc}`, borderTop: "1.5px solid transparent", borderRadius: "50%", animation: "spin .8s linear infinite" }}/>}
           </p>
 
-          <div className="c-gh" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "clamp(2rem,4vw,5rem)" }}>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+            gap: isMobile ? "3rem" : "clamp(2rem,4vw,5rem)",
+          }}>
             {/* Repos */}
             <div>
               <p style={{ fontFamily: "var(--font-mono)", fontSize: "clamp(.55rem,.8vw,.65rem)", color: muted, letterSpacing: ".1em", textTransform: "uppercase", marginBottom: "1.25rem" }}>Top Repos</p>
@@ -387,9 +423,9 @@ export default function ContactPage() {
                       onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity = ".55"}
                       onMouseLeave={e => (e.currentTarget as HTMLElement).style.opacity = "1"}
                       >
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: ".35rem" }}>
-                          <span style={{ fontFamily: "var(--font-body)", fontSize: "clamp(.875rem,1.3vw,1rem)", fontWeight: 600, color: prim }}>{r.name}</span>
-                          <span style={{ fontFamily: "var(--font-mono)", fontSize: "clamp(.5rem,.7vw,.6rem)", color: sc, border: `1px solid ${sc}44`, padding: ".15rem .45rem" }}>{st}</span>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: ".35rem", gap: ".5rem" }}>
+                          <span style={{ fontFamily: "var(--font-body)", fontSize: "clamp(.875rem,1.3vw,1rem)", fontWeight: 600, color: prim, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.name}</span>
+                          <span style={{ fontFamily: "var(--font-mono)", fontSize: "clamp(.5rem,.7vw,.6rem)", color: sc, border: `1px solid ${sc}44`, padding: ".15rem .45rem", flexShrink: 0 }}>{st}</span>
                         </div>
                         <p style={{ fontFamily: "var(--font-body)", fontSize: "clamp(.75rem,1.1vw,.8125rem)", color: muted, lineHeight: 1.5, marginBottom: ".4rem", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 1, WebkitBoxOrient: "vertical" as const }}>
                           {r.description || "No description"}
@@ -427,6 +463,42 @@ export default function ContactPage() {
             </div>
           </div>
         </div>
+
+        {/* ── MOBILE CTA strip ── */}
+        {isMobile && (
+          <div style={{
+            ...s(6),
+            marginTop: "3rem",
+            padding: "1.75rem",
+            border: `1px solid ${border}`,
+            display: "flex", flexDirection: "column", gap: "1rem",
+            position: "relative", overflow: "hidden",
+          }}>
+            <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse 80% 80% at 50% 0%, ${acc}0a, transparent)`, pointerEvents: "none" }}/>
+            <p style={{ fontFamily: "var(--font-mono)", fontSize: ".6rem", letterSpacing: ".14em", textTransform: "uppercase", color: acc, margin: 0 }}>Quick connect</p>
+            <div style={{ display: "flex", gap: ".75rem", flexWrap: "wrap" }}>
+              {[
+                { label: "Email me", href: "mailto:chegephil24@gmail.com", icon: "✉" },
+                { label: "GitHub",   href: "https://github.com/CHEGEBB",   icon: "⌥" },
+                { label: "LinkedIn", href: "https://linkedin.com/in/chegebb", icon: "◈" },
+              ].map(btn => (
+                <a key={btn.label} href={btn.href} target="_blank" rel="noopener noreferrer" style={{
+                  fontFamily: "var(--font-body)", fontSize: ".8125rem", fontWeight: 600,
+                  color: prim, border: `1px solid ${border}`,
+                  padding: ".5rem 1rem", borderRadius: 9999,
+                  textDecoration: "none", display: "flex", alignItems: "center", gap: ".4rem",
+                  background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)",
+                  transition: "border-color .2s ease, color .2s ease",
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = acc; (e.currentTarget as HTMLElement).style.color = acc }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = border; (e.currentTarget as HTMLElement).style.color = prim }}
+                >
+                  <span style={{ color: acc }}>{btn.icon}</span> {btn.label}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
       </main>
 
       <Footer/>
@@ -439,11 +511,6 @@ export default function ContactPage() {
         @keyframes aPulse   { 0%,100%{box-shadow:0 0 0 0 #22c55e55} 70%{box-shadow:0 0 0 8px transparent} }
         @keyframes repoIn   { from{opacity:0;transform:translateX(-10px)} to{opacity:1;transform:translateX(0)} }
         @keyframes shimmer  { 0%,100%{opacity:.25} 50%{opacity:.5} }
-
-        @media(max-width:768px){
-          .c-hero,.c-main,.c-gh{ grid-template-columns:1fr !important; gap:3rem !important; }
-          .c-row{ grid-template-columns:1fr !important; }
-        }
       `}</style>
     </div>
   )
