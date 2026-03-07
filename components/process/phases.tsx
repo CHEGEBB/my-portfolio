@@ -1,163 +1,234 @@
 "use client"
 
-import { useRef, useState, useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { useTheme } from "@/context/theme-context"
+import gsap from "gsap"
+import { ScrollTrigger } from "gsap/ScrollTrigger"
+
+gsap.registerPlugin(ScrollTrigger)
 
 const PHASES = [
   {
-    num: "01", label: "Discovery",
-    title: "Understand\nbefore I build.",
-    body: "I start by interrogating the problem, not the solution. Client interviews, competitive teardowns, user flow mapping. I refuse to write a single line of code until I understand what winning looks like.",
-    tags: ["Stakeholder interviews","Problem framing","Scope definition","Risk mapping"],
-    duration: "1–2 days",
+    num: "01", label: "Discover", period: "Day 1–2", accent: "#5567F7",
+    title: "One conversation\nchanges everything.",
+    body: "I listen before I speak. The first session is never about me — it's about understanding your business, your users, and the real problem beneath the stated one. Most developers skip this. I never do.",
+    aside: "Bad requirements are the #1 cause of failed projects. Clarity here saves weeks later.",
   },
   {
-    num: "02", label: "Architecture",
-    title: "Design the\nsystem first.",
-    body: "Tech stack selection, database schema, API contracts, deployment strategy — all decided before the first component. Bad architecture costs 10× more to fix later. I don't cut corners here.",
-    tags: ["System design","Stack selection","API contracts","DB schema"],
-    duration: "1–3 days",
+    num: "02", label: "Architect", period: "Days 3–7", accent: "#45D2B0",
+    title: "Blueprint before\na single line.",
+    body: "I map the full technical solution — stack, schema, API contracts, component structure, deployment pipeline. You see and approve the plan before I write a single function.",
+    aside: "Every hour in architecture saves ten in rework. This is where the project is actually built.",
   },
   {
-    num: "03", label: "Build",
-    title: "Ship fast.\nShip right.",
-    body: "Feature-by-feature development against the spec. Clean commits, typed code, tested logic. I move fast because the architecture is already solid. Each feature ships complete — no half-measures.",
-    tags: ["Feature sprints","Type safety","Code review","Daily progress"],
-    duration: "Bulk of timeline",
+    num: "03", label: "Build", period: "Weeks 2–N", accent: "#FF6B9D",
+    title: "Working software,\nnot promises.",
+    body: "Agile sprints. Every week you see something real — a working screen, a deployed endpoint, a tested flow. Feedback welcome at every step. Changes are cheap early; I make them easy on purpose.",
+    aside: "I write tests. I document as I go. The codebase I hand over is one your team can maintain.",
   },
   {
-    num: "04", label: "Review",
-    title: "Break it\nbefore users do.",
-    body: "Manual testing, edge case hunting, performance profiling, security checks. I've found more bugs in one focused review session than most teams find in weeks. Paranoia is a feature.",
-    tags: ["QA testing","Performance audit","Security review","Bug triage"],
-    duration: "2–4 days",
+    num: "04", label: "Ship", period: "Final week", accent: "#AAFF00",
+    title: "Launched. Live.\nZero drama.",
+    body: "CI/CD pipeline. Containerised. Monitored from day one. The go-live is a non-event — infrastructure was ready weeks before launch day. No scrambling, no 3am emergencies.",
+    aside: "I've never missed a launch. The system is designed so missing is structurally impossible.",
   },
   {
-    num: "05", label: "Deploy",
-    title: "Launch with\nconfidence.",
-    body: "CI/CD pipelines, environment configs, rollback strategies — all in place before go-live. Launches are boring when you've prepared correctly. Boring launches are good launches.",
-    tags: ["CI/CD setup","Docker","AWS/Vercel","Monitoring"],
-    duration: "1–2 days",
-  },
-  {
-    num: "06", label: "Iterate",
-    title: "The work\nnever stops.",
-    body: "Post-launch analytics, user feedback, performance monitoring. Every shipped product enters a continuous improvement loop. The version users see today is never the final version.",
-    tags: ["Analytics","User feedback","Performance","Feature roadmap"],
-    duration: "Ongoing",
+    num: "05", label: "Evolve", period: "Ongoing", accent: "#F5A623",
+    title: "Good software\nnever stops.",
+    body: "Post-launch is where the real data arrives. I stay. Monitor the metrics, triage bugs, plan the next iteration. Software that doesn't evolve dies. Yours won't.",
+    aside: "The relationship doesn't end at handover. I'm reachable. I'm accountable. Always.",
   },
 ]
 
-function PhaseRow({ phase, index, acc, isDark }: {
-  phase: typeof PHASES[0]
-  index: number
-  acc: string
-  isDark: boolean
-}) {
-  const ref    = useRef<HTMLDivElement>(null)
-  const [vis,  setVis]  = useState(false)
-  const [open, setOpen] = useState(false)
-
-  useEffect(() => {
-    const el = ref.current; if (!el) return
-    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setVis(true) }, { threshold: 0.15 })
-    obs.observe(el); return () => obs.disconnect()
-  }, [])
-
-  const E = "cubic-bezier(0.16,1,0.3,1)"
-
-  return (
-    <div
-      ref={ref}
-      onClick={() => setOpen(o => !o)}
-      style={{
-        borderBottom: `1px solid ${isDark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.07)"}`,
-        cursor: "pointer", position:"relative", overflow:"hidden",
-        opacity:   vis ? 1 : 0,
-        transform: vis ? "translateY(0)" : "translateY(28px)",
-        transition: `opacity .7s ${E} ${index*0.07}s, transform .7s ${E} ${index*0.07}s`,
-      }}
-      onMouseOver={e => { (e.currentTarget as HTMLDivElement).style.background = isDark?`${acc}09`:`${acc}06` }}
-      onMouseOut={e =>  { (e.currentTarget as HTMLDivElement).style.background = "transparent" }}
-    >
-      {/* Accent line on hover/open */}
-      <div style={{ position:"absolute", left:0, top:0, bottom:0, width:open?3:0, background:acc, transition:"width .3s ease" }}/>
-
-      {/* Main row */}
-      <div style={{ display:"grid", gridTemplateColumns:"clamp(2.5rem,5vw,4rem) 1fr 1fr auto", alignItems:"center", gap:"clamp(.75rem,2vw,2rem)", padding:"clamp(1.25rem,2.5vw,2rem) clamp(1.5rem,4vw,3rem)" }}>
-
-        {/* Number */}
-        <span style={{ fontFamily:"var(--font-mono)", fontSize:"clamp(.52rem,.8vw,.64rem)", letterSpacing:".14em", color:acc, opacity:.65 }}>{phase.num}</span>
-
-        {/* Title */}
-        <div>
-          <div style={{ fontFamily:"var(--font-mono)", fontSize:"clamp(.44rem,.65vw,.56rem)", letterSpacing:".14em", textTransform:"uppercase", color:"var(--color-text-muted)", opacity:.5, marginBottom:".25rem" }}>{phase.label}</div>
-          <div style={{ fontFamily:"var(--font-display)", fontSize:"clamp(1.1rem,2.5vw,2rem)", fontWeight:800, letterSpacing:"-.03em", lineHeight:1.05, color:"var(--color-text-primary)", whiteSpace:"pre-line" }}>{phase.title}</div>
-        </div>
-
-        {/* Tags */}
-        <div style={{ display:"flex", flexWrap:"wrap", gap:".35rem" }}>
-          {phase.tags.map(t => (
-            <span key={t} style={{ fontFamily:"var(--font-mono)", fontSize:"clamp(.4rem,.58vw,.52rem)", letterSpacing:".08em", color: open?acc:"var(--color-text-muted)", border:`1px solid ${open?acc+"55":"rgba(128,128,128,0.2)"}`, padding:".2rem .6rem", borderRadius:"var(--radius)", transition:"all .25s ease", opacity: open?1:.6 }}>{t}</span>
-          ))}
-        </div>
-
-        {/* Duration + arrow */}
-        <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:".3rem" }}>
-          <span style={{ fontFamily:"var(--font-mono)", fontSize:"clamp(.42rem,.6vw,.54rem)", letterSpacing:".08em", color:acc, opacity:.7 }}>{phase.duration}</span>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={acc} strokeWidth="2" strokeLinecap="round"
-            style={{ transform: open?"rotate(180deg)":"rotate(0deg)", transition:"transform .35s ease", opacity:.7 }}>
-            <polyline points="6 9 12 15 18 9"/>
-          </svg>
-        </div>
-      </div>
-
-      {/* Expanded body */}
-      <div style={{ maxHeight: open?"200px":"0", overflow:"hidden", transition:`max-height .5s ${E}` }}>
-        <p style={{ fontFamily:"var(--font-body)", fontSize:"clamp(.82rem,1.1vw,.95rem)", color:"var(--color-text-muted)", lineHeight:1.75, margin:0, padding:"0 clamp(1.5rem,4vw,3rem) clamp(1.25rem,2vw,1.75rem) calc(clamp(2.5rem,5vw,4rem) + clamp(.75rem,2vw,2rem) + clamp(1.5rem,4vw,3rem))" }}>
-          {phase.body}
-        </p>
-      </div>
-    </div>
-  )
-}
-
 export function ProcessPhases() {
-  const { theme } = useTheme()
-  const acc    = theme.colors.accent
-  const isDark = theme.mode === "dark"
-  const ref    = useRef<HTMLDivElement>(null)
-  const [vis,  setVis]  = useState(false)
+  const { theme }  = useTheme()
+  const sectionRef = useRef<HTMLDivElement>(null)
+  const trackRef   = useRef<HTMLDivElement>(null)
+  const isDark     = theme.mode === "dark"
+  const acc        = theme.colors.accent
 
   useEffect(() => {
-    const el = ref.current; if (!el) return
-    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setVis(true) }, { threshold: 0.1 })
-    obs.observe(el); return () => obs.disconnect()
+    const section = sectionRef.current
+    const track   = trackRef.current
+    if (!section || !track) return
+
+    const ctx = gsap.context(() => {
+      // ── Main horizontal scroll — capture the ST instance directly ──
+      const mainST = ScrollTrigger.create({
+        id: "phases-scroll",
+        trigger: section,
+        pin: true,
+        scrub: 1,
+        start: "top top",
+        end: () => `+=${track.scrollWidth - window.innerWidth + 200}`,
+        invalidateOnRefresh: true,
+        animation: gsap.to(track, {
+          x: () => -(track.scrollWidth - window.innerWidth),
+          ease: "none",
+        }),
+      })
+
+      // ── Per-chapter reveal — use captured instance, not getById ──
+      gsap.utils.toArray<HTMLElement>(".phase-chapter").forEach((ch) => {
+        const inner = ch.querySelector<HTMLElement>(".phase-inner")
+        if (!inner) return
+        gsap.fromTo(
+          inner,
+          { opacity: 0, y: 60 },
+          {
+            opacity: 1, y: 0, duration: 0.85,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: ch,
+              // containerAnimation: mainST,
+              start: "left 80%",
+              toggleActions: "play none none reverse",
+            },
+          }
+        )
+      })
+    }, sectionRef)
+
+    return () => ctx.revert()
   }, [])
 
-  const E = "cubic-bezier(0.16,1,0.3,1)"
-
   return (
-    <section style={{ position:"relative", background:"var(--color-bg)", overflow:"hidden" }}>
-      {/* Header */}
-      <div ref={ref} style={{ padding:"clamp(5rem,10vw,8rem) clamp(1.5rem,6vw,5rem) clamp(2rem,4vw,3rem)", borderBottom:`1px solid ${isDark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.07)"}`, display:"flex", alignItems:"flex-end", justifyContent:"space-between", flexWrap:"wrap", gap:"2rem" }}>
-        <div style={{ opacity:vis?1:0, transform:vis?"translateY(0)":"translateY(24px)", transition:`opacity .8s ${E}, transform .8s ${E}` }}>
-          <div style={{ display:"flex", alignItems:"center", gap:".6rem", marginBottom:"1rem" }}>
-            <div style={{ width:20, height:1, background:acc }}/>
-            <span style={{ fontFamily:"var(--font-mono)", fontSize:".56rem", letterSpacing:".18em", textTransform:"uppercase", color:acc }}>Six Phases</span>
-          </div>
-          <h2 style={{ fontFamily:"var(--font-display)", fontSize:"clamp(2.5rem,8vw,7rem)", fontWeight:900, letterSpacing:"-.055em", lineHeight:.88, margin:0 }}>
-            <span style={{ display:"block", color:"var(--color-text-primary)" }}>The</span>
-            <span style={{ display:"block", color:"transparent", WebkitTextStroke:`2px ${acc}` }}>Sequence.</span>
-          </h2>
-        </div>
-        <p style={{ fontFamily:"var(--font-body)", fontSize:"clamp(.82rem,1.1vw,.95rem)", color:"var(--color-text-muted)", lineHeight:1.7, maxWidth:320, margin:0, opacity:vis?1:0, transition:`opacity .7s ${E} .3s` }}>
-          Click any phase to expand. Each step is non-negotiable — the order exists for a reason.
-        </p>
+    <section
+      ref={sectionRef}
+      style={{ position: "relative", height: "100svh", overflow: "hidden", background: "var(--color-bg)" }}
+    >
+      {/* Eyebrow */}
+      <div style={{
+        position: "absolute", top: "clamp(5rem,8vw,6rem)", left: "clamp(1.5rem,5vw,4rem)",
+        zIndex: 10, display: "flex", alignItems: "center", gap: "0.6rem",
+      }}>
+        <div style={{ width: 20, height: "1px", background: acc }} />
+        <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.58rem", letterSpacing: "0.16em", textTransform: "uppercase", color: acc }}>
+          The Process
+        </span>
       </div>
 
-      {/* Phase rows */}
-      {PHASES.map((p, i) => <PhaseRow key={p.num} phase={p} index={i} acc={acc} isDark={isDark}/>)}
+      {/* Horizontal track */}
+      <div ref={trackRef} style={{ display: "flex", height: "100%", willChange: "transform" }}>
+
+        {/* ── Intro panel ── */}
+        <div style={{
+          width: "100vw", flexShrink: 0, height: "100%",
+          display: "flex", flexDirection: "column", justifyContent: "flex-end",
+          padding: "clamp(5rem,10vw,8rem) clamp(1.5rem,6vw,5rem)",
+          borderRight: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.07)"}`,
+          position: "relative",
+        }}>
+          <h2 style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "clamp(3.5rem,9vw,9rem)",
+            fontWeight: 800, letterSpacing: "-0.055em", lineHeight: 0.87,
+            margin: "0 0 clamp(1.5rem,3vw,2.5rem)",
+            color: "var(--color-text-primary)",
+          }}>
+            How the<br />
+            <span style={{ color: "transparent", WebkitTextStroke: `2px ${acc}`, textShadow: `0 0 60px ${acc}44` }}>
+              work runs.
+            </span>
+          </h2>
+
+          <p style={{
+            fontFamily: "var(--font-body)",
+            fontSize: "clamp(0.85rem,1.2vw,1rem)",
+            color: "var(--color-text-muted)", lineHeight: 1.72,
+            maxWidth: 480, margin: "0 0 clamp(2rem,4vw,3rem)",
+          }}>
+            Every project I take runs the same disciplined system. Not because I'm rigid — because consistency is what separates great software from scrambled software.
+          </p>
+
+          <div style={{ display: "flex", gap: "clamp(1rem,2.5vw,2rem)", flexWrap: "wrap" }}>
+            {PHASES.map((ph) => (
+              <div key={ph.num} style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <div style={{ width: 6, height: 6, background: ph.accent, borderRadius: "50%" }} />
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.5rem", letterSpacing: "0.12em", textTransform: "uppercase", color: ph.accent }}>{ph.label}</span>
+              </div>
+            ))}
+          </div>
+
+          <div style={{
+            position: "absolute", bottom: "clamp(1.5rem,3vw,2.5rem)", right: "clamp(1.5rem,3vw,2.5rem)",
+            display: "flex", alignItems: "center", gap: "0.5rem",
+            fontFamily: "var(--font-mono)", fontSize: "0.48rem",
+            letterSpacing: "0.12em", textTransform: "uppercase",
+            color: "var(--color-text-muted)", opacity: 0.5,
+          }}>
+            <span>Scroll</span>
+            <svg width="24" height="10" viewBox="0 0 24 10" fill="none">
+              <path d="M0 5h21M16 1l5 4-5 4" stroke={acc} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+        </div>
+
+        {/* ── Phase chapters ── */}
+        {PHASES.map((ph, i) => (
+          <div
+            key={ph.num}
+            className="phase-chapter"
+            style={{
+              width: "clamp(340px,44vw,580px)", flexShrink: 0, height: "100%",
+              display: "flex", flexDirection: "column", justifyContent: "flex-end",
+              padding: "clamp(5rem,10vw,8rem) clamp(2rem,4.5vw,4rem)",
+              borderRight: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.07)"}`,
+              position: "relative",
+            }}
+          >
+            <div style={{
+              position: "absolute", top: "clamp(5rem,10vw,8rem)", right: "clamp(1.5rem,3vw,2.5rem)",
+              fontFamily: "var(--font-display)",
+              fontSize: "clamp(6rem,14vw,14rem)",
+              fontWeight: 800, letterSpacing: "-0.06em", lineHeight: 1,
+              color: "transparent",
+              WebkitTextStroke: `1px ${ph.accent}${isDark ? "18" : "14"}`,
+              userSelect: "none", pointerEvents: "none",
+            }}>{ph.num}</div>
+
+            <div className="phase-inner" style={{ opacity: 0, position: "relative", zIndex: 1 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "clamp(1.5rem,3vw,2.5rem)" }}>
+                <div style={{ width: 24, height: 1, background: ph.accent }} />
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.52rem", letterSpacing: "0.16em", textTransform: "uppercase", color: ph.accent }}>{ph.label}</span>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.44rem", letterSpacing: "0.1em", color: "var(--color-text-muted)", opacity: 0.4 }}>· {ph.period}</span>
+              </div>
+
+              <h3 style={{
+                fontFamily: "var(--font-display)",
+                fontSize: "clamp(1.8rem,3.5vw,3rem)",
+                fontWeight: 800, letterSpacing: "-0.045em", lineHeight: 0.96,
+                margin: "0 0 1.5rem",
+                color: "var(--color-text-primary)", whiteSpace: "pre-line",
+              }}>{ph.title}</h3>
+
+              <p style={{
+                fontFamily: "var(--font-body)",
+                fontSize: "clamp(0.82rem,1.1vw,0.95rem)",
+                color: "var(--color-text-muted)", lineHeight: 1.78,
+                margin: "0 0 1.75rem", maxWidth: 440,
+              }}>{ph.body}</p>
+
+              <div style={{ borderLeft: `2px solid ${ph.accent}55`, paddingLeft: "1.1rem" }}>
+                <p style={{
+                  fontFamily: "var(--font-body)",
+                  fontSize: "clamp(0.72rem,0.95vw,0.82rem)",
+                  color: ph.accent, lineHeight: 1.65,
+                  margin: 0, fontStyle: "italic", opacity: 0.85,
+                }}>{ph.aside}</p>
+              </div>
+            </div>
+
+            <div style={{
+              position: "absolute", bottom: "clamp(1.5rem,3vw,2.5rem)", right: "clamp(1.5rem,3vw,2.5rem)",
+              fontFamily: "var(--font-mono)", fontSize: "0.44rem",
+              letterSpacing: "0.12em", color: ph.accent, opacity: 0.4,
+            }}>{ph.num} / 05</div>
+          </div>
+        ))}
+
+        <div style={{ width: "20vw", flexShrink: 0 }} />
+      </div>
     </section>
   )
 }
