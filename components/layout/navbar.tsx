@@ -8,64 +8,36 @@ import { useTheme } from "@/context/theme-context"
 import { ThemeSwitcher } from "@/components/theme/theme-switcher"
 
 const NAV_LINKS = [
-  { label: "Home",      href: "/",          num: "00" },
-  { label: "Portfolio", href: "/portfolio",  num: "01" },
+  { label: "Home",      href: "/",         num: "00" },
+  { label: "Portfolio", href: "/portfolio", num: "01" },
   { label: "Services",  href: "/services",  num: "02" },
   { label: "About",     href: "/about",     num: "03" },
   { label: "Process",   href: "/process",   num: "04" },
   { label: "Contact",   href: "/contact",   num: "05" },
 ]
 
-// Staircase hamburger — 3 bars stepping down in width
-const StaircaseMenu = ({ open, color }: { open: boolean; color: string }) => (
-  <div style={{
-    display: "flex", flexDirection: "column",
-    alignItems: "flex-start", justifyContent: "center",
-    gap: "4px", width: 20, height: 16,
-    position: "relative",
-  }}>
-    {open ? (
-      // When open → becomes a clean X (two full-width bars crossing)
-      <>
-        <span style={{
-          display: "block", width: "18px", height: "1.5px",
-          background: color, borderRadius: "2px",
-          transform: "translateY(5.75px) rotate(45deg)",
-          transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
-        }}/>
-        <span style={{
-          display: "block", width: "18px", height: "1.5px",
-          background: color, borderRadius: "2px",
-          opacity: 0,
-          transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
-        }}/>
-        <span style={{
-          display: "block", width: "18px", height: "1.5px",
-          background: color, borderRadius: "2px",
-          transform: "translateY(-5.75px) rotate(-45deg)",
-          transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
-        }}/>
-      </>
-    ) : (
-      // Staircase: long → medium → short (left-aligned, stepping in)
-      <>
-        <span style={{
-          display: "block", width: "18px", height: "1.5px",
-          background: color, borderRadius: "2px",
-          transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
-        }}/>
-        <span style={{
-          display: "block", width: "13px", height: "1.5px",
-          background: color, borderRadius: "2px",
-          transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
-        }}/>
-        <span style={{
-          display: "block", width: "8px", height: "1.5px",
-          background: color, borderRadius: "2px",
-          transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
-        }}/>
-      </>
-    )}
+const HamburgerIcon = ({ open, color }: { open: boolean; color: string }) => (
+  <div style={{ width: 20, height: 14, position: "relative", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+    <span style={{
+      display: "block", height: "1.5px", background: color, borderRadius: 2,
+      width: "100%",
+      transformOrigin: "center",
+      transform: open ? "translateY(6px) rotate(45deg)" : "none",
+      transition: "transform 0.35s cubic-bezier(0.16,1,0.3,1), opacity 0.25s ease",
+    }}/>
+    <span style={{
+      display: "block", height: "1.5px", background: color, borderRadius: 2,
+      width: "100%",
+      opacity: open ? 0 : 1,
+      transition: "opacity 0.2s ease",
+    }}/>
+    <span style={{
+      display: "block", height: "1.5px", background: color, borderRadius: 2,
+      width: "100%",
+      transformOrigin: "center",
+      transform: open ? "translateY(-6px) rotate(-45deg)" : "none",
+      transition: "transform 0.35s cubic-bezier(0.16,1,0.3,1), opacity 0.25s ease",
+    }}/>
   </div>
 )
 
@@ -77,6 +49,7 @@ export function Navbar() {
   const [themeOpen, setThemeOpen] = useState(false)
   const [hovered,   setHovered]   = useState<string | null>(null)
   const isDark = theme.mode === "dark"
+  const acc    = theme.colors.accent
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60)
@@ -102,19 +75,9 @@ export function Navbar() {
 
   const toggle = () => { setMenuOpen(v => !v); setThemeOpen(false) }
 
-  const hamburgerColor = menuOpen
-    ? "var(--color-accent)"
-    : "var(--color-text-primary)"
-
   return (
     <>
-      {/* ══════════════════════════════════════════════
-          DESKTOP NAV
-          — Pre-scroll:  full-width transparent bar
-          — Post-scroll: floating pill, centered
-          Hamburger lives INSIDE the pill on the right,
-          same row as nav links. Always visible.
-      ══════════════════════════════════════════════ */}
+      {/* ─── DESKTOP NAV ─── */}
       <header
         className="desktop-header"
         style={{
@@ -154,7 +117,7 @@ export function Navbar() {
             />
           </Link>
 
-          {/* Nav links — centered */}
+          {/* Nav links */}
           <ul style={{
             display: "flex", alignItems: "center", listStyle: "none",
             margin: "0 auto", padding: 0,
@@ -172,9 +135,9 @@ export function Navbar() {
                     fontSize: scrolled ? "0.8125rem" : "0.875rem",
                     fontWeight: isActive(link.href) ? 700 : 500,
                     letterSpacing: "0.02em",
-                    color: isActive(link.href)
+                    color: isActive(link.href) || hovered === link.href
                       ? "var(--color-accent)"
-                      : hovered === link.href ? "var(--color-accent)" : "var(--color-text-secondary)",
+                      : "var(--color-text-secondary)",
                     textDecoration: "none",
                     padding: scrolled ? "0.375rem 0.5rem" : "0.25rem 0",
                     borderRadius: scrolled ? "9999px" : "0",
@@ -205,10 +168,8 @@ export function Navbar() {
             ))}
           </ul>
 
-          {/* Right side: theme + Hire Me + staircase hamburger */}
+          {/* Right: theme + Hire Me + hamburger */}
           <div style={{ display: "flex", alignItems: "center", gap: scrolled ? "0.375rem" : "0.625rem", flexShrink: 0 }}>
-
-            {/* Theme toggle */}
             <button
               onClick={() => { setThemeOpen(!themeOpen); setMenuOpen(false) }}
               aria-label="Customize theme"
@@ -229,7 +190,6 @@ export function Navbar() {
               </svg>
             </button>
 
-            {/* Hire Me CTA */}
             <Link
               href="/contact"
               style={{
@@ -248,7 +208,6 @@ export function Navbar() {
               Hire Me
             </Link>
 
-            {/* ── Staircase hamburger — ALWAYS in the nav row ── */}
             <button
               onClick={toggle}
               aria-label={menuOpen ? "Close menu" : "Open menu"}
@@ -259,35 +218,34 @@ export function Navbar() {
                 background: menuOpen ? "var(--color-accent-muted)" : "var(--color-bg-glass)",
                 backdropFilter: "blur(8px)", cursor: "pointer",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                transition: "all 0.3s ease",
-                flexShrink: 0,
+                transition: "all 0.3s ease", flexShrink: 0,
               }}
             >
-              <StaircaseMenu open={menuOpen} color={hamburgerColor} />
+              <HamburgerIcon open={menuOpen} color={menuOpen ? "var(--color-accent)" : "var(--color-text-primary)"} />
             </button>
           </div>
         </div>
       </header>
 
-      {/* ══════════════════════════════════════════════
-          MOBILE HEADER
-      ══════════════════════════════════════════════ */}
+      {/* ─── MOBILE HEADER ─── */}
       <header
         className="mobile-header"
         style={{
-          position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
+          position: "fixed", top: 0, left: 0, right: 0, zIndex: 200,
           padding: "0.875rem clamp(1rem,5vw,1.5rem)",
           display: "flex", alignItems: "center", justifyContent: "space-between",
-          background: scrolled
-            ? isDark ? "rgba(7,7,15,0.90)" : "rgba(246,246,252,0.90)"
-            : "transparent",
-          backdropFilter:       scrolled ? "blur(20px)" : "none",
-          WebkitBackdropFilter: scrolled ? "blur(20px)" : "none",
-          borderBottom: scrolled ? "1px solid var(--color-surface-border)" : "none",
+          background: menuOpen
+            ? "transparent"
+            : scrolled
+              ? isDark ? "rgba(7,7,15,0.90)" : "rgba(246,246,252,0.90)"
+              : "transparent",
+          backdropFilter: !menuOpen && scrolled ? "blur(20px)" : "none",
+          WebkitBackdropFilter: !menuOpen && scrolled ? "blur(20px)" : "none",
+          borderBottom: !menuOpen && scrolled ? "1px solid var(--color-surface-border)" : "none",
           transition: "all 0.4s ease",
         }}
       >
-        <Link href="/" style={{ textDecoration: "none" }}>
+        <Link href="/" style={{ textDecoration: "none", zIndex: 210 }}>
           <Image
             src={isDark ? "/logo-dark.png" : "/logo-light.png"}
             alt="Brian Chege" width={90} height={28} priority
@@ -295,8 +253,7 @@ export function Navbar() {
           />
         </Link>
 
-        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-          {/* Theme */}
+        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", zIndex: 210 }}>
           <button
             onClick={() => { setThemeOpen(!themeOpen); setMenuOpen(false) }}
             style={{
@@ -313,7 +270,6 @@ export function Navbar() {
             </svg>
           </button>
 
-          {/* Mobile staircase hamburger → X */}
           <button
             onClick={toggle}
             aria-label={menuOpen ? "Close menu" : "Open menu"}
@@ -326,34 +282,29 @@ export function Navbar() {
               transition: "all 0.3s ease",
             }}
           >
-            <StaircaseMenu open={menuOpen} color={menuOpen ? "var(--color-accent)" : "var(--color-text-primary)"} />
+            <HamburgerIcon open={menuOpen} color={menuOpen ? "var(--color-accent)" : "var(--color-text-primary)"} />
           </button>
         </div>
       </header>
 
-      {/* ══════════════════════════════════════════════
-          THEME PANEL — full-width drop from top
-      ══════════════════════════════════════════════ */}
-      <ThemeSwitcher
-        isOpen={themeOpen}
-        onClose={() => setThemeOpen(false)}
-      />
+      {/* ─── THEME PANEL ─── */}
+      <ThemeSwitcher isOpen={themeOpen} onClose={() => setThemeOpen(false)} />
 
-      {/* ══════════════════════════════════════════════
-          FULLSCREEN OVERLAY MENU
-      ══════════════════════════════════════════════ */}
-      <div style={{
-        position: "fixed", inset: 0, zIndex: 150,
-        background: isDark ? "rgba(7,7,15,0.97)" : "rgba(246,246,252,0.97)",
-        backdropFilter: "blur(28px)", WebkitBackdropFilter: "blur(28px)",
-        display: "flex", flexDirection: "column",
-        justifyContent: "center", alignItems: "flex-start",
-        padding: "clamp(2rem,8vw,4rem)",
-        opacity: menuOpen ? 1 : 0,
-        pointerEvents: menuOpen ? "all" : "none",
-        transition: "opacity 0.4s ease",
-        overflow: "hidden",
-      }}>
+      {/* ─── FULLSCREEN OVERLAY MENU ─── */}
+      <div
+        style={{
+          position: "fixed", inset: 0, zIndex: 150,
+          background: isDark ? "rgba(7,7,15,0.97)" : "rgba(246,246,252,0.97)",
+          backdropFilter: "blur(28px)", WebkitBackdropFilter: "blur(28px)",
+          display: "flex", flexDirection: "column",
+          justifyContent: "center", alignItems: "center",   // ← CENTERED
+          padding: "clamp(2rem,8vw,4rem)",
+          opacity: menuOpen ? 1 : 0,
+          pointerEvents: menuOpen ? "all" : "none",
+          transition: "opacity 0.4s cubic-bezier(0.16,1,0.3,1)",
+          overflow: "hidden",
+        }}
+      >
         {/* Ambient blob */}
         <div style={{
           position: "absolute", width: "80vw", height: "80vw", borderRadius: "50%",
@@ -367,66 +318,68 @@ export function Navbar() {
           color: "var(--color-accent)", letterSpacing: "0.12em", textTransform: "uppercase",
           marginBottom: "clamp(1.5rem,5vw,2.5rem)",
           opacity: menuOpen ? 1 : 0,
-          transform: menuOpen ? "translateY(0)" : "translateY(16px)",
-          transition: "all 0.5s ease 0.05s",
+          transform: menuOpen ? "translateY(0)" : "translateY(20px)",
+          transition: "all 0.5s cubic-bezier(0.16,1,0.3,1) 0.05s",
+          textAlign: "center",
         }}>
           Navigation
         </div>
 
-        {/* Staircase effect in the overlay too — each link indented more */}
-        {NAV_LINKS.map((link, i) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            onClick={() => setMenuOpen(false)}
-            style={{
-              display: "flex", alignItems: "baseline",
-              gap: "clamp(0.75rem,2vw,1.25rem)",
-              textDecoration: "none", lineHeight: 1.0,
-              marginBottom: "clamp(0.25rem,1vw,0.5rem)",
-              // Each link steps further right — staircase layout
-              paddingLeft: `${i * 1.2}rem`,
-              opacity: menuOpen ? 1 : 0,
-              transform: menuOpen ? "translateX(0)" : "translateX(-40px)",
-              transition: `all 0.6s cubic-bezier(0.16,1,0.3,1) ${i * 0.08 + 0.1}s`,
-              position: "relative", zIndex: 1,
-            }}
-            onMouseEnter={e => {
-              const num = e.currentTarget.querySelector(".menu-num") as HTMLElement
-              const txt = e.currentTarget.querySelector(".menu-txt") as HTMLElement
-              if (num) num.style.color = "var(--color-accent)"
-              if (txt) { txt.style.color = "var(--color-accent)"; txt.style.webkitTextStroke = "0px" }
-            }}
-            onMouseLeave={e => {
-              const num = e.currentTarget.querySelector(".menu-num") as HTMLElement
-              const txt = e.currentTarget.querySelector(".menu-txt") as HTMLElement
-              const active = isActive(link.href)
-              if (num) num.style.color = active ? "var(--color-accent)" : "var(--color-text-muted)"
-              if (txt) {
-                txt.style.color = active ? "var(--color-accent)" : "transparent"
-                txt.style.webkitTextStroke = active ? "0px" : `2px var(--color-text-primary)`
-              }
-            }}
-          >
-            <span className="menu-num" style={{
-              fontFamily: "var(--font-mono)", fontSize: "clamp(0.75rem,2vw,0.9rem)",
-              color: isActive(link.href) ? "var(--color-accent)" : "var(--color-text-muted)",
-              transition: "color 0.2s ease", userSelect: "none",
-            }}>
-              {link.num}
-            </span>
-            <span className="menu-txt" style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "clamp(3rem,12vw,6.5rem)",
-              fontWeight: 800, letterSpacing: "-0.04em",
-              color: isActive(link.href) ? "var(--color-accent)" : "transparent",
-              WebkitTextStroke: isActive(link.href) ? "0px" : `2px var(--color-text-primary)`,
-              transition: "all 0.2s ease",
-            }}>
-              {link.label}
-            </span>
-          </Link>
-        ))}
+        {/* Links — centered, no staircase indent */}
+        <nav style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.1rem", position: "relative", zIndex: 1 }}>
+          {NAV_LINKS.map((link, i) => {
+            const active = isActive(link.href)
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setMenuOpen(false)}
+                style={{
+                  display: "flex", alignItems: "baseline",
+                  gap: "clamp(0.5rem,1.5vw,0.875rem)",
+                  textDecoration: "none", lineHeight: 1.0,
+                  padding: "0.15rem 0",
+                  opacity: menuOpen ? 1 : 0,
+                  transform: menuOpen ? "translateY(0) scale(1)" : "translateY(30px) scale(0.95)",
+                  transition: `opacity 0.55s cubic-bezier(0.16,1,0.3,1) ${i * 0.07 + 0.12}s, transform 0.55s cubic-bezier(0.16,1,0.3,1) ${i * 0.07 + 0.12}s`,
+                }}
+                onMouseEnter={e => {
+                  const num = e.currentTarget.querySelector(".menu-num") as HTMLElement
+                  const txt = e.currentTarget.querySelector(".menu-txt") as HTMLElement
+                  if (num) num.style.color = "var(--color-accent)"
+                  if (txt) { txt.style.color = "var(--color-accent)"; txt.style.webkitTextStroke = "0px" }
+                }}
+                onMouseLeave={e => {
+                  const num = e.currentTarget.querySelector(".menu-num") as HTMLElement
+                  const txt = e.currentTarget.querySelector(".menu-txt") as HTMLElement
+                  if (num) num.style.color = active ? "var(--color-accent)" : "var(--color-text-muted)"
+                  if (txt) {
+                    txt.style.color = active ? "var(--color-accent)" : "transparent"
+                    txt.style.webkitTextStroke = active ? "0px" : `2px var(--color-text-primary)`
+                  }
+                }}
+              >
+                <span className="menu-num" style={{
+                  fontFamily: "var(--font-mono)", fontSize: "clamp(0.7rem,1.8vw,0.85rem)",
+                  color: active ? "var(--color-accent)" : "var(--color-text-muted)",
+                  transition: "color 0.2s ease", userSelect: "none",
+                }}>
+                  {link.num}
+                </span>
+                <span className="menu-txt" style={{
+                  fontFamily: "var(--font-display)",
+                  fontSize: "clamp(2.8rem,10vw,6.5rem)",
+                  fontWeight: 800, letterSpacing: "-0.04em",
+                  color: active ? "var(--color-accent)" : "transparent",
+                  WebkitTextStroke: active ? "0px" : `2px var(--color-text-primary)`,
+                  transition: "all 0.2s ease",
+                }}>
+                  {link.label}
+                </span>
+              </Link>
+            )
+          })}
+        </nav>
 
         {/* Bottom bar */}
         <div style={{
@@ -436,7 +389,7 @@ export function Navbar() {
           display: "flex", justifyContent: "space-between", alignItems: "center",
           opacity: menuOpen ? 1 : 0,
           transform: menuOpen ? "translateY(0)" : "translateY(16px)",
-          transition: "all 0.5s ease 0.55s",
+          transition: "all 0.5s cubic-bezier(0.16,1,0.3,1) 0.55s",
         }}>
           <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: "var(--color-text-muted)", letterSpacing: "0.08em" }}>
             © 2025 Brian Chege
