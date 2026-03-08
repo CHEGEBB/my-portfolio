@@ -4,7 +4,22 @@ import { useEffect, useRef, useState, useCallback } from "react"
 import Link from "next/link"
 import { useTheme } from "@/context/theme-context"
 
-const LETTERS = ["A","V","A","I","L","A","B","L","E"]
+// Sequential — each falls after the previous one lands
+const LETTERS = [
+  { char: "L", restTilt:  -5 },
+  { char: "E", restTilt:   4 },
+  { char: "T", restTilt:  -3 },
+  { char: "'", restTilt:   9 },
+  { char: "S", restTilt:  -4 },
+  { char: " ", restTilt:   0 },
+  { char: "T", restTilt:   7 },
+  { char: "A", restTilt:  -8 },
+  { char: "L", restTilt:   4 },
+  { char: "K", restTilt:  -3 },
+]
+
+// Each letter waits for the previous one — staggered by 350ms each
+const STAGGER = 350
 
 function useInView(threshold = 0.04) {
   const ref = useRef<HTMLDivElement>(null)
@@ -22,372 +37,219 @@ function useInView(threshold = 0.04) {
 }
 
 export function ContactCTA() {
-  const { theme }               = useTheme()
-  const { ref, inView }         = useInView()
-  const [painted,  setPainted]  = useState(false)
-  const [revealed, setRevealed] = useState(false)
-  const [mouse,    setMouse]    = useState({ x: 0.5, y: 0.5 })
-  const [letterY,  setLetterY]  = useState<number[]>(LETTERS.map(() => 0))
-  const [emailHov, setEmailHov] = useState(false)
-  const [ctaHov,   setCtaHov]   = useState(false)
-  const sectionRef              = useRef<HTMLDivElement>(null)
-  const rafRef                  = useRef<number>()
-  const targetY                 = useRef<number[]>(LETTERS.map(() => 0))
-  const currentY                = useRef<number[]>(LETTERS.map(() => 0))
+  const { theme }                 = useTheme()
+  const { ref, inView }           = useInView()
+  const [landedCount, setLandedCount] = useState(0)
+  const [triggered, setTriggered] = useState(false)
+  const [emailHov, setEmailHov]   = useState(false)
+  const [ctaHov,   setCtaHov]     = useState(false)
+  const sectionRef                = useRef<HTMLDivElement>(null)
+
   const isDark = theme.mode === "dark"
   const accent = theme.colors.accent
   const radius = { none:"0px", sm:"4px", md:"10px", lg:"18px", full:"9999px" }[theme.radius]
 
   useEffect(() => {
-    if (!inView) return
-    const t1 = setTimeout(() => setPainted(true),  60)
-    const t2 = setTimeout(() => setRevealed(true), 760)
-    return () => { clearTimeout(t1); clearTimeout(t2) }
-  }, [inView])
+    if (!inView || triggered) return
+    setTriggered(true)
 
-  // Smooth letter animation loop
-  useEffect(() => {
-    const tick = () => {
-      let changed = false
-      const next = currentY.current.map((cy, i) => {
-        const ty = targetY.current[i]
-        const ny = cy + (ty - cy) * 0.09
-        if (Math.abs(ny - cy) > 0.01) changed = true
-        return ny
-      })
-      currentY.current = next
-      if (changed) setLetterY([...next])
-      rafRef.current = requestAnimationFrame(tick)
-    }
-    rafRef.current = requestAnimationFrame(tick)
-    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current) }
-  }, [])
-
-  const onMouseMove = useCallback((e: MouseEvent) => {
-    const el = sectionRef.current; if (!el) return
-    const r  = el.getBoundingClientRect()
-    const mx = (e.clientX - r.left) / r.width   // 0..1
-    const my = (e.clientY - r.top)  / r.height  // 0..1
-    setMouse({ x: mx, y: my })
-
-    // Each letter lifts based on proximity to mouse X
-    const cols = LETTERS.length
-    targetY.current = LETTERS.map((_, i) => {
-      const center = (i + 0.5) / cols // letter center 0..1
-      const dist   = Math.abs(mx - center)
-      const lift   = Math.max(0, 1 - dist * cols * 0.85)
-      // lift range: -60px (up) to +12px (down on edges)
-      return -(lift * lift) * 72 + (dist < 0.05 ? 0 : dist * 8)
+    // Drop one letter at a time, each STAGGER ms after the last
+    LETTERS.forEach((_, i) => {
+      setTimeout(() => {
+        setLandedCount(prev => prev + 1)
+      }, i * STAGGER + 300) // 300ms initial pause, then sequential
     })
-  }, [])
-
-  const onMouseLeave = useCallback(() => {
-    targetY.current = LETTERS.map(() => 0)
-  }, [])
-
-  useEffect(() => {
-    const el = sectionRef.current; if (!el) return
-    el.addEventListener("mousemove", onMouseMove,  { passive: true })
-    el.addEventListener("mouseleave", onMouseLeave)
-    return () => {
-      el.removeEventListener("mousemove", onMouseMove)
-      el.removeEventListener("mouseleave", onMouseLeave)
-    }
-  }, [onMouseMove, onMouseLeave])
+  }, [inView, triggered])
 
   const setRef = useCallback((el: HTMLDivElement | null) => {
     ;(ref as React.MutableRefObject<HTMLDivElement | null>).current = el
     ;(sectionRef as React.MutableRefObject<HTMLDivElement | null>).current = el
   }, [ref])
 
-  const paintBg = isDark ? "#07070F" : "#F6F6FC"
-  const gx = (mouse.x * 100).toFixed(1)
-  const gy = (mouse.y * 100).toFixed(1)
-
   return (
     <section
       ref={setRef}
       style={{
-        position:"relative",
-        minHeight:"100svh",
-        background:"var(--color-bg)",
-        overflow:"hidden",
-        display:"flex", flexDirection:"column",
-        justifyContent:"center",
+        position: "relative",
+        overflow: "hidden",
+        background: isDark ? "#07070F" : "#F0F0FA",
+        minHeight: "100svh",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
       }}
     >
-      {/* Mouse ambient glow */}
-      <div style={{
-        position:"absolute", inset:0, pointerEvents:"none", zIndex:1,
-        background:`radial-gradient(ellipse 65% 55% at ${gx}% ${gy}%, ${accent}${isDark?"12":"09"} 0%, transparent 65%)`,
-        transition:"background .1s ease",
-      }}/>
-
-      {/* Large static orb bottom right */}
-      <div style={{
-        position:"absolute", bottom:"-25%", right:"-10%",
-        width:"70vw", height:"70vw", maxWidth:900, maxHeight:900,
-        borderRadius:"50%",
-        background:`radial-gradient(circle, ${accent}${isDark?"08":"05"} 0%, transparent 65%)`,
-        pointerEvents:"none", zIndex:1,
-      }}/>
-
-      {/* Paint wipe — left to right wipe out */}
+      {/* Subtle accent glow */}
       <div aria-hidden style={{
-        position:"absolute", inset:0, zIndex:2, pointerEvents:"none",
-        background:paintBg,
-        transform:  painted ? "translateX(105%)" : "translateX(0%)",
-        transition: painted ? "transform 0.95s cubic-bezier(0.86,0,0.07,1)" : "none",
-        willChange:"transform",
-      }}>
-        <div style={{
-          position:"absolute", top:0, left:-56, bottom:0, width:112,
-          background:paintBg,
-          clipPath:"polygon(100% 0,55% 3%,0 9%,30% 20%,0 31%,42% 42%,0 53%,38% 63%,0 74%,35% 84%,0 93%,55% 98%,100% 100%)",
-        }}/>
-      </div>
+        position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)",
+        width: "70%", height: "40%",
+        background: `radial-gradient(ellipse at 50% 0%, ${accent}${isDark ? "16" : "0d"} 0%, transparent 70%)`,
+        pointerEvents: "none", zIndex: 0,
+      }}/>
 
+      {/* ── TOP INFO ── */}
       <div style={{
-        position:"relative", zIndex:5,
-        opacity:   revealed ? 1 : 0,
-        transition:"opacity .5s ease",
-        padding:"clamp(4rem,8vw,7rem) 0",
+        position: "relative", zIndex: 5,
+        padding: "clamp(2rem,4vw,3.5rem) clamp(1.5rem,5vw,4.5rem)",
+        display: "grid",
+        gridTemplateColumns: "auto 1fr auto",
+        alignItems: "start",
+        gap: "clamp(1.5rem,4vw,4rem)",
       }}>
-
-        {/* ── EYEBROW ── */}
-        <div style={{
-          padding:"0 clamp(1.5rem,5vw,4rem)",
-          marginBottom:"clamp(1.5rem,3vw,2.5rem)",
-          display:"flex", alignItems:"center", justifyContent:"space-between",
-          flexWrap:"wrap", gap:".75rem",
-        }}>
-          <div style={{ display:"flex", alignItems:"center", gap:".5rem" }}>
-            <span style={{ width:20, height:1, background:accent, display:"inline-block" }}/>
+        {/* Left — label + location */}
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: ".5rem", marginBottom: ".5rem" }}>
+            <span style={{ width: 16, height: 1, background: accent, display: "inline-block" }}/>
             <span style={{
-              fontFamily:"var(--font-mono)",
-              fontSize:"clamp(.55rem,.8vw,.68rem)",
-              letterSpacing:".14em", textTransform:"uppercase", color:accent,
-            }}>Open to work</span>
+              fontFamily: "var(--font-mono)",
+              fontSize: "clamp(.5rem,.7vw,.6rem)",
+              letterSpacing: ".16em", textTransform: "uppercase", color: accent,
+            }}>Contact</span>
           </div>
-
-          {/* Pulsing status */}
-          <div style={{ display:"flex", alignItems:"center", gap:".5rem" }}>
-            <div style={{
-              width:8, height:8, borderRadius:"50%", background:"#22c55e",
-              boxShadow:"0 0 10px #22c55e",
-              animation:"ctaDot 2s ease-in-out infinite",
-            }}/>
-            <span style={{
-              fontFamily:"var(--font-mono)",
-              fontSize:"clamp(.52rem,.72vw,.62rem)",
-              letterSpacing:".1em", textTransform:"uppercase",
-              color:"var(--color-text-muted)",
-            }}>Nairobi, Kenya · EAT (UTC+3)</span>
-          </div>
+          <div style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "clamp(.44rem,.62vw,.54rem)",
+            letterSpacing: ".1em", textTransform: "uppercase",
+            color: "var(--color-text-muted)", opacity: .45, lineHeight: 1.7,
+          }}>Nairobi, Kenya<br/>EAT — UTC+3</div>
         </div>
 
-        {/* ── PIANO LETTERS ── each column warps independently */}
-        <div
-          style={{
-            display:"grid",
-            gridTemplateColumns:`repeat(${LETTERS.length}, 1fr)`,
-            padding:"0 clamp(1rem,3vw,3rem)",
-            userSelect:"none",
-            marginBottom:"clamp(1.5rem,3vw,2.5rem)",
-          }}
-        >
-          {LETTERS.map((letter, i) => (
-            <div
-              key={i}
-              style={{
-                display:"flex", justifyContent:"center", alignItems:"flex-end",
-                height:"clamp(5rem,12vw,10rem)",
-                transform:`translateY(${letterY[i]}px)`,
-                // no CSS transition — handled by RAF lerp for silky smooth
-              }}
-            >
-              <span style={{
-                fontFamily:"var(--font-display)",
-                fontSize:"clamp(2.5rem,8vw,7.5rem)",
-                fontWeight:900,
-                letterSpacing:"-.04em",
-                lineHeight:1,
-                color: Math.abs(letterY[i]) > 8
-                  ? accent
-                  : isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.07)",
-                WebkitTextStroke: Math.abs(letterY[i]) > 4
-                  ? `0px ${accent}`
-                  : `1px ${isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.1)"}`,
-                transition:"color .15s ease, -webkit-text-stroke .15s ease",
-                display:"block",
-              }}>{letter}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* ── THIN DIVIDER ── */}
-        <div style={{
-          height:1,
-          background:`linear-gradient(90deg, transparent, ${accent}30, transparent)`,
-          margin:"0 clamp(1.5rem,5vw,4rem) clamp(2.5rem,5vw,4rem)",
-        }}/>
-
-        {/* ── EMAIL AS HEADLINE ── */}
-        <div style={{ padding:"0 clamp(1.5rem,5vw,4rem)", marginBottom:"clamp(2.5rem,5vw,4rem)" }}>
+        {/* Centre — email */}
+        <div style={{ paddingTop: ".1rem" }}>
           <p style={{
-            fontFamily:"var(--font-mono)",
-            fontSize:"clamp(.55rem,.78vw,.66rem)",
-            letterSpacing:".12em", textTransform:"uppercase",
-            color:"var(--color-text-muted)",
-            marginBottom:"clamp(.75rem,1.5vw,1.25rem)",
+            fontFamily: "var(--font-mono)",
+            fontSize: "clamp(.46rem,.66vw,.56rem)",
+            letterSpacing: ".12em", textTransform: "uppercase",
+            color: "var(--color-text-muted)", opacity: .45, marginBottom: ".55rem",
           }}>Say hello</p>
-
           <a
             href="mailto:chegephil24@gmail.com"
             onMouseEnter={() => setEmailHov(true)}
             onMouseLeave={() => setEmailHov(false)}
             style={{
-              display:"block",
-              fontFamily:"var(--font-display)",
-              fontSize:"clamp(1.6rem,5vw,4.5rem)",
-              fontWeight:800, letterSpacing:"-.04em", lineHeight:1,
-              textDecoration:"none",
+              display: "inline-block",
+              fontFamily: "var(--font-display)",
+              fontSize: "clamp(1rem,2.6vw,2.2rem)",
+              fontWeight: 800, letterSpacing: "-.03em", lineHeight: 1,
+              textDecoration: "none",
               color: emailHov ? accent : "var(--color-text-primary)",
-              transition:"color .2s ease",
-              wordBreak:"break-all",
+              transition: "color .2s ease",
+              wordBreak: "break-all",
             }}
-          >
-            chegephil24@gmail.com
-            {/* Underline that floods in */}
-            <div style={{
-              height:2, marginTop:".4rem",
-              background:accent,
-              transform: emailHov ? "scaleX(1)" : "scaleX(0)",
-              transformOrigin:"left",
-              transition:"transform .4s cubic-bezier(.16,1,.3,1)",
-            }}/>
-          </a>
+          >chegephil24@gmail.com</a>
         </div>
 
-        {/* ── BOTTOM ROW — CTA + socials + stats ── */}
-        <div style={{
-          padding:"0 clamp(1.5rem,5vw,4rem)",
-          display:"grid",
-          gridTemplateColumns:"auto 1fr auto",
-          alignItems:"center",
-          gap:"clamp(1.5rem,3vw,3rem)",
-          flexWrap:"wrap",
-        }}
-        className="cta-bottom-row"
-        >
-          {/* CTA button — magnetic feel */}
+        {/* Right — CTA + socials */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "1.1rem" }}>
           <Link
             href="/contact"
             onMouseEnter={() => setCtaHov(true)}
             onMouseLeave={() => setCtaHov(false)}
             style={{
-              display:"inline-flex", alignItems:"center", gap:".6rem",
-              fontFamily:"var(--font-display)",
-              fontSize:"clamp(.85rem,1.3vw,1rem)",
-              fontWeight:700, letterSpacing:"-.01em",
-              color: isDark ? "#07070F" : "#F6F6FC",
-              background:accent,
-              padding:"clamp(.875rem,1.5vw,1.1rem) clamp(1.75rem,3vw,2.5rem)",
-              borderRadius:radius, textDecoration:"none",
-              boxShadow: ctaHov ? `0 20px 50px ${accent}55, 0 0 0 6px ${accent}22` : `0 4px 20px ${accent}33`,
-              transform: ctaHov ? "translateY(-4px) scale(1.03)" : "none",
-              transition:"all .3s cubic-bezier(.16,1,.3,1)",
-              whiteSpace:"nowrap",
+              display: "inline-flex", alignItems: "center", gap: ".55rem",
+              fontFamily: "var(--font-display)",
+              fontSize: "clamp(.82rem,1.2vw,.96rem)",
+              fontWeight: 700, letterSpacing: "-.01em",
+              color: isDark ? "#07070F" : "#F0F0FA",
+              background: accent,
+              padding: "clamp(.8rem,1.3vw,1rem) clamp(1.5rem,2.5vw,2.25rem)",
+              borderRadius: radius, textDecoration: "none",
+              boxShadow: ctaHov ? `0 16px 44px ${accent}55` : `0 4px 18px ${accent}33`,
+              transform: ctaHov ? "translateY(-3px) scale(1.03)" : "none",
+              transition: "all .3s cubic-bezier(.16,1,.3,1)",
+              whiteSpace: "nowrap",
             }}
           >
             Start a project
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 12h14M12 5l7 7-7 7"/>
             </svg>
           </Link>
 
-          {/* Stats row */}
-          <div style={{
-            display:"flex", gap:"clamp(1.5rem,4vw,4rem)",
-            justifyContent:"center", flexWrap:"wrap",
-          }}>
+          <div style={{ display: "flex", gap: ".5rem" }}>
             {[
-              { v:"20+", l:"Projects" },
-              { v:"3+",  l:"Years"    },
-              { v:"7+",  l:"Clients"  },
-              { v:"2",   l:"Startups" },
+              { label: "GH", href: "https://github.com/CHEGEBB" },
+              { label: "LI", href: "https://linkedin.com/in/chegebb" },
+              { label: "TW", href: "https://twitter.com/chegebb" },
             ].map(s => (
-              <div key={s.l} style={{ textAlign:"center" }}>
-                <div style={{
-                  fontFamily:"var(--font-display)",
-                  fontSize:"clamp(1.4rem,3vw,2.5rem)",
-                  fontWeight:900, letterSpacing:"-.04em",
-                  color:accent, lineHeight:1,
-                }}>{s.v}</div>
-                <div style={{
-                  fontFamily:"var(--font-mono)",
-                  fontSize:"clamp(.5rem,.65vw,.6rem)",
-                  letterSpacing:".1em", textTransform:"uppercase",
-                  color:"var(--color-text-muted)",
-                  marginTop:".2rem",
-                }}>{s.l}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Social links */}
-          <div style={{ display:"flex", gap:".75rem" }}>
-            {[
-              { label:"GH", href:"https://github.com/CHEGEBB" },
-              { label:"LI", href:"https://linkedin.com/in/chegebb" },
-              { label:"TW", href:"https://twitter.com/chegebb" },
-            ].map(s => (
-              <a
-                key={s.label}
-                href={s.href}
-                target="_blank" rel="noopener noreferrer"
+              <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer"
                 style={{
-                  width:"clamp(36px,4vw,44px)", height:"clamp(36px,4vw,44px)",
-                  borderRadius:radius,
-                  border:`1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
-                  display:"flex", alignItems:"center", justifyContent:"center",
-                  fontFamily:"var(--font-mono)",
-                  fontSize:"clamp(.52rem,.68vw,.62rem)",
-                  fontWeight:700, letterSpacing:".04em",
-                  color:"var(--color-text-muted)",
-                  textDecoration:"none",
-                  transition:"all .2s ease",
+                  width: "clamp(30px,3vw,36px)", height: "clamp(30px,3vw,36px)",
+                  borderRadius: radius,
+                  border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontFamily: "var(--font-mono)", fontSize: "clamp(.44rem,.58vw,.54rem)",
+                  fontWeight: 700, color: "var(--color-text-muted)",
+                  textDecoration: "none", transition: "all .2s ease",
                 }}
-                onMouseOver={e => {
-                  const el = e.currentTarget as HTMLElement
-                  el.style.borderColor = accent
-                  el.style.color = accent
-                  el.style.background = `${accent}12`
-                }}
-                onMouseOut={e => {
-                  const el = e.currentTarget as HTMLElement
-                  el.style.borderColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"
-                  el.style.color = "var(--color-text-muted)"
-                  el.style.background = "transparent"
-                }}
+                onMouseOver={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = accent; el.style.color = accent }}
+                onMouseOut={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"; el.style.color = "var(--color-text-muted)" }}
               >{s.label}</a>
             ))}
           </div>
         </div>
       </div>
 
-      <style jsx global>{`
-        @keyframes ctaDot {
-          0%,100% { opacity:1; transform:scale(1); }
-          50%      { opacity:.45; transform:scale(1.35); }
-        }
-        @media (max-width: 680px) {
-          .cta-bottom-row {
-            grid-template-columns: 1fr !important;
-            justify-items: start;
-          }
-        }
-      `}</style>
+      {/* ── FALLING LETTERS — full height visible, bottom of section ── */}
+      <div style={{
+        position: "relative",
+        zIndex: 4,
+        // tall enough to show full letters + give them room to fall into
+        height: "clamp(180px, 36vw, 340px)",
+        overflow: "hidden",   // letters clip as they enter from top of this box
+        marginTop: "auto",
+        alignSelf: "stretch",
+        display: "flex",
+        alignItems: "flex-end",
+        paddingLeft: "clamp(.5rem,2vw,2rem)",
+        paddingBottom: "clamp(1rem,2.5vw,2.5rem)",
+      }}>
+        <div style={{
+          display: "flex",
+          alignItems: "flex-end",
+          gap: "clamp(.05rem,.3vw,.5rem)",
+        }}>
+          {LETTERS.map((l, i) => {
+            if (l.char === " ") return (
+              <div key={i} style={{ width: "clamp(.6rem,2vw,2rem)", flexShrink: 0 }} />
+            )
+
+            const isLanded = i < landedCount
+            const airTilt = l.restTilt > 0 ? l.restTilt + 34 : l.restTilt - 34
+
+            return (
+              <span
+                key={i}
+                aria-hidden
+                style={{
+                  display: "inline-block",
+                  fontFamily: "var(--font-display)",
+                  fontWeight: 900,
+                  fontSize: "clamp(4.5rem,13vw,12rem)",
+                  letterSpacing: "-.04em",
+                  lineHeight: .9,
+                  color: accent,
+                  flexShrink: 0,
+                  // Not landed: letter is way above, mid-rotation
+                  // Landed: settles at restTilt with spring overshoot
+                  transform: isLanded
+                    ? `translateY(0px) rotate(${l.restTilt}deg)`
+                    : `translateY(-500px) rotate(${airTilt}deg)`,
+                  // Slow fall: 0.7s with spring overshoot at landing
+                  transition: isLanded
+                    ? "transform 0.7s cubic-bezier(0.22, 1.5, 0.36, 1)"
+                    : "none",
+                  willChange: "transform",
+                  userSelect: "none",
+                  transformOrigin: "bottom center",
+                  filter: isLanded ? `drop-shadow(1px 6px 16px ${accent}40)` : "none",
+                }}
+              >{l.char}</span>
+            )
+          })}
+        </div>
+      </div>
+
     </section>
   )
 }
