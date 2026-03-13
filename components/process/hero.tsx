@@ -6,7 +6,6 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber"
 import { MeshDistortMaterial, Icosahedron } from "@react-three/drei"
 import * as THREE from "three"
 import gsap from "gsap"
-import SplitType from "split-type"
 
 function FloatingMesh({ color, mouse, scale }: { color: string; mouse: React.MutableRefObject<{ x: number; y: number }>; scale: number }) {
   const meshRef = useRef<THREE.Mesh>(null)
@@ -48,14 +47,14 @@ function WireframeMesh({ color, mouse, scale }: { color: string; mouse: React.Mu
 }
 
 export function ProcessHero() {
-  const { theme }  = useTheme()
+  const { theme } = useTheme()
   const sectionRef = useRef<HTMLDivElement>(null)
   const headingRef = useRef<HTMLHeadingElement>(null)
   const subRef     = useRef<HTMLParagraphElement>(null)
   const eyebrowRef = useRef<HTMLDivElement>(null)
   const mouseRef   = useRef({ x: 0, y: 0 })
   const scrollDot  = useRef<HTMLDivElement>(null)
-  const [mounted, setMounted] = useState(false)
+  const [mounted, setMounted]   = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const isDark = theme.mode === "dark"
   const acc    = theme.colors.accent
@@ -69,32 +68,57 @@ export function ProcessHero() {
   }, [])
 
   useEffect(() => {
-    if (!mounted || !headingRef.current || !subRef.current) return
+    if (!mounted || !headingRef.current || !subRef.current || !eyebrowRef.current) return
+
+    // ── Safe GSAP-only animation — NO SplitType DOM mutation ──
+    // We animate the heading spans directly. Each line is already a separate
+    // <span> in the JSX so we never need to restructure the DOM.
     const ctx = gsap.context(() => {
-      const splitHead = new SplitType(headingRef.current!, { types: "chars,words" })
-      const splitSub  = new SplitType(subRef.current!,     { types: "words" })
       const tl = gsap.timeline({ delay: 0.3 })
-      tl.fromTo(eyebrowRef.current, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, 0)
-      tl.fromTo(splitHead.chars,
-        { opacity: 0, y: 80, rotateX: -90, transformOrigin: "50% 100%" },
-        { opacity: 1, y: 0, rotateX: 0, duration: 0.9, stagger: { amount: 0.7, from: "start" }, ease: "back.out(1.4)" },
+
+      // Eyebrow
+      tl.fromTo(
+        eyebrowRef.current,
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" },
+        0
+      )
+
+      // Heading lines — animate each <span> as a whole block
+      const lines = headingRef.current!.querySelectorAll<HTMLSpanElement>("span.hero-line")
+      tl.fromTo(
+        lines,
+        { opacity: 0, y: 70, rotateX: -80, transformOrigin: "50% 100%" },
+        {
+          opacity: 1,
+          y: 0,
+          rotateX: 0,
+          duration: 0.9,
+          stagger: 0.18,
+          ease: "back.out(1.4)",
+        },
         0.2
       )
-      tl.fromTo(splitSub.words,
+
+      // Sub
+      tl.fromTo(
+        subRef.current,
         { opacity: 0, y: 24 },
-        { opacity: 1, y: 0, duration: 0.6, stagger: 0.04, ease: "power3.out" },
+        { opacity: 1, y: 0, duration: 0.65, ease: "power3.out" },
         0.9
       )
     }, sectionRef)
+
     return () => ctx.revert()
   }, [mounted])
 
   const onMouseMove = useCallback((e: MouseEvent) => {
-    const el = sectionRef.current; if (!el) return
+    const el = sectionRef.current
+    if (!el) return
     const r = el.getBoundingClientRect()
     mouseRef.current = {
-      x:  ((e.clientX - r.left) / r.width  - 0.5) * 2,
-      y: -((e.clientY - r.top)  / r.height - 0.5) * 2,
+      x:  ((e.clientX - r.left)  / r.width  - 0.5) * 2,
+      y: -((e.clientY - r.top)   / r.height - 0.5) * 2,
     }
   }, [])
 
@@ -104,7 +128,8 @@ export function ProcessHero() {
   }, [onMouseMove])
 
   useEffect(() => {
-    const dot = scrollDot.current; if (!dot) return
+    const dot = scrollDot.current
+    if (!dot) return
     const id = setInterval(() => {
       dot.style.filter = "brightness(1.8)"
       setTimeout(() => { dot.style.filter = "brightness(0.5)" }, 500)
@@ -125,7 +150,6 @@ export function ProcessHero() {
         background: "var(--color-bg)",
         display: "flex",
         flexDirection: "column",
-        // Mobile: anchor text ~55% down so globe peeks above it. Desktop: keep at bottom.
         justifyContent: isMobile ? "center" : "flex-end",
         paddingTop: isMobile ? "52%" : undefined,
         padding: isMobile
@@ -133,7 +157,7 @@ export function ProcessHero() {
           : "clamp(2rem,5vw,4rem) clamp(1.5rem,6vw,5rem)",
       }}
     >
-      {/* R3F canvas — full height, globe centre sits in upper half */}
+      {/* R3F canvas */}
       <div style={{
         position: "absolute",
         top: isMobile ? "-5%" : "5%",
@@ -164,13 +188,13 @@ export function ProcessHero() {
         pointerEvents: "none", zIndex: 1,
         backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
         backgroundSize: "160px",
-      }}/>
+      }} />
 
       {/* Ambient glow */}
       <div aria-hidden style={{
         position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0,
         background: `radial-gradient(ellipse 55% 55% at 50% 48%, ${acc}${isDark ? "16" : "0e"} 0%, transparent 65%)`,
-      }}/>
+      }} />
 
       {/* Bottom vignette */}
       <div aria-hidden style={{
@@ -180,9 +204,9 @@ export function ProcessHero() {
         background: `linear-gradient(to top, var(--color-bg) 40%, transparent 100%)`,
         pointerEvents: "none",
         zIndex: 2,
-      }}/>
+      }} />
 
-      {/* Text block — z3 so it sits above everything */}
+      {/* Text block */}
       <div style={{ position: "relative", zIndex: 3 }}>
         {/* Eyebrow */}
         <div ref={eyebrowRef} style={{
@@ -190,7 +214,7 @@ export function ProcessHero() {
           marginBottom: "clamp(1rem,2vw,1.75rem)",
           opacity: 0,
         }}>
-          <div style={{ width: 20, height: 1, background: acc, flexShrink: 0 }}/>
+          <div style={{ width: 20, height: 1, background: acc, flexShrink: 0 }} />
           <span style={{
             fontFamily: "var(--font-mono)",
             fontSize: "clamp(0.48rem,0.85vw,0.62rem)",
@@ -198,7 +222,7 @@ export function ProcessHero() {
           }}>Systematic · Transparent · Delivered</span>
         </div>
 
-        {/* H1 */}
+        {/* H1 — each line is a plain <span>, no DOM restructuring needed */}
         <h1
           ref={headingRef}
           style={{
@@ -207,15 +231,21 @@ export function ProcessHero() {
             fontWeight: 800, letterSpacing: "-0.055em", lineHeight: 0.88,
             margin: "0 0 clamp(1.25rem,2.5vw,2rem)",
             perspective: "800px",
+            overflow: "hidden",
           }}
         >
-          <span style={{ display: "block", color: "var(--color-text-primary)" }}>Process.</span>
-          <span style={{
+          <span className="hero-line" style={{ display: "block", color: "var(--color-text-primary)", opacity: 0 }}>
+            Process.
+          </span>
+          <span className="hero-line" style={{
             display: "block",
             color: "transparent",
             WebkitTextStroke: `2px ${acc}`,
             textShadow: `0 0 70px ${acc}55`,
-          }}>Not magic.</span>
+            opacity: 0,
+          }}>
+            Not magic.
+          </span>
         </h1>
 
         {/* Sub */}
@@ -228,6 +258,7 @@ export function ProcessHero() {
             lineHeight: 1.72,
             maxWidth: "min(520px, 100%)",
             margin: 0,
+            opacity: 0,
           }}
         >
           Great software isn't conjured — it's built step by step, with discipline,
@@ -243,8 +274,8 @@ export function ProcessHero() {
         display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem",
         zIndex: 3,
       }}>
-        <div style={{ width: 1, height: "clamp(40px,5vh,60px)", background: `linear-gradient(to bottom, transparent, ${acc}88)` }}/>
-        <div ref={scrollDot} style={{ width: 6, height: 6, borderRadius: "50%", background: acc, filter: "brightness(0.5)", transition: "filter 0.4s ease" }}/>
+        <div style={{ width: 1, height: "clamp(40px,5vh,60px)", background: `linear-gradient(to bottom, transparent, ${acc}88)` }} />
+        <div ref={scrollDot} style={{ width: 6, height: 6, borderRadius: "50%", background: acc, filter: "brightness(0.5)", transition: "filter 0.4s ease" }} />
       </div>
     </section>
   )
