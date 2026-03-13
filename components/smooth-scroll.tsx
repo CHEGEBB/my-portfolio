@@ -8,8 +8,8 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const lenis = new Lenis({
-      duration: 1.4,          // scroll easing duration — higher = more silky
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // expo ease out
+      duration: 1.4,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: "vertical",
       smoothWheel: true,
       wheelMultiplier: 1,
@@ -18,7 +18,6 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
 
     lenisRef.current = lenis
 
-    // Raf loop
     let raf: number
     const animate = (time: number) => {
       lenis.raf(time)
@@ -27,8 +26,12 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
     raf = requestAnimationFrame(animate)
 
     return () => {
+      // Stop the RAF loop FIRST — no more lenis.raf() calls after this
       cancelAnimationFrame(raf)
+      // Then destroy — this is now safe because RAF is already stopped
+      // and we are NOT calling ScrollTrigger.refresh() anywhere
       lenis.destroy()
+      lenisRef.current = null
     }
   }, [])
 

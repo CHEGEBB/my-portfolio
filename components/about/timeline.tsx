@@ -5,9 +5,11 @@ import { useTheme } from "@/context/theme-context"
 import { useInView } from "framer-motion"
 import gsap from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
-import "./timeline.css"
 
 gsap.registerPlugin(ScrollTrigger)
+
+// Unique ID — never touches other components' triggers
+const ST_ID = "about-timeline-rail"
 
 const TIMELINE = [
   {
@@ -146,30 +148,40 @@ export function AboutTimeline() {
   const { theme }  = useTheme()
   const sectionRef = useRef<HTMLDivElement>(null)
   const railRef    = useRef<HTMLDivElement>(null)
+  const ctxRef     = useRef<gsap.Context | null>(null)
   const isDark     = theme.mode === "dark"
   const acc        = theme.colors.accent
 
   useEffect(() => {
     if (!sectionRef.current || !railRef.current) return
 
-    const ctx = gsap.context(() => {
+    // Kill any leftover from previous mount before creating new
+    ScrollTrigger.getById(ST_ID)?.kill(true)
+    ctxRef.current?.revert()
+
+    ctxRef.current = gsap.context(() => {
       gsap.fromTo(railRef.current,
         { scaleY: 0 },
         {
           scaleY: 1, ease: "none",
           scrollTrigger: {
+            id: ST_ID,
             trigger: sectionRef.current,
             start: "top 50%", end: "bottom 60%", scrub: 0.8,
           },
         }
       )
-    }, sectionRef)
+    }, sectionRef) // ← scoped to sectionRef, not global
 
     return () => {
-      // Same nuclear pattern: kill all ST instances first, then revert
-      ScrollTrigger.getAll().forEach(st => st.kill(true))
-      ctx.revert()
-      ScrollTrigger.refresh()
+      // ✅ CORRECT ORDER:
+      // 1. Kill OUR trigger by ID first (removes ScrollTrigger state while DOM exists)
+      // 2. Revert our scoped context (cleans up tweens)
+      // ❌ NEVER: ScrollTrigger.getAll().forEach(kill) — kills other components' triggers
+      // ❌ NEVER: ScrollTrigger.refresh() after killing — unnecessary and dangerous
+      ScrollTrigger.getById(ST_ID)?.kill(true)
+      ctxRef.current?.revert()
+      ctxRef.current = null
     }
   }, [])
 

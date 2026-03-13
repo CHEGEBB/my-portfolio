@@ -46,7 +46,7 @@ const NAV = [
   { label: "Home",      href: "/" },
   { label: "Portfolio", href: "/portfolio" },
   { label: "Services",  href: "/services" },
-  { label: "Process",   href: "/process" },
+  // { label: "Process",   href: "/process" },
   { label: "About",     href: "/about" },
   { label: "Contact",   href: "/contact" },
 ]
