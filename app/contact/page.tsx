@@ -1,14 +1,61 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useTheme } from "@/context/theme-context"
 import ReactConfetti from "react-confetti"
 import toast, { Toaster } from "react-hot-toast"
-import { TypeAnimation } from "react-type-animation"
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
 
-// ── Floating underline field ─────────────────────────────────────────────────
+// ── Pure React typewriter — no DOM mutation, no crash ────────────────────────
+const WORDS = ["something.", "the future.", "together.", "amazing."]
+
+function Typewriter({ acc }: { acc: string }) {
+  const [wordIdx, setWordIdx] = useState(0)
+  const [text,    setText]    = useState("")
+  const [deleting, setDeleting] = useState(false)
+  const [blink,   setBlink]   = useState(true)
+
+  useEffect(() => {
+    const word = WORDS[wordIdx]
+    let timeout: ReturnType<typeof setTimeout>
+
+    if (!deleting && text === word) {
+      // Pause then start deleting
+      timeout = setTimeout(() => setDeleting(true), 2000)
+    } else if (deleting && text === "") {
+      // Move to next word
+      setDeleting(false)
+      setWordIdx(i => (i + 1) % WORDS.length)
+    } else if (deleting) {
+      timeout = setTimeout(() => setText(t => t.slice(0, -1)), 55)
+    } else {
+      timeout = setTimeout(() => setText(word.slice(0, text.length + 1)), 90)
+    }
+    return () => clearTimeout(timeout)
+  }, [text, deleting, wordIdx])
+
+  // Cursor blink
+  useEffect(() => {
+    const id = setInterval(() => setBlink(b => !b), 530)
+    return () => clearInterval(id)
+  }, [])
+
+  return (
+    <span>
+      {text}
+      <span style={{
+        display: "inline-block", width: "3px", height: "0.85em",
+        background: acc, marginLeft: "3px",
+        verticalAlign: "middle",
+        opacity: blink ? 1 : 0,
+        transition: "opacity 0.1s ease",
+      }}/>
+    </span>
+  )
+}
+
+// ── Floating label field ─────────────────────────────────────────────────────
 function Field({ label, name, type = "text", value, onChange, rows }: {
   label: string; name: string; type?: string
   value: string; onChange: (e: any) => void; rows?: number
@@ -96,26 +143,50 @@ const toastStyle = (theme: any) => ({
 })
 
 // ── Contact detail row ───────────────────────────────────────────────────────
-function ContactRow({ label, value, href, delay, acc, border, prim, revealed }: any) {
+function ContactRow({ label, value, href, delay, acc, border, prim, muted, revealed }: any) {
+  const [hov, setHov] = useState(false)
   return (
     <a href={href}
       target={href?.startsWith("http") ? "_blank" : undefined}
       rel={href?.startsWith("http") ? "noopener noreferrer" : undefined}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
       style={{
-        display: "grid", gridTemplateColumns: "5rem 1fr",
-        alignItems: "center", gap: "1rem",
+        display: "flex", alignItems: "center",
+        justifyContent: "space-between",
         padding: "clamp(.875rem,1.5vw,1.25rem) 0",
-        borderBottom: `1px solid ${border}`,
+        borderBottom: `1px solid ${hov ? acc + "44" : border}`,
         textDecoration: "none",
         opacity: revealed ? 1 : 0,
         transform: revealed ? "translateX(0)" : "translateX(20px)",
-        transition: `opacity .6s ease ${delay}s, transform .6s cubic-bezier(.16,1,.3,1) ${delay}s`,
+        transition: `opacity .6s ease ${delay}s, transform .6s cubic-bezier(.16,1,.3,1) ${delay}s, border-color .2s ease`,
+        gap: "1rem",
       }}
-      onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity = ".45"}
-      onMouseLeave={e => (e.currentTarget as HTMLElement).style.opacity = "1"}
     >
-      <span style={{ fontFamily: "var(--font-mono)", fontSize: "clamp(.5rem,.75vw,.65rem)", letterSpacing: ".1em", textTransform: "uppercase", color: acc }}>{label}</span>
-      <span style={{ fontFamily: "var(--font-body)", fontSize: "clamp(.82rem,1.3vw,1rem)", color: prim, wordBreak: "break-all" }}>{value}</span>
+      <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+        <span style={{
+          fontFamily: "var(--font-mono)", fontSize: "clamp(.5rem,.75vw,.65rem)",
+          letterSpacing: ".1em", textTransform: "uppercase",
+          color: hov ? acc : muted,
+          minWidth: "5rem",
+          transition: "color .2s ease",
+        }}>{label}</span>
+        <span style={{
+          fontFamily: "var(--font-body)", fontSize: "clamp(.82rem,1.3vw,1rem)",
+          color: hov ? prim : prim,
+          wordBreak: "break-all",
+        }}>{value}</span>
+      </div>
+      {/* Arrow indicator */}
+      <svg
+        width="14" height="14" viewBox="0 0 24 24" fill="none"
+        stroke={hov ? acc : border}
+        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+        style={{ flexShrink: 0, transition: "stroke .2s ease, transform .2s ease", transform: hov ? "translate(2px,-2px)" : "none" }}
+      >
+        <line x1="5" y1="12" x2="19" y2="12"/>
+        <polyline points="12 5 19 12 12 19"/>
+      </svg>
     </a>
   )
 }
@@ -143,13 +214,13 @@ function SuccessState({ acc, muted, prim, border, isDark, onReset }: {
         boxShadow: `0 0 40px ${acc}33`,
         animation: "tickPop .6s cubic-bezier(.34,1.56,.64,1) .15s both",
       }}>
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={acc} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={acc} strokeWidth="2.5"
+          strokeLinecap="round" strokeLinejoin="round"
           style={{ animation: "drawCheck .5s ease .35s both", strokeDasharray: 30, strokeDashoffset: 30 }}>
           <polyline points="20 6 9 17 4 12"/>
         </svg>
       </div>
 
-      {/* Heading */}
       <div style={{
         fontFamily: "var(--font-display)",
         fontSize: "clamp(2.8rem,7vw,5.5rem)",
@@ -158,10 +229,11 @@ function SuccessState({ acc, muted, prim, border, isDark, onReset }: {
         animation: "slideUp .7s cubic-bezier(.16,1,.3,1) .1s both",
       }}>
         <span style={{ display: "block", color: prim }}>Message</span>
-        <span style={{ display: "block", color: "transparent", WebkitTextStroke: `2px ${acc}`, textShadow: `0 0 60px ${acc}44` }}>received. ⚡</span>
+        <span style={{ display: "block", color: "transparent", WebkitTextStroke: `2px ${acc}`, textShadow: `0 0 60px ${acc}44` }}>
+          received. ⚡
+        </span>
       </div>
 
-      {/* Sub */}
       <p style={{
         fontFamily: "var(--font-body)", fontSize: "clamp(.875rem,1.4vw,1rem)",
         color: muted, lineHeight: 1.72, marginBottom: "2rem",
@@ -172,14 +244,12 @@ function SuccessState({ acc, muted, prim, border, isDark, onReset }: {
         Looking forward to chatting.
       </p>
 
-      {/* Animated accent bar */}
       <div style={{
         height: 2, marginBottom: "2.5rem",
         background: `linear-gradient(to right, ${acc}, ${acc}44, transparent)`,
         animation: "drawLine 1s cubic-bezier(.16,1,.3,1) .4s both",
       }}/>
 
-      {/* What happens next */}
       <div style={{
         display: "flex", flexDirection: "column", gap: ".75rem",
         marginBottom: "2.5rem",
@@ -202,7 +272,6 @@ function SuccessState({ acc, muted, prim, border, isDark, onReset }: {
         ))}
       </div>
 
-      {/* Send another button */}
       <button
         onClick={onReset}
         style={{
@@ -214,17 +283,45 @@ function SuccessState({ acc, muted, prim, border, isDark, onReset }: {
           transition: "color .2s ease, border-color .2s ease",
           animation: "slideUp .6s cubic-bezier(.16,1,.3,1) .45s both",
         }}
-        onMouseEnter={e => {
-          const el = e.currentTarget as HTMLElement
-          el.style.color = acc; el.style.borderColor = acc
-        }}
-        onMouseLeave={e => {
-          const el = e.currentTarget as HTMLElement
-          el.style.color = muted; el.style.borderColor = border
-        }}
+        onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.color = acc; el.style.borderColor = acc }}
+        onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.color = muted; el.style.borderColor = border }}
       >
         ← Send another message
       </button>
+    </div>
+  )
+}
+
+// ── Stat card ────────────────────────────────────────────────────────────────
+function StatCard({ value, label, acc, muted, prim, isDark, delay, revealed }: any) {
+  const [hov, setHov] = useState(false)
+  return (
+    <div
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        padding: "1.25rem 1.5rem",
+        border: `1px solid ${hov ? acc + "55" : isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)"}`,
+        borderLeft: `3px solid ${hov ? acc : acc + "55"}`,
+        background: hov ? `${acc}08` : "transparent",
+        transition: "all .28s cubic-bezier(.16,1,.3,1)",
+        opacity: revealed ? 1 : 0,
+        transform: revealed ? "translateY(0)" : "translateY(20px)",
+        transitionDelay: `${delay}s`,
+      }}
+    >
+      <div style={{
+        fontFamily: "var(--font-display)",
+        fontSize: "clamp(1.8rem,4vw,2.8rem)",
+        fontWeight: 800, letterSpacing: "-.04em", lineHeight: 1,
+        color: acc,
+      }}>{value}</div>
+      <div style={{
+        fontFamily: "var(--font-mono)",
+        fontSize: "clamp(.5rem,.7vw,.6rem)",
+        color: muted, marginTop: ".3rem", letterSpacing: ".06em",
+        textTransform: "uppercase",
+      }}>{label}</div>
     </div>
   )
 }
@@ -234,13 +331,13 @@ export default function ContactPage() {
   const { theme } = useTheme()
   const isDark    = theme.mode === "dark"
 
-  const [painted,   setPainted]   = useState(false)
-  const [revealed,  setRevealed]  = useState(false)
-  const [confetti,  setConfetti]  = useState(false)
-  const [winSize,   setWinSize]   = useState({ width: 0, height: 0 })
-  const [formDone,  setFormDone]  = useState(false)
-  const [sending,   setSending]   = useState(false)
-  const [confettiDone, setConfettiDone] = useState(false)
+  const [painted,       setPainted]      = useState(false)
+  const [revealed,      setRevealed]     = useState(false)
+  const [confetti,      setConfetti]     = useState(false)
+  const [winSize,       setWinSize]      = useState({ width: 0, height: 0 })
+  const [formDone,      setFormDone]     = useState(false)
+  const [sending,       setSending]      = useState(false)
+  const [confettiDone,  setConfettiDone] = useState(false)
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" })
 
   useEffect(() => {
@@ -249,13 +346,9 @@ export default function ContactPage() {
     window.addEventListener("resize", onResize, { passive: true })
     const t1 = setTimeout(() => setPainted(true),  80)
     const t2 = setTimeout(() => setRevealed(true), 900)
-    return () => {
-      window.removeEventListener("resize", onResize)
-      clearTimeout(t1); clearTimeout(t2)
-    }
+    return () => { window.removeEventListener("resize", onResize); clearTimeout(t1); clearTimeout(t2) }
   }, [])
 
-  // Stop confetti after 6s but keep success state until user resets
   useEffect(() => {
     if (!confetti) return
     const t = setTimeout(() => setConfettiDone(true), 6000)
@@ -266,9 +359,7 @@ export default function ContactPage() {
     setForm(p => ({ ...p, [e.target.name]: e.target.value }))
 
   const onReset = () => {
-    setFormDone(false)
-    setConfetti(false)
-    setConfettiDone(false)
+    setFormDone(false); setConfetti(false); setConfettiDone(false)
     setForm({ name: "", email: "", subject: "", message: "" })
   }
 
@@ -284,9 +375,7 @@ export default function ContactPage() {
       })
       toast.dismiss(tid)
       if (res.ok) {
-        setFormDone(true)
-        setConfetti(true)
-        setConfettiDone(false)
+        setFormDone(true); setConfetti(true); setConfettiDone(false)
       } else {
         toast.error("Failed to send. Try again.", {
           style: { ...toastStyle(theme), border: "1px solid #f87171", color: "#f87171" },
@@ -317,25 +406,22 @@ export default function ContactPage() {
   })
 
   const CONTACTS = [
-    { label: "Email",    value: "chegephil24@gmail.com",  href: "mailto:chegephil24@gmail.com" },
-    { label: "Location", value: "Eldoret, Kenya",          href: "#" },
-    { label: "GitHub",   value: "github.com/CHEGEBB",      href: "https://github.com/CHEGEBB" },
-    { label: "LinkedIn", value: "linkedin.com/in/chegebb", href: "https://linkedin.com/in/chegebb" },
-    { label: "Twitter",  value: "twitter.com/chegebb",     href: "https://twitter.com/chegebb" },
+    { label: "Email",    value: "chegephil24@gmail.com",   href: "mailto:chegephil24@gmail.com" },
+    { label: "Location", value: "Eldoret, Kenya",           href: "#" },
+    { label: "GitHub",   value: "github.com/CHEGEBB",       href: "https://github.com/CHEGEBB" },
+    { label: "LinkedIn", value: "linkedin.com/in/chegebb",  href: "https://linkedin.com/in/chegebb" },
+    { label: "Twitter",  value: "twitter.com/chegebb",      href: "https://twitter.com/chegebb" },
   ]
 
   return (
     <div style={{ minHeight: "100svh", background: bg, color: prim }}>
       <Toaster position="top-right"/>
 
-      {/* Confetti — only while active and window measured */}
       {confetti && !confettiDone && winSize.width > 0 && (
         <ReactConfetti
           width={winSize.width} height={winSize.height}
           colors={[acc, "#fff", "#a5b4fc", "#fcd34d", "#6ee7b7", "#f9a8d4"]}
-          numberOfPieces={420}
-          recycle={false}
-          gravity={0.18}
+          numberOfPieces={420} recycle={false} gravity={0.18}
           style={{ position: "fixed", zIndex: 9999, pointerEvents: "none" }}
         />
       )}
@@ -343,10 +429,10 @@ export default function ContactPage() {
       <PaintWipe gone={painted} color={paintColor}/>
       <Navbar/>
 
-      {/* Ambient glow */}
+      {/* Ambient glow — top right corner only, not too intense */}
       <div aria-hidden style={{
         position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0,
-        background: `radial-gradient(ellipse 70% 60% at 70% 5%, ${acc}0d 0%, transparent 65%)`,
+        background: `radial-gradient(ellipse 55% 45% at 75% 0%, ${acc}0b 0%, transparent 60%)`,
       }}/>
 
       <main style={{
@@ -358,17 +444,21 @@ export default function ContactPage() {
 
         {/* ── HERO ── */}
         <div style={{ marginBottom: "clamp(4rem,9vw,7rem)" }}>
-          <p style={{
-            ...s(0),
-            fontFamily: "var(--font-mono)", fontSize: "clamp(.6rem,1vw,.72rem)",
-            letterSpacing: ".14em", textTransform: "uppercase", color: acc,
-            marginBottom: "clamp(1rem,2vw,1.5rem)",
-            display: "flex", alignItems: "center", gap: ".5rem",
-          }}>
-            <span style={{ width: 20, height: 1, background: acc, display: "inline-block", flexShrink: 0 }}/>
-            Get In Touch
-          </p>
 
+          {/* Eyebrow */}
+          <div style={{
+            ...s(0),
+            display: "flex", alignItems: "center", gap: ".6rem",
+            marginBottom: "clamp(1rem,2vw,1.5rem)",
+          }}>
+            <div style={{ width: 20, height: 1, background: acc, flexShrink: 0 }}/>
+            <span style={{
+              fontFamily: "var(--font-mono)", fontSize: "clamp(.6rem,1vw,.72rem)",
+              letterSpacing: ".14em", textTransform: "uppercase", color: acc,
+            }}>Get In Touch</span>
+          </div>
+
+          {/* Heading with pure-React typewriter */}
           <h1 style={{
             ...s(1),
             fontFamily: "var(--font-display)",
@@ -377,11 +467,13 @@ export default function ContactPage() {
             margin: "0 0 clamp(1.5rem,3vw,2.5rem)",
           }}>
             <span style={{ display: "block", color: prim }}>Let&apos;s build</span>
-            <span style={{ display: "block", color: "transparent", WebkitTextStroke: `2px ${acc}`, textShadow: `0 0 80px ${acc}44` }}>
-              <TypeAnimation
-                sequence={["something.", 2200, "the future.", 2200, "together.", 2200, "amazing.", 2200]}
-                wrapper="span" repeat={Infinity} cursor
-              />
+            <span style={{
+              display: "block", color: "transparent",
+              WebkitTextStroke: `2px ${acc}`,
+              textShadow: `0 0 80px ${acc}44`,
+              minHeight: "1em",
+            }}>
+              <Typewriter acc={acc} />
             </span>
           </h1>
 
@@ -400,13 +492,16 @@ export default function ContactPage() {
               background: "#22c55e", flexShrink: 0,
               animation: "aPulse 2s ease-in-out infinite",
             }}/>
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: "clamp(.58rem,.85vw,.68rem)", color: muted, letterSpacing: ".08em" }}>
+            <span style={{
+              fontFamily: "var(--font-mono)", fontSize: "clamp(.58rem,.85vw,.68rem)",
+              color: muted, letterSpacing: ".08em",
+            }}>
               Available for new projects
             </span>
           </div>
         </div>
 
-        {/* ── DIVIDER ── */}
+        {/* ── GRADIENT DIVIDER ── */}
         <div style={{
           ...s(3),
           height: 1,
@@ -422,16 +517,17 @@ export default function ContactPage() {
           alignItems: "start",
         }}>
 
-          {/* Left: Form OR Success */}
+          {/* ── LEFT: Form OR Success ── */}
           <div style={s(3)}>
-            <p style={{
+            <div style={{
+              display: "flex", alignItems: "center", gap: ".5rem",
               fontFamily: "var(--font-mono)", fontSize: "clamp(.55rem,.8vw,.65rem)",
               letterSpacing: ".14em", textTransform: "uppercase", color: acc,
-              marginBottom: "1.75rem", display: "flex", alignItems: "center", gap: ".5rem",
+              marginBottom: "1.75rem",
             }}>
               <span style={{ width: 14, height: 1, background: acc, display: "inline-block" }}/>
               {formDone ? "All done" : "Send a message"}
-            </p>
+            </div>
 
             {formDone ? (
               <SuccessState
@@ -447,7 +543,11 @@ export default function ContactPage() {
                 <Field label="Subject" name="subject" value={form.subject} onChange={onChange}/>
                 <Field label="Message" name="message" rows={5} value={form.message} onChange={onChange}/>
 
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: ".5rem", flexWrap: "wrap", gap: "1rem" }}>
+                <div style={{
+                  display: "flex", alignItems: "center",
+                  justifyContent: "space-between",
+                  marginTop: ".5rem", flexWrap: "wrap", gap: "1rem",
+                }}>
                   <button
                     type="submit" disabled={sending}
                     style={{
@@ -467,10 +567,8 @@ export default function ContactPage() {
                     {sending ? (
                       <span style={{
                         display: "inline-block", width: 16, height: 16,
-                        borderRadius: "50%",
-                        borderWidth: 2, borderStyle: "solid",
-                        borderColor: "rgba(0,0,0,.25)",
-                        borderTopColor: "currentColor",
+                        borderRadius: "50%", borderWidth: 2, borderStyle: "solid",
+                        borderColor: "rgba(0,0,0,.25)", borderTopColor: "currentColor",
                         animation: "spin .7s linear infinite",
                       }}/>
                     ) : (
@@ -483,7 +581,10 @@ export default function ContactPage() {
                       </>
                     )}
                   </button>
-                  <span style={{ fontFamily: "var(--font-mono)", fontSize: "clamp(.55rem,.8vw,.65rem)", color: muted, letterSpacing: ".06em" }}>
+                  <span style={{
+                    fontFamily: "var(--font-mono)", fontSize: "clamp(.55rem,.8vw,.65rem)",
+                    color: muted, letterSpacing: ".06em",
+                  }}>
                     Replies within 24h
                   </span>
                 </div>
@@ -491,46 +592,55 @@ export default function ContactPage() {
             )}
           </div>
 
-          {/* Right: Contact details */}
-          <div>
-            <p style={{
-              fontFamily: "var(--font-mono)", fontSize: "clamp(.55rem,.8vw,.65rem)",
-              letterSpacing: ".14em", textTransform: "uppercase", color: acc,
-              marginBottom: "1.75rem", display: "flex", alignItems: "center", gap: ".5rem",
-            }}>
-              <span style={{ width: 14, height: 1, background: acc, display: "inline-block" }}/>
-              Contact details
-            </p>
+          {/* ── RIGHT: Contact details + stats ── */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "clamp(2.5rem,5vw,4rem)" }}>
 
-            {CONTACTS.map((item, idx) => (
-              <ContactRow
-                key={item.label}
-                {...item}
-                delay={.5 + idx * .07}
-                acc={acc} border={border} prim={prim} revealed={revealed}
-              />
-            ))}
+            {/* Contact rows */}
+            <div>
+              <div style={{
+                display: "flex", alignItems: "center", gap: ".5rem",
+                fontFamily: "var(--font-mono)", fontSize: "clamp(.55rem,.8vw,.65rem)",
+                letterSpacing: ".14em", textTransform: "uppercase", color: acc,
+                marginBottom: "1.75rem",
+              }}>
+                <span style={{ width: 14, height: 1, background: acc, display: "inline-block" }}/>
+                Contact details
+              </div>
 
-            <div style={{ display: "flex", gap: "2.5rem", marginTop: "clamp(2rem,4vw,3rem)" }}>
-              {[
-                { v: "24h",  l: "Response time" },
-                { v: "100%", l: "Projects delivered" },
-                { v: "3+",   l: "Years building" },
-              ].map((st, i) => (
-                <div key={st.l} style={{ ...s(5 + i) }}>
-                  <div style={{
-                    fontFamily: "var(--font-display)",
-                    fontSize: "clamp(1.8rem,4vw,3rem)",
-                    fontWeight: 800, letterSpacing: "-.04em",
-                    color: acc, lineHeight: 1,
-                  }}>{st.v}</div>
-                  <div style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "clamp(.5rem,.7vw,.6rem)",
-                    color: muted, marginTop: ".25rem", letterSpacing: ".06em",
-                  }}>{st.l}</div>
-                </div>
+              {CONTACTS.map((item, idx) => (
+                <ContactRow
+                  key={item.label} {...item}
+                  delay={.5 + idx * .07}
+                  acc={acc} border={border} prim={prim} muted={muted}
+                  revealed={revealed}
+                />
               ))}
+            </div>
+
+            {/* Stats grid */}
+            <div>
+              <div style={{
+                display: "flex", alignItems: "center", gap: ".5rem",
+                fontFamily: "var(--font-mono)", fontSize: "clamp(.55rem,.8vw,.65rem)",
+                letterSpacing: ".14em", textTransform: "uppercase", color: acc,
+                marginBottom: "1.25rem",
+              }}>
+                <span style={{ width: 14, height: 1, background: acc, display: "inline-block" }}/>
+                By the numbers
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: ".75rem" }}>
+                {[
+                  { v: "24h",  l: "Response time" },
+                  { v: "100%", l: "Delivered" },
+                  { v: "3+",   l: "Years exp." },
+                ].map((st, i) => (
+                  <StatCard
+                    key={st.l} value={st.v} label={st.l}
+                    acc={acc} muted={muted} prim={prim} isDark={isDark}
+                    delay={.7 + i * .08} revealed={revealed}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -545,12 +655,21 @@ export default function ContactPage() {
           gap: "2rem",
         }}>
           <div>
-            <p style={{ fontFamily: "var(--font-mono)", fontSize: "clamp(.55rem,.8vw,.65rem)", letterSpacing: ".14em", textTransform: "uppercase", color: acc, margin: "0 0 .75rem" }}>
+            <p style={{
+              fontFamily: "var(--font-mono)", fontSize: "clamp(.55rem,.8vw,.65rem)",
+              letterSpacing: ".14em", textTransform: "uppercase",
+              color: acc, margin: "0 0 .75rem",
+            }}>
               Current status
             </p>
             <div style={{ display: "flex", alignItems: "center", gap: ".75rem" }}>
-              <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: "#22c55e", animation: "aPulse 2s ease-in-out infinite", flexShrink: 0 }}/>
-              <span style={{ fontFamily: "var(--font-body)", fontSize: "clamp(.875rem,1.3vw,1rem)", color: prim }}>
+              <span style={{
+                display: "inline-block", width: 8, height: 8, borderRadius: "50%",
+                background: "#22c55e", animation: "aPulse 2s ease-in-out infinite", flexShrink: 0,
+              }}/>
+              <span style={{
+                fontFamily: "var(--font-body)", fontSize: "clamp(.875rem,1.3vw,1rem)", color: prim,
+              }}>
                 Open to freelance &amp; full-time opportunities
               </span>
             </div>
@@ -563,16 +682,19 @@ export default function ContactPage() {
               { label: "Twitter",  href: "https://twitter.com/chegebb" },
               { label: "Email",    href: "mailto:chegephil24@gmail.com" },
             ].map(lnk => (
-              <a key={lnk.label} href={lnk.href} target="_blank" rel="noopener noreferrer" style={{
-                fontFamily: "var(--font-mono)", fontSize: "clamp(.6rem,.85vw,.7rem)",
-                letterSpacing: ".08em", textTransform: "uppercase",
-                color: muted, border: `1px solid ${border}`,
-                padding: ".4rem .9rem", borderRadius: 9999,
-                textDecoration: "none",
-                transition: "color .2s ease, border-color .2s ease",
-              }}
-              onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.color = acc; el.style.borderColor = acc }}
-              onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.color = muted; el.style.borderColor = border }}
+              <a key={lnk.label} href={lnk.href}
+                target={lnk.href.startsWith("mailto") ? undefined : "_blank"}
+                rel="noopener noreferrer"
+                style={{
+                  fontFamily: "var(--font-mono)", fontSize: "clamp(.6rem,.85vw,.7rem)",
+                  letterSpacing: ".08em", textTransform: "uppercase",
+                  color: muted, border: `1px solid ${border}`,
+                  padding: ".4rem .9rem", borderRadius: 9999,
+                  textDecoration: "none",
+                  transition: "color .2s ease, border-color .2s ease",
+                }}
+                onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.color = acc; el.style.borderColor = acc }}
+                onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.color = muted; el.style.borderColor = border }}
               >{lnk.label}</a>
             ))}
           </div>
@@ -584,14 +706,11 @@ export default function ContactPage() {
       <style jsx global>{`
         .c-grid { grid-template-columns: 1fr; }
         .c-row  { grid-template-columns: 1fr; }
-
         @media (min-width: 768px) {
           .c-grid { grid-template-columns: 1fr 1fr; }
           .c-row  { grid-template-columns: 1fr 1fr; }
         }
-
         @keyframes spin      { to { transform: rotate(360deg); } }
-        @keyframes fadeIn    { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideUp   { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes drawLine  { from { width: 0; } to { width: 100%; } }
         @keyframes aPulse    { 0%, 100% { box-shadow: 0 0 0 0 #22c55e55; } 70% { box-shadow: 0 0 0 8px transparent; } }
