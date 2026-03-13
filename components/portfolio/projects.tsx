@@ -7,7 +7,7 @@ import { ArrowUpRight, ExternalLink, Smartphone } from "lucide-react"
 const PROJECTS = [
   {
     id: "00", title: "ModelsNest", sub: "Enterprise AI APIs",
-    category: "AI Infrastructure · SaaS", type: "STARTUP", year: "2025",
+    category: "AI Infrastructure · SaaS", type: "STARTUP", year: "2026",
     image: "/projects/modelsnest.png",
     tags: ["AI", "APIs", "Next.js", "Enterprise"],
     desc: "One API. 50+ models. Production-ready infrastructure with sub-200ms latency and 99.99% uptime. Ship AI features in minutes, not months.",
@@ -16,7 +16,7 @@ const PROJECTS = [
   },
   {
     id: "01", title: "IntelliMark", sub: "AI Assessment Platform",
-    category: "EdTech · AI", type: "CLIENT", year: "2024",
+    category: "EdTech · AI", type: "CLIENT", year: "2025",
     image: "/projects/intellimark.png",
     tags: ["AI", "EdTech", "React"],
     desc: "AI-powered university assessment that transforms how institutions evaluate students — adaptive, intelligent, beautifully designed.",
@@ -24,7 +24,7 @@ const PROJECTS = [
   },
   {
     id: "02", title: "TabooTalks", sub: "Connections Platform",
-    category: "Social · Web App", type: "CLIENT", year: "2024",
+    category: "Social · Web App", type: "CLIENT", year: "2025",
     image: "/projects/tabootalks.png",
     tags: ["React", "Node.js", "Real-time"],
     desc: "Authentic connections platform breaking social taboos — real conversations, real-time, built for honesty over performative socializing.",
@@ -32,7 +32,7 @@ const PROJECTS = [
   },
   {
     id: "03", title: "H-mex Health", sub: "AI NCDs Risk Tool",
-    category: "HealthTech · AI", type: "CLIENT", year: "2024",
+    category: "HealthTech · AI", type: "CLIENT", year: "2026",
     image: "/projects/hmex.png",
     tags: ["AI/ML", "HealthTech", "React"],
     desc: "AI-powered non-communicable disease risk assessment. Helping clinicians in underserved African healthcare make better decisions faster.",
@@ -40,7 +40,7 @@ const PROJECTS = [
   },
   {
     id: "04", title: "WerEntOnline", sub: "Real Estate Platform",
-    category: "PropTech · Web App", type: "CLIENT", year: "2024",
+    category: "PropTech · Web App", type: "CLIENT", year: "2025",
     image: "/projects/werentonline.png",
     tags: ["Next.js", "Maps API", "Full-stack"],
     desc: "End-to-end real estate rental & leasing — listing to lease signing, all digital, all connected via Maps API.",
@@ -56,9 +56,9 @@ const PROJECTS = [
   },
   {
     id: "06", title: "DjAfro StreamBox", sub: "Movies Streaming App",
-    category: "Mobile · Streaming", type: "CLIENT", year: "2024",
+    category: "Mobile · Streaming", type: "CLIENT", year: "2025",
     image: "/projects/djafro.png",
-    tags: ["React Native", "Android", "Streaming"],
+    tags: ["Flutter", "Dart", "Appwrite","Intasend"],
     desc: "Full streaming app — video player, offline mode, subscriptions — built from scratch and shipped to Google Play. 1,000+ downloads.",
     accent: "#8B5CF6",
     links: [
@@ -68,7 +68,7 @@ const PROJECTS = [
   },
   {
     id: "07", title: "Softrinx", sub: "SaaS Enterprise",
-    category: "SaaS · Enterprise", type: "STARTUP", year: "2025",
+    category: "SaaS · Enterprise", type: "STARTUP", year: "2026",
     image: "/projects/softrinx.png",
     tags: ["SaaS", "Enterprise", "Full-stack"],
     desc: "Co-founded and built the technical core of Softrinx — an enterprise SaaS platform serving companies across East Africa.",
