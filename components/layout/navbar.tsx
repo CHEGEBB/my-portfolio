@@ -12,7 +12,7 @@ const NAV_LINKS = [
   { label: "Portfolio", href: "/portfolio", num: "01" },
   { label: "Services",  href: "/services",  num: "02" },
   { label: "About",     href: "/about",     num: "03" },
-  // { label: "Process",   href: "/process",   num: "04" },
+  { label: "Process",   href: "/process",   num: "04" },
   { label: "Contact",   href: "/contact",   num: "04" },
 ]
 

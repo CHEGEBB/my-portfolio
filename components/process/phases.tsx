@@ -1,11 +1,7 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useRef, useEffect } from "react"
 import { useTheme } from "@/context/theme-context"
-import gsap from "gsap"
-import { ScrollTrigger } from "gsap/ScrollTrigger"
-
-gsap.registerPlugin(ScrollTrigger)
 
 const PHASES = [
   {
@@ -40,71 +36,99 @@ const PHASES = [
   },
 ]
 
+const ITEMS = [...PHASES, ...PHASES, ...PHASES]
+
+function PhaseCard({ ph, origIdx, isDark }: {
+  ph: typeof PHASES[0]; origIdx: number; isDark: boolean
+}) {
+  return (
+    <div style={{
+      flexShrink: 0,
+      width: "clamp(340px,44vw,580px)",
+      height: "100%",
+      display: "flex", flexDirection: "column", justifyContent: "flex-end",
+      padding: "clamp(5rem,10vw,8rem) clamp(2rem,4.5vw,4rem)",
+      borderRight: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.07)"}`,
+      position: "relative",
+    }}>
+      {/* Ghost number */}
+      <div style={{
+        position: "absolute", top: "clamp(5rem,10vw,8rem)", right: "clamp(1.5rem,3vw,2.5rem)",
+        fontFamily: "var(--font-display)", fontSize: "clamp(6rem,14vw,14rem)",
+        fontWeight: 800, letterSpacing: "-0.06em", lineHeight: 1,
+        color: "transparent", WebkitTextStroke: `1px ${ph.accent}${isDark ? "18" : "14"}`,
+        userSelect: "none", pointerEvents: "none",
+      }}>{ph.num}</div>
+
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "clamp(1.5rem,3vw,2.5rem)" }}>
+          <div style={{ width: 24, height: 1, background: ph.accent }} />
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.52rem", letterSpacing: "0.16em", textTransform: "uppercase", color: ph.accent }}>{ph.label}</span>
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.44rem", letterSpacing: "0.1em", color: "var(--color-text-muted)", opacity: 0.4 }}>· {ph.period}</span>
+        </div>
+        <h3 style={{
+          fontFamily: "var(--font-display)", fontSize: "clamp(1.8rem,3.5vw,3rem)",
+          fontWeight: 800, letterSpacing: "-0.045em", lineHeight: 0.96,
+          margin: "0 0 1.5rem", color: "var(--color-text-primary)", whiteSpace: "pre-line",
+        }}>{ph.title}</h3>
+        <p style={{
+          fontFamily: "var(--font-body)", fontSize: "clamp(0.82rem,1.1vw,0.95rem)",
+          color: "var(--color-text-muted)", lineHeight: 1.78, margin: "0 0 1.75rem", maxWidth: 440,
+        }}>{ph.body}</p>
+        <div style={{ borderLeft: `2px solid ${ph.accent}55`, paddingLeft: "1.1rem" }}>
+          <p style={{
+            fontFamily: "var(--font-body)", fontSize: "clamp(0.72rem,0.95vw,0.82rem)",
+            color: ph.accent, lineHeight: 1.65, margin: 0, fontStyle: "italic", opacity: 0.85,
+          }}>{ph.aside}</p>
+        </div>
+      </div>
+
+      <div style={{
+        position: "absolute", bottom: "clamp(1.5rem,3vw,2.5rem)", right: "clamp(1.5rem,3vw,2.5rem)",
+        fontFamily: "var(--font-mono)", fontSize: "0.44rem",
+        letterSpacing: "0.12em", color: ph.accent, opacity: 0.4,
+      }}>{String(origIdx + 1).padStart(2, "0")} / 05</div>
+    </div>
+  )
+}
+
 export function ProcessPhases() {
-  const { theme }  = useTheme()
-  const sectionRef = useRef<HTMLDivElement>(null)
-  const trackRef   = useRef<HTMLDivElement>(null)
-  const isDark     = theme.mode === "dark"
-  const acc        = theme.colors.accent
+  const { theme } = useTheme()
+  const isDark = theme.mode === "dark"
+  const acc = theme.colors.accent
+
+  const trackRef = useRef<HTMLDivElement>(null)
+  const rafRef = useRef<number>(0)
+  const posRef = useRef(0)
+  const pausedRef = useRef(false)
 
   useEffect(() => {
-    const section = sectionRef.current
-    const track   = trackRef.current
-    if (!section || !track) return
+    const track = trackRef.current
+    if (!track) return
 
-    const ctx = gsap.context(() => {
-      ScrollTrigger.create({
-        id: "phases-scroll",
-        trigger: section,
-        pin: true,
-        anticipatePin: 1,
-        scrub: 1,
-        start: "top top",
-        end: () => `+=${track.scrollWidth - window.innerWidth + 200}`,
-        invalidateOnRefresh: true,
-        animation: gsap.to(track, {
-          x: () => -(track.scrollWidth - window.innerWidth),
-          ease: "none",
-        }),
-      })
+    const SPEED = 0.55
 
-      gsap.utils.toArray<HTMLElement>(".phase-chapter").forEach((ch) => {
-        const inner = ch.querySelector<HTMLElement>(".phase-inner")
-        if (!inner) return
-        gsap.fromTo(inner,
-          { opacity: 0, y: 60 },
-          {
-            opacity: 1, y: 0, duration: 0.85, ease: "power3.out",
-            scrollTrigger: {
-              trigger: ch,
-              start: "left 80%",
-              toggleActions: "play none none reverse",
-            },
-          }
-        )
-      })
-    }, sectionRef)
-
-    return () => {
-      // CRITICAL: kill() must run BEFORE ctx.revert() and BEFORE React
-      // removes the DOM nodes. kill(true) = kill + revert inline styles.
-      // If we only call ctx.revert(), GSAP tries to unpin the section
-      // after React has already deleted it → removeChild crash.
-      ScrollTrigger.getAll().forEach(st => st.kill(true))
-      ctx.revert()
-      ScrollTrigger.refresh()
+    const tick = () => {
+      if (!pausedRef.current) {
+        posRef.current += SPEED
+        const oneSet = track.scrollWidth / 3
+        if (posRef.current >= oneSet) posRef.current -= oneSet
+        track.style.transform = `translateX(${-posRef.current}px)`
+      }
+      rafRef.current = requestAnimationFrame(tick)
     }
+
+    rafRef.current = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(rafRef.current)
   }, [])
 
   return (
-    <section
-      ref={sectionRef}
-      style={{ position: "relative", height: "100svh", overflow: "hidden", background: "var(--color-bg)" }}
-    >
+    <section style={{ position: "relative", background: "var(--color-bg)", overflow: "hidden" }}>
+
       {/* Eyebrow */}
       <div style={{
-        position: "absolute", top: "clamp(5rem,8vw,6rem)", left: "clamp(1.5rem,5vw,4rem)",
-        zIndex: 10, display: "flex", alignItems: "center", gap: "0.6rem",
+        padding: "clamp(3rem,6vw,5rem) clamp(1.5rem,6vw,5rem) 0",
+        display: "flex", alignItems: "center", gap: "0.6rem",
       }}>
         <div style={{ width: 20, height: "1px", background: acc }} />
         <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.58rem", letterSpacing: "0.16em", textTransform: "uppercase", color: acc }}>
@@ -112,122 +136,83 @@ export function ProcessPhases() {
         </span>
       </div>
 
-      {/* Horizontal track */}
-      <div ref={trackRef} style={{ display: "flex", height: "100%", willChange: "transform" }}>
-
-        {/* ── Intro panel ── */}
+      {/* Intro — full width, static, sits above the carousel */}
+      <div style={{
+        padding: "clamp(2rem,4vw,3.5rem) clamp(1.5rem,6vw,5rem) clamp(3rem,6vw,5rem)",
+        borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.07)"}`,
+        position: "relative", overflow: "hidden",
+      }}>
+        {/* Background image */}
         <div style={{
-          width: "100vw", flexShrink: 0, height: "100%",
-          display: "flex", flexDirection: "column", justifyContent: "flex-end",
-          padding: "clamp(5rem,10vw,8rem) clamp(1.5rem,6vw,5rem)",
-          borderRight: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.07)"}`,
-          position: "relative", overflow: "hidden",
-        }}>
-          <div style={{
-            position: "absolute", inset: 0, zIndex: 0,
-            backgroundImage: `url("https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1600&auto=format&fit=crop&q=80")`,
-            backgroundSize: "cover", backgroundPosition: "center",
-            filter: isDark ? "brightness(0.18) saturate(0.6)" : "brightness(0.55) saturate(0.5)",
-            transform: "scale(1.04)",
-          }}/>
-          <div style={{
-            position: "absolute", inset: 0, zIndex: 1,
-            background: isDark
-              ? `linear-gradient(135deg, ${acc}08 0%, transparent 50%), linear-gradient(to top, #07070f 40%, transparent 80%)`
-              : `linear-gradient(135deg, ${acc}0a 0%, transparent 50%), linear-gradient(to top, #f0f0f8 35%, transparent 75%)`,
-          }}/>
-          <div style={{ position: "relative", zIndex: 2 }}>
-            <h2 style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "clamp(3.5rem,9vw,9rem)",
-              fontWeight: 800, letterSpacing: "-0.055em", lineHeight: 0.87,
-              margin: "0 0 clamp(1.5rem,3vw,2.5rem)",
-              color: "#ffffff", textShadow: "0 2px 40px rgba(0,0,0,0.5)",
-            }}>
-              How the<br />
-              <span style={{ color: "transparent", WebkitTextStroke: `2px ${acc}`, textShadow: `0 0 60px ${acc}66` }}>
-                work runs.
-              </span>
-            </h2>
-            <p style={{
-              fontFamily: "var(--font-body)", fontSize: "clamp(0.85rem,1.2vw,1rem)",
-              color: "rgba(255,255,255,0.65)", lineHeight: 1.72,
-              maxWidth: 480, margin: "0 0 clamp(2rem,4vw,3rem)",
-            }}>
-              Every project I take runs the same disciplined system. Not because I'm rigid — because consistency is what separates great software from scrambled software.
-            </p>
-            <div style={{ display: "flex", gap: "clamp(1rem,2.5vw,2rem)", flexWrap: "wrap" }}>
-              {PHASES.map((ph) => (
-                <div key={ph.num} style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <div style={{ width: 6, height: 6, background: ph.accent, borderRadius: "50%", boxShadow: `0 0 6px ${ph.accent}` }} />
-                  <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.5rem", letterSpacing: "0.12em", textTransform: "uppercase", color: ph.accent }}>{ph.label}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div style={{
-            position: "absolute", bottom: "clamp(1.5rem,3vw,2.5rem)", right: "clamp(1.5rem,3vw,2.5rem)",
-            display: "flex", alignItems: "center", gap: "0.5rem",
-            fontFamily: "var(--font-mono)", fontSize: "0.48rem",
-            letterSpacing: "0.12em", textTransform: "uppercase",
-            color: "rgba(255,255,255,0.45)", zIndex: 2,
+          position: "absolute", inset: 0, zIndex: 0,
+          backgroundImage: `url("https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1600&auto=format&fit=crop&q=80")`,
+          backgroundSize: "cover", backgroundPosition: "center",
+          filter: isDark ? "brightness(0.18) saturate(0.6)" : "brightness(0.55) saturate(0.5)",
+        }} />
+        <div style={{
+          position: "absolute", inset: 0, zIndex: 1,
+          background: isDark
+            ? `linear-gradient(135deg, ${acc}08 0%, transparent 50%), linear-gradient(to top, #07070f 40%, transparent 80%)`
+            : `linear-gradient(135deg, ${acc}0a 0%, transparent 50%), linear-gradient(to top, #f0f0f8 35%, transparent 75%)`,
+        }} />
+
+        <div style={{ position: "relative", zIndex: 2 }}>
+          <h2 style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "clamp(3.5rem,9vw,9rem)",
+            fontWeight: 800, letterSpacing: "-0.055em", lineHeight: 0.87,
+            margin: "0 0 clamp(1.5rem,3vw,2.5rem)",
+            color: "#ffffff", textShadow: "0 2px 40px rgba(0,0,0,0.5)",
           }}>
-            <span>Scroll</span>
-            <svg width="24" height="10" viewBox="0 0 24 10" fill="none">
-              <path d="M0 5h21M16 1l5 4-5 4" stroke={acc} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            How the<br />
+            <span style={{ color: "transparent", WebkitTextStroke: `2px ${acc}`, textShadow: `0 0 60px ${acc}66` }}>
+              work runs.
+            </span>
+          </h2>
+          <p style={{
+            fontFamily: "var(--font-body)", fontSize: "clamp(0.85rem,1.2vw,1rem)",
+            color: "rgba(255,255,255,0.65)", lineHeight: 1.72,
+            maxWidth: 480, margin: "0 0 clamp(2rem,4vw,3rem)",
+          }}>
+            Every project I take runs the same disciplined system. Not because I'm rigid — because consistency is what separates great software from scrambled software.
+          </p>
+          <div style={{ display: "flex", gap: "clamp(1rem,2.5vw,2rem)", flexWrap: "wrap" }}>
+            {PHASES.map((ph) => (
+              <div key={ph.num} style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <div style={{ width: 6, height: 6, background: ph.accent, borderRadius: "50%", boxShadow: `0 0 6px ${ph.accent}` }} />
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.5rem", letterSpacing: "0.12em", textTransform: "uppercase", color: ph.accent }}>{ph.label}</span>
+              </div>
+            ))}
           </div>
         </div>
+      </div>
 
-        {/* ── Phase chapters ── */}
-        {PHASES.map((ph) => (
-          <div key={ph.num} className="phase-chapter" style={{
-            width: "clamp(340px,44vw,580px)", flexShrink: 0, height: "100%",
-            display: "flex", flexDirection: "column", justifyContent: "flex-end",
-            padding: "clamp(5rem,10vw,8rem) clamp(2rem,4.5vw,4rem)",
-            borderRight: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.07)"}`,
-            position: "relative",
-          }}>
-            <div style={{
-              position: "absolute", top: "clamp(5rem,10vw,8rem)", right: "clamp(1.5rem,3vw,2.5rem)",
-              fontFamily: "var(--font-display)", fontSize: "clamp(6rem,14vw,14rem)",
-              fontWeight: 800, letterSpacing: "-0.06em", lineHeight: 1,
-              color: "transparent", WebkitTextStroke: `1px ${ph.accent}${isDark ? "18" : "14"}`,
-              userSelect: "none", pointerEvents: "none",
-            }}>{ph.num}</div>
+      {/* Carousel */}
+      <div
+        style={{ position: "relative", height: "clamp(420px,65vh,620px)", overflow: "hidden" }}
+        onMouseEnter={() => { pausedRef.current = true }}
+        onMouseLeave={() => { pausedRef.current = false }}
+      >
+        {/* Edge fades */}
+        <div style={{
+          position: "absolute", left: 0, top: 0, bottom: 0, width: "clamp(40px,6vw,80px)",
+          background: `linear-gradient(to right, var(--color-bg), transparent)`,
+          pointerEvents: "none", zIndex: 2,
+        }} />
+        <div style={{
+          position: "absolute", right: 0, top: 0, bottom: 0, width: "clamp(40px,6vw,80px)",
+          background: `linear-gradient(to left, var(--color-bg), transparent)`,
+          pointerEvents: "none", zIndex: 2,
+        }} />
 
-            <div className="phase-inner" style={{ opacity: 0, position: "relative", zIndex: 1 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "clamp(1.5rem,3vw,2.5rem)" }}>
-                <div style={{ width: 24, height: 1, background: ph.accent }} />
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.52rem", letterSpacing: "0.16em", textTransform: "uppercase", color: ph.accent }}>{ph.label}</span>
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.44rem", letterSpacing: "0.1em", color: "var(--color-text-muted)", opacity: 0.4 }}>· {ph.period}</span>
-              </div>
-              <h3 style={{
-                fontFamily: "var(--font-display)", fontSize: "clamp(1.8rem,3.5vw,3rem)",
-                fontWeight: 800, letterSpacing: "-0.045em", lineHeight: 0.96,
-                margin: "0 0 1.5rem", color: "var(--color-text-primary)", whiteSpace: "pre-line",
-              }}>{ph.title}</h3>
-              <p style={{
-                fontFamily: "var(--font-body)", fontSize: "clamp(0.82rem,1.1vw,0.95rem)",
-                color: "var(--color-text-muted)", lineHeight: 1.78, margin: "0 0 1.75rem", maxWidth: 440,
-              }}>{ph.body}</p>
-              <div style={{ borderLeft: `2px solid ${ph.accent}55`, paddingLeft: "1.1rem" }}>
-                <p style={{
-                  fontFamily: "var(--font-body)", fontSize: "clamp(0.72rem,0.95vw,0.82rem)",
-                  color: ph.accent, lineHeight: 1.65, margin: 0, fontStyle: "italic", opacity: 0.85,
-                }}>{ph.aside}</p>
-              </div>
-            </div>
-
-            <div style={{
-              position: "absolute", bottom: "clamp(1.5rem,3vw,2.5rem)", right: "clamp(1.5rem,3vw,2.5rem)",
-              fontFamily: "var(--font-mono)", fontSize: "0.44rem",
-              letterSpacing: "0.12em", color: ph.accent, opacity: 0.4,
-            }}>{ph.num} / 05</div>
-          </div>
-        ))}
-
-        <div style={{ width: "20vw", flexShrink: 0 }} />
+        <div
+          ref={trackRef}
+          style={{ display: "flex", alignItems: "stretch", height: "100%", willChange: "transform" }}
+        >
+          {ITEMS.map((ph, i) => (
+            <PhaseCard key={i} ph={ph} origIdx={i % PHASES.length} isDark={isDark} />
+          ))}
+        </div>
       </div>
     </section>
   )
