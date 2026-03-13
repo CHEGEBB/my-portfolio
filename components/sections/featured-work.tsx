@@ -9,7 +9,6 @@ import { ScrollTrigger } from "gsap/ScrollTrigger"
 
 gsap.registerPlugin(ScrollTrigger)
 
-// ─── DATA ─────────────────────────────────────────────────────────────────────
 const PROJECTS = [
   { id:"01", title:"IntelliMark",      category:"AI · EdTech",        type:"WEB APP", tags:["AI","EDTECH"],         year:"2024", image:"/projects/intellimark.png",   href:"/portfolio" },
   { id:"02", title:"TabooTalks",       category:"Social · Web App",   type:"WEB APP", tags:["SOCIAL","APP"],        year:"2024", image:"/projects/tabootalks.png",    href:"/portfolio" },
@@ -35,7 +34,7 @@ const FALLBACKS = [
 const IMAGE_VH = 78
 const GAP_VH   = 100 - IMAGE_VH
 
-function CursorTooltip({ visible, x, y, accent }) {
+function CursorTooltip({ visible, x, y, accent }: { visible: boolean; x: number; y: number; accent: string }) {
   return (
     <div style={{
       position:"fixed", left:x, top:y,
@@ -59,8 +58,10 @@ function CursorTooltip({ visible, x, y, accent }) {
   )
 }
 
-// ─── PAINT LINE ───────────────────────────────────────────────────────────────
-function PaintLine({ text, outline, acc, delay, painted, revealed, fontSize }) {
+function PaintLine({ text, outline, acc, delay, painted, revealed, fontSize }: {
+  text: string; outline: boolean; acc: string; delay: number
+  painted: boolean; revealed: boolean; fontSize?: string
+}) {
   return (
     <div style={{ position:"relative", overflow:"hidden", display:"block" }}>
       <span style={{
@@ -72,7 +73,6 @@ function PaintLine({ text, outline, acc, delay, painted, revealed, fontSize }) {
         WebkitTextStroke: outline ? `1.5px ${acc}` : undefined,
         textShadow: outline ? `0 0 50px ${acc}33` : undefined,
       }}>{text}</span>
-      {/* block 1 — accent */}
       <div style={{
         position:"absolute", inset:0, background:acc, zIndex:3,
         transform: !painted ? "translateX(-101%)" : revealed ? "translateX(101%)" : "translateX(0%)",
@@ -80,7 +80,6 @@ function PaintLine({ text, outline, acc, delay, painted, revealed, fontSize }) {
           : revealed ? `transform 0.55s cubic-bezier(0.76,0,0.24,1) ${delay+0.06}s`
           : `transform 0.55s cubic-bezier(0.76,0,0.24,1) ${delay}s`,
       }}/>
-      {/* block 2 — ghost */}
       <div style={{
         position:"absolute", inset:0, background:"rgba(255,255,255,0.13)", zIndex:2,
         transform: !painted ? "translateX(-101%)" : revealed ? "translateX(101%)" : "translateX(0%)",
@@ -92,30 +91,27 @@ function PaintLine({ text, outline, acc, delay, painted, revealed, fontSize }) {
   )
 }
 
-// ─── DESKTOP ──────────────────────────────────────────────────────────────────
 export function FeaturedWork() {
   const { theme } = useTheme()
   const acc    = theme.colors.accent
   const isDark = theme.mode === "dark"
 
-  const wrapRef   = useRef(null)
-  const stickyRef = useRef(null)
-  const trackRef  = useRef(null)
-  const leftRef   = useRef(null)
+  const wrapRef   = useRef<HTMLDivElement>(null)
+  const stickyRef = useRef<HTMLDivElement>(null)
+  const trackRef  = useRef<HTMLDivElement>(null)
 
   const [activeIdx, setActiveIdx] = useState(0)
-  const [fallbacks, setFallbacks] = useState({})
+  const [fallbacks, setFallbacks] = useState<Record<number, string>>({})
   const [tooltip,   setTooltip]   = useState({ visible:false, x:0, y:0 })
   const [mounted,   setMounted]   = useState(false)
   const [painted,   setPainted]   = useState(false)
   const [revealed,  setRevealed]  = useState(false)
 
-  const getSrc = (i) => fallbacks[i] ?? PROJECTS[i].image
-  const setFb  = (i) => setFallbacks(f => ({ ...f, [i]: FALLBACKS[i % FALLBACKS.length] }))
+  const getSrc = (i: number) => fallbacks[i] ?? PROJECTS[i].image
+  const setFb  = (i: number) => setFallbacks(f => ({ ...f, [i]: FALLBACKS[i % FALLBACKS.length] }))
 
   useEffect(() => { setMounted(true) }, [])
 
-  // paint fires once on mount
   useEffect(() => {
     if (!mounted) return
     const t1 = setTimeout(() => setPainted(true),   80)
@@ -137,23 +133,30 @@ export function FeaturedWork() {
       const tl = gsap.timeline({ paused: true })
       tl.to(track, { y: () => -getTrackDistance(), ease: "none" })
       ScrollTrigger.create({
-        id:      "fw-pin",
-        trigger: wrap,
-        start:   "top top",
-        end:     () => `+=${getTrackDistance()}`,
-        pin:     sticky,
-        scrub:   1.0,
+        id:        "fw-pin",
+        trigger:   wrap,
+        start:     "top top",
+        end:       () => `+=${getTrackDistance()}`,
+        pin:       sticky,
+        anticipatePin: 1,
+        scrub:     1.0,
         animation: tl,
         invalidateOnRefresh: true,
         onUpdate(self) {
           const idx = Math.min(Math.round(self.progress * (n - 1)), n - 1)
           setActiveIdx(idx)
         },
-        onEnter() { setMounted(true) },
       })
     }, wrapRef)
 
-    return () => ctx.revert()
+    // ── NUCLEAR KILL — must kill(true) BEFORE ctx.revert() ──────────────────
+    // kill(true) removes pin CSS while DOM nodes still exist.
+    // ctx.revert() alone crashes with removeChild on navigation.
+    return () => {
+      ScrollTrigger.getAll().forEach(st => st.kill(true))
+      ctx.revert()
+      ScrollTrigger.refresh()
+    }
   }, [mounted])
 
   const active = PROJECTS[activeIdx]
@@ -184,7 +187,7 @@ export function FeaturedWork() {
           }}>
 
             {/* LEFT */}
-            <div ref={leftRef} style={{
+            <div style={{
               display:"flex", flexDirection:"column",
               justifyContent:"space-between",
               padding:"clamp(4.5rem,8vw,6.5rem) clamp(1.25rem,3vw,2.25rem) clamp(2rem,3.5vw,2.75rem)",
@@ -205,7 +208,6 @@ export function FeaturedWork() {
                   }}>Selected Work</span>
                 </div>
 
-                {/* PAINT HEADING */}
                 <div style={{
                   marginBottom:"clamp(0.9rem,1.8vw,1.4rem)",
                   opacity:mounted?1:0, transform:mounted?"none":"translateY(22px)",
@@ -325,8 +327,8 @@ export function FeaturedWork() {
                     color:"#000", background:acc, padding:"0.55rem 1rem",
                     textDecoration:"none", transition:"opacity 0.2s",
                   }}
-                  onMouseEnter={e=>e.currentTarget.style.opacity="0.85"}
-                  onMouseLeave={e=>e.currentTarget.style.opacity="1"}
+                  onMouseEnter={e=>(e.currentTarget as HTMLElement).style.opacity="0.85"}
+                  onMouseLeave={e=>(e.currentTarget as HTMLElement).style.opacity="1"}
                   >VIEW ALL <ArrowUpRight size={11} strokeWidth={2.5}/></Link>
                   <Link href="/contact" style={{
                     display:"inline-flex", alignItems:"center", justifyContent:"center",
@@ -334,14 +336,14 @@ export function FeaturedWork() {
                     color:acc, border:`1px solid ${acc}55`,
                     width:36, textDecoration:"none", transition:"border-color 0.2s",
                   }}
-                  onMouseEnter={e=>e.currentTarget.style.borderColor=acc}
-                  onMouseLeave={e=>e.currentTarget.style.borderColor=`${acc}55`}
+                  onMouseEnter={e=>(e.currentTarget as HTMLElement).style.borderColor=acc}
+                  onMouseLeave={e=>(e.currentTarget as HTMLElement).style.borderColor=`${acc}55`}
                   >+</Link>
                 </div>
               </div>
             </div>
 
-            {/* RIGHT */}
+            {/* RIGHT — image track */}
             <div
               style={{ position:"relative", overflow:"hidden" }}
               onMouseEnter={() => setTooltip(t=>({...t,visible:true}))}
@@ -430,17 +432,24 @@ export function FeaturedWork() {
       </div>
 
       {/* ── MOBILE ── */}
-      <MobileLayout acc={acc} isDark={isDark} getSrc={getSrc} setFb={setFb} painted={painted} revealed={revealed} mounted={mounted}/>
+      <MobileLayout
+        acc={acc} isDark={isDark}
+        getSrc={getSrc} setFb={setFb}
+        painted={painted} revealed={revealed} mounted={mounted}
+      />
     </>
   )
 }
 
-// ─── MOBILE LAYOUT ────────────────────────────────────────────────────────────
-function MobileLayout({ acc, isDark, getSrc, setFb, painted, revealed, mounted }) {
+function MobileLayout({ acc, isDark, getSrc, setFb, painted, revealed, mounted }: {
+  acc: string; isDark: boolean
+  getSrc: (i: number) => string; setFb: (i: number) => void
+  painted: boolean; revealed: boolean; mounted: boolean
+}) {
   const [activeIdx, setActiveIdx] = useState(0)
-  const touchStartX = useRef(null)
+  const touchStartX = useRef<number | null>(null)
 
-  const advance = (dir) =>
+  const advance = (dir: number) =>
     setActiveIdx(prev => Math.max(0, Math.min(PROJECTS.length - 1, prev + dir)))
 
   const active = PROJECTS[activeIdx]
@@ -451,7 +460,6 @@ function MobileLayout({ acc, isDark, getSrc, setFb, painted, revealed, mounted }
       background:"var(--color-bg)",
       padding:"clamp(3rem,8vw,5rem) clamp(1.25rem,5vw,2rem) clamp(2rem,5vw,3rem)",
     }}>
-      {/* Header */}
       <div style={{ marginBottom:"clamp(1.5rem,5vw,2.5rem)" }}>
         <div style={{
           display:"flex", alignItems:"center", gap:"0.55rem", marginBottom:"0.9rem",
@@ -467,7 +475,6 @@ function MobileLayout({ acc, isDark, getSrc, setFb, painted, revealed, mounted }
         <PaintLine text="Work."    outline={true}  acc={acc} delay={0.18} painted={painted} revealed={revealed} fontSize="clamp(2.4rem,10vw,4rem)"/>
       </div>
 
-      {/* Main image — swipeable */}
       <Link href={active.href} style={{
         display:"block", position:"relative", overflow:"hidden",
         aspectRatio:"4/3", textDecoration:"none", marginBottom:"0.75rem",
@@ -524,7 +531,6 @@ function MobileLayout({ acc, isDark, getSrc, setFb, painted, revealed, mounted }
         </div>
       </Link>
 
-      {/* Prev / dots / next */}
       <div style={{
         display:"flex", alignItems:"center", justifyContent:"space-between",
         marginBottom:"1.25rem",
@@ -561,7 +567,6 @@ function MobileLayout({ acc, isDark, getSrc, setFb, painted, revealed, mounted }
         }}>→</button>
       </div>
 
-      {/* Thumbnail strip */}
       <div style={{
         display:"flex", gap:"0.4rem",
         overflowX:"auto", paddingBottom:"0.5rem",
@@ -587,7 +592,6 @@ function MobileLayout({ acc, isDark, getSrc, setFb, painted, revealed, mounted }
         ))}
       </div>
 
-      {/* Stats + CTA */}
       <div style={{
         display:"flex", gap:"clamp(1rem,5vw,2rem)", alignItems:"center",
         marginTop:"clamp(1.5rem,5vw,2rem)",
