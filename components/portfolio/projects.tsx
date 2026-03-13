@@ -2,65 +2,58 @@
 
 import { useEffect, useRef, useState } from "react"
 import { useTheme } from "@/context/theme-context"
-import { ArrowUpRight, ExternalLink, Smartphone } from "lucide-react"
+import { ExternalLink, Smartphone } from "lucide-react"
 
-// ─── DATA ─────────────────────────────────────────────────────────────────────
+// ─── DATA — imgH controls natural card height (Pinterest-style varying heights) ──
 const PROJECTS = [
   {
     id: "00", title: "ModelsNest", sub: "Enterprise AI APIs",
     category: "AI Infrastructure · SaaS", type: "STARTUP", year: "2026",
-    image: "/projects/modelsnest.png",
+    image: "/projects/modelsnest.png", imgH: 420,
     tags: ["AI", "APIs", "Next.js", "Enterprise"],
-    desc: "One API. 50+ models. Production-ready infrastructure with sub-200ms latency and 99.99% uptime. Ship AI features in minutes, not months.",
     accent: "#00D4FF",
     links: [{ label: "Live Site", href: "https://modelsnest.vercel.app/", icon: "web" }],
   },
   {
     id: "01", title: "IntelliMark", sub: "AI Assessment Platform",
     category: "EdTech · AI", type: "CLIENT", year: "2025",
-    image: "/projects/intellimark.png",
+    image: "/projects/intellimark.png", imgH: 330,
     tags: ["AI", "EdTech", "React"],
-    desc: "AI-powered university assessment that transforms how institutions evaluate students — adaptive, intelligent, beautifully designed.",
     accent: "#5567F7", links: [],
   },
   {
     id: "02", title: "TabooTalks", sub: "Connections Platform",
     category: "Social · Web App", type: "CLIENT", year: "2025",
-    image: "/projects/tabootalks.png",
+    image: "/projects/tabootalks.png", imgH: 520,
     tags: ["React", "Node.js", "Real-time"],
-    desc: "Authentic connections platform breaking social taboos — real conversations, real-time, built for honesty over performative socializing.",
     accent: "#FF6B9D", links: [],
   },
   {
     id: "03", title: "H-mex Health", sub: "AI NCDs Risk Tool",
     category: "HealthTech · AI", type: "CLIENT", year: "2026",
-    image: "/projects/hmex.png",
+    image: "/projects/hmex.png", imgH: 460,
     tags: ["AI/ML", "HealthTech", "React"],
-    desc: "AI-powered non-communicable disease risk assessment. Helping clinicians in underserved African healthcare make better decisions faster.",
     accent: "#22C55E", links: [],
   },
   {
     id: "04", title: "WerEntOnline", sub: "Real Estate Platform",
     category: "PropTech · Web App", type: "CLIENT", year: "2025",
-    image: "/projects/werentonline.png",
+    image: "/projects/werentonline.png", imgH: 360,
     tags: ["Next.js", "Maps API", "Full-stack"],
-    desc: "End-to-end real estate rental & leasing — listing to lease signing, all digital, all connected via Maps API.",
     accent: "#F5A623", links: [],
   },
   {
     id: "05", title: "FarmSense", sub: "Smart Farming",
     category: "AgriTech · Web App", type: "CLIENT", year: "2024",
-    image: "/projects/farmsense.png",
+    image: "/projects/farmsense.png", imgH: 400,
     tags: ["React", "Analytics", "AgriTech"],
-    desc: "Smart farming analytics without hardware. Kenyan farmers making data-driven decisions via satellite imagery and predictive analytics.",
     accent: "#AAFF00", links: [],
   },
   {
     id: "06", title: "DjAfro StreamBox", sub: "Movies Streaming App",
     category: "Mobile · Streaming", type: "CLIENT", year: "2025",
-    image: "/projects/djafro.png",
+    image: "/projects/djafro.png", imgH: 480,
     tags: ["Flutter", "Dart", "Appwrite", "Intasend"],
-    desc: "Full streaming app — video player, offline mode, subscriptions — built from scratch and shipped to Google Play. 1,000+ downloads.",
     accent: "#8B5CF6",
     links: [
       { label: "Play Store", href: "https://play.google.com/store/apps/details?id=com.djafrostreambox", icon: "android" },
@@ -70,707 +63,332 @@ const PROJECTS = [
   {
     id: "07", title: "Softrinx", sub: "SaaS Enterprise",
     category: "SaaS · Enterprise", type: "STARTUP", year: "2026",
-    image: "/projects/softrinx.png",
+    image: "/projects/softrinx.png", imgH: 350,
     tags: ["SaaS", "Enterprise", "Full-stack"],
-    desc: "Co-founded and built the technical core of Softrinx — an enterprise SaaS platform serving companies across East Africa.",
     accent: "#45D2B0", links: [],
   },
   {
     id: "08", title: "Teach2Give", sub: "EdTech Platform",
     category: "EdTech · Web", type: "CLIENT", year: "2025",
-    image: "/projects/teach2give.png",
+    image: "/projects/teach2give.png", imgH: 410,
     tags: ["EdTech", "Web", "React"],
-    desc: "A learning platform connecting mentors with learners across Africa — beautifully designed, fast, and accessible.",
     accent: "#FF4D1C", links: [],
   },
 ]
 
 const FALLBACKS = [
-  "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=1200&q=80",
-  "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1200&q=80",
-  "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=1200&q=80",
-  "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=1200&q=80",
-  "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&q=80",
-  "https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=1200&q=80",
-  "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=1200&q=80",
-  "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1200&q=80",
-  "https://images.unsplash.com/photo-1555774698-0b77e0d5fac6?w=1200&q=80",
+  "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&q=85",
+  "https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=800&q=85",
+  "https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=800&q=85",
+  "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&q=85",
+  "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=85",
+  "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=800&q=85",
+  "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=800&q=85",
+  "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=85",
+  "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=800&q=85",
 ]
 
-// ─── CHAR SPLIT TITLE — letters slam in one by one ────────────────────────────
-function SplitTitle({
-  text,
-  baseDelay = 0,
-  outlined = false,
-  accent,
-  fontSize = "clamp(2rem,4.5vw,4.5rem)",
-  inView,
-}: {
-  text: string
-  baseDelay?: number
-  outlined?: boolean
-  accent?: string
-  fontSize?: string
-  inView: boolean
-}) {
-  return (
-    <span
-      aria-label={text}
-      style={{
-        display: "inline-flex",
-        overflow: "hidden",
-        lineHeight: 0.92,
-        letterSpacing: "-0.04em",
-      }}
-    >
-      {text.split("").map((ch, i) => (
-        <span
-          key={i}
-          style={{
-            display: "inline-block",
-            fontFamily: "var(--font-display)",
-            fontSize,
-            fontWeight: 800,
-            lineHeight: 0.92,
-            color: outlined ? "transparent" : accent ?? "var(--color-text-primary)",
-            WebkitTextStroke: outlined
-              ? `1.5px ${accent ?? "var(--color-text-primary)"}`
-              : "0px",
-            transform: inView ? "translateY(0) rotate(0) skewX(0)" : "translateY(110%) rotate(6deg) skewX(-4deg)",
-            opacity: inView ? 1 : 0,
-            transition: inView
-              ? `transform 0.65s cubic-bezier(0.22,1,0.36,1) ${baseDelay + i * 0.04}s,
-                 opacity 0.4s ease ${baseDelay + i * 0.04}s`
-              : "none",
-            whiteSpace: ch === " " ? "pre" : "normal",
-          }}
-        >
-          {ch === " " ? "\u00a0" : ch}
-        </span>
-      ))}
-    </span>
-  )
-}
-
-// ─── PROJECT ROW ──────────────────────────────────────────────────────────────
-function ProjectRow({
+// ─── CARD ─────────────────────────────────────────────────────────────────────
+function ProjectCard({
   project,
   idx,
-  inView,
 }: {
   project: (typeof PROJECTS)[0]
   idx: number
-  inView: boolean
 }) {
   const [hovered, setHovered] = useState(false)
-  const [mouse, setMouse] = useState({ x: 0, y: 0 })
-  const [tilt, setTilt] = useState({ x: 0, y: 0 })
   const [imgSrc, setImgSrc] = useState(project.image)
-  const [rowInView, setRowInView] = useState(false)
-  const rowRef = useRef<HTMLDivElement>(null)
-  const imgRef = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(false)
+  const [wash, setWash] = useState("")
+  const [px, setPx] = useState(0)
+  const [py, setPy] = useState(0)
+  const cardRef = useRef<HTMLDivElement>(null)
   const acc = project.accent
-  const even = idx % 2 === 0
-  const rowDelay = idx * 0.07
 
-  // Each row has its own IntersectionObserver so chars animate as they scroll into view
   useEffect(() => {
-    const el = rowRef.current
+    const el = cardRef.current
     if (!el) return
     const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setRowInView(true); obs.disconnect() } },
-      { threshold: 0.15 }
+      ([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect() } },
+      { threshold: 0.08 }
     )
     obs.observe(el)
     return () => obs.disconnect()
   }, [])
 
   const onMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const r = rowRef.current?.getBoundingClientRect()
+    const r = cardRef.current?.getBoundingClientRect()
     if (!r) return
-    const x = e.clientX - r.left
-    const y = e.clientY - r.top
-    setMouse({ x, y })
-
-    // 3D tilt on image panel
-    const ir = imgRef.current?.getBoundingClientRect()
-    if (ir) {
-      const cx = (e.clientX - ir.left) / ir.width - 0.5
-      const cy = (e.clientY - ir.top) / ir.height - 0.5
-      setTilt({ x: cy * -6, y: cx * 8 })
-    }
+    const x = (e.clientX - r.left) / r.width
+    const y = (e.clientY - r.top) / r.height
+    setPx((x - 0.5) * 12)
+    setPy((y - 0.5) * 8)
+    setWash(`radial-gradient(circle at ${x * 100}% ${y * 100}%, ${acc}22 0%, transparent 65%)`)
   }
 
   const onMouseLeave = () => {
     setHovered(false)
-    setTilt({ x: 0, y: 0 })
+    setPx(0)
+    setPy(0)
+    setWash("")
   }
 
   return (
     <div
-      ref={rowRef}
+      ref={cardRef}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={onMouseLeave}
       onMouseMove={onMouseMove}
       style={{
         position: "relative",
-        display: "grid",
-        gridTemplateColumns: even ? "1fr 1.1fr" : "1.1fr 1fr",
-        minHeight: "clamp(320px, 38vw, 560px)",
-        borderBottom: "1px solid var(--color-surface-border)",
-        cursor: "none",
         overflow: "hidden",
-        // Row slides up when scrolled into view
-        opacity: rowInView ? 1 : 0,
-        transform: rowInView ? "none" : "translateY(50px)",
-        transition: `opacity 0.8s ease ${rowDelay}s, transform 0.8s cubic-bezier(.16,1,.3,1) ${rowDelay}s`,
+        cursor: "crosshair",
+        background: "var(--color-surface)",
+        // Staggered entrance
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0)" : "translateY(28px)",
+        transition: `opacity 0.75s cubic-bezier(.16,1,.3,1) ${idx * 0.07}s,
+                     transform 0.75s cubic-bezier(.16,1,.3,1) ${idx * 0.07}s`,
+        // break-inside prevents card splitting across columns
+        breakInside: "avoid",
       }}
     >
-      {/* ── MAGNETIC CURSOR BLOB ── */}
-      <div
-        style={{
-          position: "absolute",
-          left: mouse.x - 50,
-          top: mouse.y - 50,
-          width: 100,
-          height: 100,
-          borderRadius: "50%",
-          background: acc,
-          opacity: hovered ? 0.15 : 0,
-          filter: "blur(28px)",
-          pointerEvents: "none",
-          zIndex: 20,
-          transition: "opacity 0.3s ease",
-          willChange: "left, top",
-        }}
-      />
-
-      {/* ── ACCENT SWEEP — full-row color wash on hover ── */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: `linear-gradient(${even ? "90deg" : "270deg"}, ${acc}06 0%, transparent 60%)`,
-          opacity: hovered ? 1 : 0,
-          transition: "opacity 0.6s ease",
-          pointerEvents: "none",
-          zIndex: 1,
-        }}
-      />
-
-      {/* ── IMAGE PANEL ── */}
-      <div
-        ref={imgRef}
-        style={{
-          order: even ? 1 : 2,
-          position: "relative",
-          overflow: "hidden",
-          perspective: "800px",
-        }}
-      >
-        {/* 3D tilt wrapper */}
-        <div
+      {/* IMAGE — full width, height drives the card's natural size */}
+      <div style={{ overflow: "hidden", position: "relative" }}>
+        <img
+          src={imgSrc}
+          alt={project.title}
+          onError={() => setImgSrc(FALLBACKS[idx % FALLBACKS.length])}
           style={{
-            position: "absolute",
-            inset: 0,
+            display: "block",
+            width: "100%",
+            height: project.imgH,
+            objectFit: "cover",
             transform: hovered
-              ? `perspective(800px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) scale(1.02)`
-              : "perspective(800px) rotateX(0) rotateY(0) scale(1)",
+              ? `scale(1.12) translate(${px}px, ${py}px)`
+              : "scale(1.06)",
+            filter: hovered
+              ? "brightness(0.5) saturate(0.65)"
+              : "brightness(0.82) saturate(0.9)",
             transition: hovered
-              ? "transform 0.15s ease"
-              : "transform 0.8s cubic-bezier(.16,1,.3,1)",
+              ? "transform 0.18s ease, filter 0.5s ease"
+              : "transform 1.1s cubic-bezier(.16,1,.3,1), filter 0.6s ease",
             willChange: "transform",
           }}
-        >
-          <img
-            src={imgSrc}
-            alt={project.title}
-            onError={() => setImgSrc(FALLBACKS[idx % FALLBACKS.length])}
+        />
+
+        {/* Cursor-following color wash */}
+        {wash && (
+          <div
             style={{
               position: "absolute",
               inset: 0,
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              // Image breathes: zooms in on hover, zooms OUT (pulls back) for drama
-              transform: hovered ? "scale(1.12)" : "scale(1.0)",
-              filter: hovered
-                ? "brightness(0.35) saturate(0.6)"
-                : "brightness(0.7) saturate(0.85)",
-              transition: "transform 1s cubic-bezier(.16,1,.3,1), filter 0.6s ease",
+              background: wash,
+              pointerEvents: "none",
+              zIndex: 2,
             }}
           />
-        </div>
+        )}
 
-        {/* Gradient edge bleed into text side */}
+        {/* Year ghost */}
         <div
           style={{
             position: "absolute",
-            inset: 0,
-            background: even
-              ? "linear-gradient(to right, transparent 55%, var(--color-bg) 100%)"
-              : "linear-gradient(to left, transparent 55%, var(--color-bg) 100%)",
-            zIndex: 2,
-            pointerEvents: "none",
-          }}
-        />
-
-        {/* Accent color flood on hover */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            zIndex: 3,
-            background: `linear-gradient(135deg, ${acc}25 0%, transparent 65%)`,
-            opacity: hovered ? 1 : 0,
-            transition: "opacity 0.5s ease",
-            pointerEvents: "none",
-          }}
-        />
-
-        {/* YEAR watermark — slides and fades */}
-        <div
-          style={{
-            position: "absolute",
-            bottom: "0.5rem",
-            [even ? "right" : "left"]: "-0.1em",
+            bottom: "-0.1em",
+            right: "-0.05em",
             fontFamily: "var(--font-display)",
-            fontSize: "clamp(5rem,12vw,12rem)",
+            fontSize: "clamp(3rem,7vw,7rem)",
             fontWeight: 900,
             color: "transparent",
-            WebkitTextStroke: `1px rgba(255,255,255,${hovered ? 0.14 : 0.04})`,
+            WebkitTextStroke: `1px rgba(255,255,255,${hovered ? 0.1 : 0.04})`,
             lineHeight: 1,
-            userSelect: "none",
             pointerEvents: "none",
-            zIndex: 4,
-            transform: hovered ? "translateY(0)" : "translateY(8px)",
-            transition: "all 0.5s cubic-bezier(.16,1,.3,1)",
+            userSelect: "none",
+            zIndex: 3,
+            transition: "-webkit-text-stroke 0.4s",
           }}
         >
           {project.year}
         </div>
 
-        {/* INDEX number — top corner of image */}
+        {/* Center arrow — pops in on hover */}
         <div
           style={{
             position: "absolute",
-            top: "1.25rem",
-            [even ? "left" : "right"]: "1.25rem",
-            zIndex: 5,
-            fontFamily: "var(--font-mono)",
-            fontSize: "0.5rem",
-            letterSpacing: "0.15em",
-            color: acc,
-            opacity: hovered ? 1 : 0.4,
-            transition: "opacity 0.3s ease",
-          }}
-        >
-          /{project.id}
-        </div>
-
-        {/* REVEAL overlay — project name appears on image on hover */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            zIndex: 6,
+            top: "50%",
+            left: "50%",
+            width: 52,
+            height: 52,
+            borderRadius: "50%",
+            border: `1.5px solid ${acc}`,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            color: acc,
+            transform: hovered
+              ? "translate(-50%, -50%) scale(1)"
+              : "translate(-50%, -50%) scale(0)",
+            opacity: hovered ? 1 : 0,
+            transition: "transform 0.4s cubic-bezier(.16,1,.3,1), opacity 0.3s ease",
+            zIndex: 5,
             pointerEvents: "none",
           }}
         >
-          <div
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "clamp(1.5rem,3.5vw,3rem)",
-              fontWeight: 800,
-              letterSpacing: "-0.03em",
-              color: "transparent",
-              WebkitTextStroke: `1px ${acc}`,
-              opacity: hovered ? 0.25 : 0,
-              transform: hovered ? "scale(1)" : "scale(0.85)",
-              transition: "opacity 0.5s ease, transform 0.6s cubic-bezier(.16,1,.3,1)",
-              textAlign: "center",
-              padding: "0 1rem",
-            }}
-          >
-            {project.title}
-          </div>
+          <ExternalLink size={18} strokeWidth={1.5} />
         </div>
       </div>
 
-      {/* ── TEXT PANEL ── */}
+      {/* BODY — below image, always visible */}
       <div
         style={{
-          order: even ? 2 : 1,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          padding: "clamp(2rem,4vw,4rem) clamp(2rem,5vw,5rem)",
+          padding: "0.9rem 1rem 1.1rem",
           background: "var(--color-bg)",
           position: "relative",
-          zIndex: 5,
         }}
       >
-        {/* Index + type badge */}
+        {/* Accent line draws across top on hover */}
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            height: 2,
+            width: hovered ? "100%" : "1.5rem",
+            background: acc,
+            transition: "width 0.55s cubic-bezier(.16,1,.3,1)",
+          }}
+        />
+
+        {/* Index + type */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
-            gap: "1rem",
-            marginBottom: "clamp(1rem,2vw,1.75rem)",
+            justifyContent: "space-between",
+            marginBottom: "0.5rem",
           }}
         >
           <span
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: "0.52rem",
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              color: acc,
-              transform: rowInView ? "none" : "translateX(-10px)",
-              opacity: rowInView ? 1 : 0,
-              transition: `all 0.5s ease ${rowDelay + 0.1}s`,
+              fontSize: "0.45rem",
+              letterSpacing: "0.15em",
+              color: "var(--color-text-muted)",
+              opacity: 0.4,
             }}
           >
-            /{project.id}
+            {project.id}
           </span>
-          <div
-            style={{
-              flex: 1,
-              height: 1,
-              background: `${acc}30`,
-              transform: rowInView ? "scaleX(1)" : "scaleX(0)",
-              transformOrigin: "left",
-              transition: `transform 0.8s cubic-bezier(.16,1,.3,1) ${rowDelay + 0.15}s`,
-            }}
-          />
           <span
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: "0.5rem",
-              letterSpacing: "0.12em",
+              fontSize: "0.4rem",
+              letterSpacing: "0.14em",
               textTransform: "uppercase",
-              color: "var(--color-text-muted)",
-              border: "1px solid var(--color-surface-border)",
-              padding: "0.15rem 0.55rem",
-              transform: rowInView ? "none" : "translateX(10px)",
-              opacity: rowInView ? 1 : 0,
-              transition: `all 0.5s ease ${rowDelay + 0.2}s`,
+              color: acc,
+              border: `1px solid ${acc}40`,
+              padding: "2px 6px",
             }}
           >
             {project.type}
           </span>
         </div>
 
-        {/* Category */}
-        <p
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "0.52rem",
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
-            color: acc,
-            margin: "0 0 0.5rem",
-            opacity: rowInView ? 0.8 : 0,
-            transform: rowInView ? "none" : "translateY(8px)",
-            transition: `all 0.5s ease ${rowDelay + 0.15}s`,
-          }}
-        >
-          {project.category}
-        </p>
-
-        {/* TITLE — char-by-char slam animation */}
-        <h3 style={{ margin: "0 0 clamp(0.75rem,1.5vw,1.25rem)", lineHeight: 0.92 }}>
-          <SplitTitle
-            text={project.title}
-            baseDelay={rowDelay + 0.2}
-            outlined={!hovered}
-            accent={acc}
-            fontSize="clamp(2rem,4.5vw,4.5rem)"
-            inView={rowInView}
-          />
-        </h3>
-
-        {/* Sub */}
-        <p
+        {/* Title — outlined at rest, solid accent on hover, tracking opens */}
+        <h3
           style={{
             fontFamily: "var(--font-display)",
-            fontSize: "clamp(0.9rem,1.5vw,1.2rem)",
-            fontWeight: 600,
-            letterSpacing: "-0.02em",
-            color: "var(--color-text-secondary)",
-            margin: "0 0 1rem",
+            fontSize: "clamp(1.4rem, 3vw, 2.4rem)",
+            fontWeight: 800,
+            lineHeight: 0.92,
+            letterSpacing: hovered ? "0.05em" : "0.01em",
+            margin: "0 0 0.25rem",
+            color: hovered ? acc : "transparent",
+            WebkitTextStroke: hovered ? "0px" : `0.8px ${acc}`,
+            transition:
+              "color 0.3s ease, -webkit-text-stroke 0.3s ease, letter-spacing 0.5s cubic-bezier(.16,1,.3,1)",
+          }}
+        >
+          {project.title}
+        </h3>
+
+        <p
+          style={{
+            fontFamily: "var(--font-body)",
+            fontSize: "0.7rem",
+            letterSpacing: "0.04em",
             fontStyle: "italic",
-            opacity: rowInView ? 1 : 0,
-            transform: rowInView ? "none" : "translateY(10px)",
-            transition: `all 0.6s ease ${rowDelay + 0.35}s`,
+            fontWeight: 300,
+            color: hovered ? "var(--color-text-secondary)" : "var(--color-text-muted)",
+            margin: 0,
+            transition: "color 0.3s ease",
           }}
         >
           {project.sub}
         </p>
 
-        {/* Description — reveals on hover */}
-        <p
-          style={{
-            fontFamily: "var(--font-body)",
-            fontSize: "clamp(0.78rem,1vw,0.88rem)",
-            lineHeight: 1.75,
-            color: "var(--color-text-muted)",
-            maxWidth: "400px",
-            margin: "0 0 clamp(1.25rem,2.5vw,2rem)",
-            maxHeight: hovered ? "8rem" : "0",
-            overflow: "hidden",
-            opacity: hovered ? 1 : 0,
-            transition: "max-height 0.5s cubic-bezier(.16,1,.3,1), opacity 0.4s ease",
-          }}
-        >
-          {project.desc}
-        </p>
-
-        {/* Tags */}
+        {/* Tags + links — slide up on hover */}
         <div
           style={{
+            overflow: "hidden",
+            maxHeight: hovered ? "80px" : 0,
+            opacity: hovered ? 1 : 0,
+            marginTop: hovered ? "0.65rem" : 0,
+            transition:
+              "max-height 0.5s cubic-bezier(.16,1,.3,1), opacity 0.35s ease, margin-top 0.35s ease",
             display: "flex",
             flexWrap: "wrap",
-            gap: "0.35rem",
-            marginBottom: "clamp(1rem,2vw,1.75rem)",
-            opacity: rowInView ? 1 : 0,
-            transform: rowInView ? "none" : "translateY(8px)",
-            transition: `all 0.6s ease ${rowDelay + 0.4}s`,
+            gap: "4px",
           }}
         >
-          {project.tags.map((t, ti) => (
+          {project.tags.map((t) => (
             <span
               key={t}
               style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: "0.46rem",
-                letterSpacing: "0.08em",
+                fontSize: "0.38rem",
+                letterSpacing: "0.1em",
                 textTransform: "uppercase",
                 color: acc,
                 border: `1px solid ${acc}40`,
-                padding: "0.18rem 0.55rem",
-                // Tags stagger-pop in
-                transform: rowInView ? "none" : "scale(0.85)",
-                opacity: rowInView ? 1 : 0,
-                transition: `all 0.4s cubic-bezier(.16,1,.3,1) ${rowDelay + 0.45 + ti * 0.04}s`,
+                padding: "2px 6px",
               }}
             >
               {t}
             </span>
           ))}
-        </div>
 
-        {/* CTA row */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "1rem",
-            flexWrap: "wrap",
-            opacity: rowInView ? 1 : 0,
-            transform: rowInView ? "none" : "translateY(10px)",
-            transition: `all 0.6s ease ${rowDelay + 0.5}s`,
-          }}
-        >
-          {project.links.map((link) => (
+          {project.links.map((l) => (
             <a
-              key={link.label}
-              href={link.href}
+              key={l.label}
+              href={l.href}
               target="_blank"
               rel="noopener noreferrer"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
-                gap: "0.35rem",
+                gap: 3,
                 fontFamily: "var(--font-mono)",
-                fontSize: "0.52rem",
+                fontSize: "0.38rem",
                 letterSpacing: "0.1em",
                 textTransform: "uppercase",
-                color: acc,
+                color: "#000",
+                background: acc,
+                padding: "3px 8px",
                 textDecoration: "none",
-                border: `1px solid ${acc}50`,
-                padding: "0.4rem 0.9rem",
-                transition: "background 0.2s ease",
-              }}
-              onMouseEnter={(e) => {
-                ;(e.currentTarget as HTMLElement).style.background = `${acc}18`
-              }}
-              onMouseLeave={(e) => {
-                ;(e.currentTarget as HTMLElement).style.background = ""
               }}
             >
-              {link.icon === "android" ? (
-                <Smartphone size={9} />
-              ) : (
-                <ExternalLink size={9} />
-              )}
-              {link.label}
+              {l.icon === "android" ? <Smartphone size={8} /> : <ExternalLink size={8} />}
+              {l.label}
             </a>
           ))}
-
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "0.6rem",
-              color: hovered ? acc : "var(--color-text-muted)",
-              transition: "color 0.3s ease",
-              fontFamily: "var(--font-mono)",
-              fontSize: "0.52rem",
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              cursor: "default",
-            }}
-            onMouseEnter={(e) => {
-              ;(e.currentTarget as HTMLElement).style.gap = "1rem"
-            }}
-            onMouseLeave={(e) => {
-              ;(e.currentTarget as HTMLElement).style.gap = "0.6rem"
-            }}
-          >
-            View project
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: "50%",
-                border: `1.5px solid ${hovered ? acc : "var(--color-surface-border)"}`,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                transform: hovered ? "rotate(-45deg)" : "rotate(0deg)",
-                transition: "all 0.35s cubic-bezier(.16,1,.3,1)",
-                color: hovered ? acc : "var(--color-text-muted)",
-              }}
-            >
-              <ArrowUpRight size={13} strokeWidth={2} />
-            </div>
-          </div>
         </div>
-
-        {/* Accent side bar — draws in on hover */}
-        <div
-          style={{
-            position: "absolute",
-            [even ? "right" : "left"]: 0,
-            top: 0,
-            bottom: 0,
-            width: hovered ? 3 : 0,
-            background: acc,
-            transition: "width 0.35s ease",
-          }}
-        />
-
-        {/* Bottom progress line — draws in on scroll-into-view */}
-        <div
-          style={{
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            height: 1,
-            width: rowInView ? "100%" : "0%",
-            background: `linear-gradient(to right, ${acc}60, transparent)`,
-            transition: `width 1.2s cubic-bezier(.16,1,.3,1) ${rowDelay + 0.3}s`,
-            pointerEvents: "none",
-          }}
-        />
       </div>
     </div>
   )
 }
 
-// ─── SECTION HEADER ───────────────────────────────────────────────────────────
-function SectionHeader({ inView, acc }: { inView: boolean; acc: string }) {
-  return (
-    <div
-      style={{
-        display: "flex",
-        flexWrap: "wrap",
-        alignItems: "flex-end",
-        justifyContent: "space-between",
-        gap: "2rem",
-        padding:
-          "clamp(5rem,9vw,8rem) clamp(1.5rem,5vw,4rem) clamp(2rem,4vw,3rem)",
-        borderBottom: "1px solid var(--color-surface-border)",
-        overflow: "hidden",
-      }}
-    >
-      <div>
-        {/* Label */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "0.5rem",
-            marginBottom: "1rem",
-            opacity: inView ? 1 : 0,
-            transform: inView ? "none" : "translateY(14px)",
-            transition: "all 0.6s ease 0.1s",
-          }}
-        >
-          <div style={{ width: 24, height: 1, background: acc }} />
-          <span
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "0.6rem",
-              letterSpacing: "0.15em",
-              textTransform: "uppercase",
-              color: acc,
-            }}
-          >
-            Selected Work
-          </span>
-        </div>
-
-        {/* "Things" — chars slam in */}
-        <h2 style={{ margin: 0, lineHeight: 0.88 }}>
-          <span style={{ display: "block", overflow: "hidden" }}>
-            <SplitTitle
-              text="Things"
-              baseDelay={0.2}
-              outlined={false}
-              accent="var(--color-text-primary)"
-              fontSize="clamp(3rem,9vw,8rem)"
-              inView={inView}
-            />
-          </span>
-          <span style={{ display: "block", overflow: "hidden" }}>
-            <SplitTitle
-              text="I've Built"
-              baseDelay={0.4}
-              outlined={true}
-              accent={acc}
-              fontSize="clamp(3rem,9vw,8rem)"
-              inView={inView}
-            />
-          </span>
-        </h2>
-      </div>
-
-      {/* Count watermark */}
-      <div
-        style={{
-          opacity: inView ? 1 : 0,
-          transition: "opacity 0.8s ease 0.6s",
-          fontFamily: "var(--font-mono)",
-          fontSize: "clamp(3rem,7vw,6rem)",
-          fontWeight: 900,
-          letterSpacing: "-0.05em",
-          color: "transparent",
-          WebkitTextStroke: "1px var(--color-surface-border)",
-          lineHeight: 1,
-        }}
-      >
-        0{PROJECTS.length}
-      </div>
-    </div>
-  )
-}
-
-// ─── MAIN EXPORT ──────────────────────────────────────────────────────────────
+// ─── MAIN ─────────────────────────────────────────────────────────────────────
 export function PortfolioProjects() {
   const { theme } = useTheme()
   const sectionRef = useRef<HTMLDivElement>(null)
@@ -781,37 +399,160 @@ export function PortfolioProjects() {
     const el = sectionRef.current
     if (!el) return
     const obs = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) {
-          setInView(true)
-          obs.disconnect()
-        }
-      },
+      ([e]) => { if (e.isIntersecting) { setInView(true); obs.disconnect() } },
       { threshold: 0.04 }
     )
     obs.observe(el)
     return () => obs.disconnect()
   }, [])
 
+  // Pinterest masonry: distribute cards across 3 columns manually
+  // so shortest column always gets the next card (pure CSS columns trick)
+  // We just let CSS `columns` do the work — it's exactly how Pinterest does it.
+
   return (
     <section
       id="projects"
       ref={sectionRef}
-      style={{
-        position: "relative",
-        background: "var(--color-bg)",
-        overflow: "hidden",
-      }}
+      style={{ position: "relative", background: "var(--color-bg)", overflow: "hidden" }}
     >
-      <SectionHeader inView={inView} acc={acc} />
+      {/* ── HEADER ── */}
+      <div
+        style={{
+          padding: "clamp(4rem,8vw,7rem) clamp(1.5rem,4vw,3rem) clamp(1.5rem,3vw,2rem)",
+          display: "grid",
+          gridTemplateColumns: "1fr auto",
+          alignItems: "flex-end",
+          gap: "2rem",
+          borderBottom: "1px solid var(--color-surface-border)",
+          overflow: "hidden",
+        }}
+      >
+        <div>
+          <div
+            style={{
+              fontSize: "0.5rem",
+              letterSpacing: "0.25em",
+              textTransform: "uppercase",
+              color: "var(--color-text-muted)",
+              marginBottom: "0.75rem",
+              opacity: inView ? 0.5 : 0,
+              transition: "opacity 0.6s ease 0.1s",
+            }}
+          >
+            — Selected Work · Brian Ouko
+          </div>
 
-      <div>
+          <h2 style={{ margin: 0, lineHeight: 0.88 }}>
+            <span
+              style={{
+                display: "block",
+                fontFamily: "var(--font-display)",
+                fontSize: "clamp(3.5rem,10vw,9rem)",
+                fontWeight: 800,
+                letterSpacing: "0.01em",
+                color: "var(--color-text-primary)",
+                opacity: inView ? 1 : 0,
+                transform: inView ? "none" : "translateY(60px)",
+                transition: "all 0.8s cubic-bezier(.16,1,.3,1) 0.15s",
+              }}
+            >
+              Things
+            </span>
+            <span
+              style={{
+                display: "block",
+                fontFamily: "var(--font-display)",
+                fontSize: "clamp(3.5rem,10vw,9rem)",
+                fontWeight: 800,
+                letterSpacing: "0.01em",
+                color: "transparent",
+                WebkitTextStroke: `1.5px var(--color-text-primary)`,
+                opacity: inView ? 1 : 0,
+                transform: inView ? "none" : "translateY(60px)",
+                transition: "all 0.8s cubic-bezier(.16,1,.3,1) 0.28s",
+              }}
+            >
+              I&apos;ve Built
+            </span>
+          </h2>
+        </div>
+
+        <div style={{ textAlign: "right" }}>
+          <div
+            style={{
+              fontFamily: "var(--font-display)",
+              fontSize: "clamp(3rem,7vw,7rem)",
+              fontWeight: 900,
+              color: "transparent",
+              WebkitTextStroke: "1px var(--color-surface-border)",
+              lineHeight: 1,
+              opacity: inView ? 1 : 0,
+              transition: "opacity 0.8s ease 0.45s",
+            }}
+          >
+            0{PROJECTS.length}
+          </div>
+          <div
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "0.45rem",
+              letterSpacing: "0.2em",
+              textTransform: "uppercase",
+              color: "var(--color-text-muted)",
+              marginTop: "0.4rem",
+              opacity: inView ? 0.4 : 0,
+              transition: "opacity 0.6s ease 0.55s",
+            }}
+          >
+            Projects · 2024–2026
+          </div>
+        </div>
+      </div>
+
+      {/* ── PINTEREST MASONRY ──
+           CSS `columns` is the correct primitive here:
+           each card goes into the shortest column automatically,
+           exactly like Pinterest. No JS column-balancing needed.
+           gap between columns + between rows both controlled by column-gap + margin-bottom.
+      ── */}
+      <div
+        style={{
+          padding: "10px",
+          // 3 cols desktop, 2 tablet, 1 mobile
+          columns: "3",
+          columnGap: "10px",
+        }}
+      >
         {PROJECTS.map((p, i) => (
-          <ProjectRow key={p.id} project={p} idx={i} inView={inView} />
+          <div
+            key={p.id}
+            style={{
+              breakInside: "avoid",
+              marginBottom: "10px",
+              display: "block",
+            }}
+          >
+            <ProjectCard project={p} idx={i} />
+          </div>
         ))}
       </div>
 
-      <div style={{ height: "clamp(3rem,5vw,5rem)" }} />
+      {/* ── RESPONSIVE ── */}
+      <style>{`
+        #projects .pp-grid { columns: 3; }
+        @media (max-width: 900px) {
+          #projects [style*="columns: 3"] { columns: 2 !important; }
+        }
+        @media (max-width: 500px) {
+          #projects [style*="columns"] { columns: 1 !important; }
+          #projects [style*="grid-template-columns: 1fr auto"] {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
+
+      <div style={{ height: "clamp(2rem,4vw,4rem)" }} />
     </section>
   )
 }
